@@ -1,3 +1,13 @@
+(cors) {
+	@origin{args.0} header Origin {args.1}
+	header @origin{args.0} {
+		Access-Control-Allow-Origin "{args.1}"
+		Access-Control-Allow-Method *
+		Access-Control-Allow-Credentials "true"
+		Access-Control-Max-Age "3600"
+	}
+}
+
 :80 {
 	encode gzip
 
@@ -12,6 +22,14 @@
 		header /*.png Cache-Control "public, max-age=7776000"
 		header /*.svg Cache-Control "public, max-age=7776000"
 		header /*.webp Cache-Control "public, max-age=7776000"
+
+		@options {
+			method OPTIONS
+		}
+		respond @options 204
+		import cors 1 https://books.fishhawk.com
+		import cors 2 https://n.novelia.cc
+		import cors 3 http://localhost:5173
 	}
 
 	handle_path /api* {
