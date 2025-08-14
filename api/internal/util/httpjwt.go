@@ -91,9 +91,18 @@ func RespondLogout(w http.ResponseWriter) error {
 	return RespondText(w, "")
 }
 
+func tokenTTLFor(app string) time.Duration {
+	switch app {
+	case "legado":
+		return time.Hour * 24 * 100
+	default:
+		return AccessTokenLifetime
+	}
+}
+
 func issueAccessToken(app string, username string, role string, createdAt time.Time) (string, error) {
 	issuedAt := time.Now()
-	expiresAt := issuedAt.Add(AccessTokenLifetime)
+	expiresAt := issuedAt.Add(tokenTTLFor(app))
 
 	claims := accessClaim{
 		RegisteredClaims: jwt.RegisteredClaims{
