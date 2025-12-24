@@ -1,4 +1,4 @@
-# Auth
+# Auth 认证服务
 
 [![GPL-3.0](https://img.shields.io/github/license/auto-novel/auth)](https://github.com/auto-novel/auth#license)
 [![cd-web](https://github.com/auto-novel/auth/actions/workflows/cd-web.yml/badge.svg)](https://github.com/auto-novel/auth/actions/workflows/cd-web.yml)
@@ -28,11 +28,34 @@ docker compose up -d
 
 ## 开发
 
-### 本地编译镜像
+使用本地编译镜像启动服务：
 
 ```bash
 export COMPOSE_FILE="docker-compose.yml:docker-compose.debug.yml"
 docker compose up -d
+```
+
+### Web
+
+设置开发环境：
+
+```bash
+cd web
+
+# 安装依赖
+pnpm install
+```
+
+启动开发服务器：
+
+```bash
+# 确保服务正在运行
+docker compose up -d
+
+cd web
+
+# 启动开发服务器
+pnpm run dev
 ```
 
 ### Api
