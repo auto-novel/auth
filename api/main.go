@@ -88,6 +88,8 @@ func main() {
 		router.Route("/auth", authService.Use)
 		router.Route("/admin", adminService.Use)
 	})
+
+	// start server
 	slog.Info("Listening on localhost:8080...")
 	http.ListenAndServe(":8080", router)
 }
