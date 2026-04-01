@@ -1,8 +1,8 @@
 package repository
 
 import (
-	"auth/.gen/auth/public/model"
-	. "auth/.gen/auth/public/table"
+	"auth/.gen/main/public/model"
+	. "auth/.gen/main/public/table"
 	"database/sql"
 	"encoding/json"
 	"time"
