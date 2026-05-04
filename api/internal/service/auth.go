@@ -135,7 +135,7 @@ func (s *authService) Register(w http.ResponseWriter, r *http.Request) error {
 		},
 	)
 
-	return util.RespondAuthTokens(w, util.TokenOptions{
+	return util.RespondAuthTokens(w, r, util.TokenOptions{
 		App:              req.App,
 		Username:         user.Username,
 		Role:             user.Role,
@@ -207,7 +207,7 @@ func (s *authService) Login(w http.ResponseWriter, r *http.Request) error {
 			Ip:         util.GetRealIp(r),
 		},
 	)
-	return util.RespondAuthTokens(w, util.TokenOptions{
+	return util.RespondAuthTokens(w, r, util.TokenOptions{
 		App:              req.App,
 		Username:         user.Username,
 		Role:             user.Role,
@@ -235,7 +235,7 @@ func (s *authService) Refresh(w http.ResponseWriter, r *http.Request) error {
 	user.LastLogin = time.Now()
 	s.userRepo.UpdateLastLogin(user)
 
-	return util.RespondAuthTokens(w, util.TokenOptions{
+	return util.RespondAuthTokens(w, r, util.TokenOptions{
 		App:              r.URL.Query().Get("app"),
 		Username:         user.Username,
 		Role:             user.Role,
@@ -264,7 +264,7 @@ func (s *authService) Logout(w http.ResponseWriter, r *http.Request) error {
 		},
 	)
 
-	return util.RespondLogout(w)
+	return util.RespondLogout(w, r)
 }
 
 func (s *authService) sendOtpEmail(otpType string, email string, otp string) error {

@@ -94,7 +94,7 @@ type TokenOptions struct {
 	WithRefreshToken bool
 }
 
-func RespondAuthTokens(w http.ResponseWriter, opts TokenOptions) error {
+func RespondAuthTokens(w http.ResponseWriter, r *http.Request, opts TokenOptions) error {
 	policy := getTokenPolicy(opts.App)
 
 	if opts.WithRefreshToken && policy.RefreshTokenLifetime > 0 {
@@ -102,7 +102,7 @@ func RespondAuthTokens(w http.ResponseWriter, opts TokenOptions) error {
 		if err != nil {
 			return err
 		}
-		attachRefreshToken(w, refreshToken, int(policy.RefreshTokenLifetime.Seconds()))
+		attachRefreshToken(w, r, refreshToken, int(policy.RefreshTokenLifetime.Seconds()))
 	}
 	accessToken, err := issueAccessToken(opts, policy)
 	if err != nil {
@@ -111,8 +111,8 @@ func RespondAuthTokens(w http.ResponseWriter, opts TokenOptions) error {
 	return RespondText(w, accessToken)
 }
 
-func RespondLogout(w http.ResponseWriter) error {
-	attachRefreshToken(w, "", 0)
+func RespondLogout(w http.ResponseWriter, r *http.Request) error {
+	attachRefreshToken(w, r, "", 0)
 	return RespondText(w, "")
 }
 
@@ -165,7 +165,7 @@ func issueRefreshToken(opts TokenOptions, policy TokenPolicy) (string, error) {
 
 }
 
-func attachRefreshToken(w http.ResponseWriter, token string, maxAge int) {
+func attachRefreshToken(w http.ResponseWriter, r *http.Request, token string, maxAge int) {
 	cookie := &http.Cookie{
 		Name:     RefreshTokenCookieName,
 		Value:    token,
@@ -174,6 +174,11 @@ func attachRefreshToken(w http.ResponseWriter, token string, maxAge int) {
 		HttpOnly: true,
 		Secure:   true,
 		SameSite: http.SameSiteStrictMode,
+	}
+	// 本地开发时不同端口共享 cookie
+	if strings.HasPrefix(r.Host, "localhost") || strings.HasPrefix(r.Host, "127.0.0.1") {
+		cookie.Domain = "localhost"
+		cookie.Secure = false
 	}
 	http.SetCookie(w, cookie)
 }
