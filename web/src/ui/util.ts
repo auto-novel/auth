@@ -32,8 +32,9 @@ export const Validator = {
 
 export function onLoginSuccess() {
   if (window.parent === window) {
-    // 如果不是在 iframe 中打开的，直接跳转到主页
-    window.location.href = 'https://n.novelia.cc';
+    // 本地开发跳转到主前端 dev server，生产环境跳转到 n.novelia.cc
+    const target = import.meta.env.DEV ? 'http://localhost:5173' : 'https://n.novelia.cc';
+    window.location.href = target;
   } else {
     // 如果是在 iframe 中打开的，发送消息给父窗口
     window.parent.postMessage({ type: 'login_success' }, '*');
