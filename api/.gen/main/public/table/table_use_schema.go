@@ -11,5 +11,7 @@ package table
 // this method only once at the beginning of the program.
 func UseSchema(schema string) {
 	AuthEvent = AuthEvent.FromSchema(schema)
+	AuthOtp = AuthOtp.FromSchema(schema)
+	AuthStrikeRecord = AuthStrikeRecord.FromSchema(schema)
 	AuthUser = AuthUser.FromSchema(schema)
 }

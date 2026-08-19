@@ -16,6 +16,15 @@ create table if not exists auth_event
     detail     jsonb        not null default '{}'::jsonb,
     created_at timestamptz  not null default current_timestamp
 );
+create table if not exists auth_otp
+(
+    email      varchar(255) not null,
+    type       varchar(32)  not null check (type in ('verify', 'reset_password')),
+    code_hash  bytea        not null,
+    expires_at timestamptz  not null,
+    created_at timestamptz  not null default current_timestamp,
+    primary key (email, type)
+);
 create table if not exists auth_strike_record
 (
     id          bigint generated always as identity primary key,

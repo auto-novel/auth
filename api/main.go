@@ -42,16 +42,10 @@ func main() {
 	// infra
 	db := infra.NewSqlDb(
 		env("DB_HOST", "localhost"),
-		envInt("DB_PORT", 4002),
+		envInt("DB_PORT", 4001),
 		env("DB_USER", "auth"),
 		env("DB_PASSWORD", ""),
 		env("DB_NAME", "auth"),
-	)
-	rdb := infra.NewRedis(
-		env("RDB_HOST", "localhost"),
-		envInt("RDB_PORT", 4003),
-		env("RDB_USER", "auth"),
-		env("RDB_PASSWORD", ""),
 	)
 	email := infra.NewEmailClient(
 		env("MAILGUN_DOMAIN", ""),
@@ -61,7 +55,7 @@ func main() {
 	// repository
 	userRepo := repository.NewUserRepository(db)
 	eventRepo := repository.NewEventRepository(db)
-	otpRepo := repository.NewOtpRepository(rdb)
+	otpRepo := repository.NewOtpRepository(db)
 
 	// service
 	authService := service.NewAuthService(

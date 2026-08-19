@@ -2,7 +2,3 @@ services:
   postgresql:
     ports:
       - 4001:5432
-
-  redis:
-    ports:
-      - 4002:6379

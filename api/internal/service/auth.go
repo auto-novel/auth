@@ -86,15 +86,20 @@ func (s *authService) Register(w http.ResponseWriter, r *http.Request) error {
 		slog.Error("Invalid password", "error", err)
 		return err
 	}
-	if !s.otpRepo.CheckOtp(repository.OtpVerify, req.Email, req.Otp) {
-		slog.Error("Invalid OTP", "email", req.Email, "otp", req.Otp)
-		return util.BadRequest("无效验证码")
-	}
-
 	hashedPassword, err := util.GenerateHash(req.Password)
 	if err != nil {
 		slog.Error("Password hash error", "error", err)
 		return util.InternalServerError("密码哈希失败")
+	}
+
+	validOtp, err := s.otpRepo.CheckOtp(repository.OtpVerify, req.Email, req.Otp)
+	if err != nil {
+		slog.Error("Failed to verify OTP", "email", req.Email, "error", err)
+		return util.InternalServerError("验证码校验失败")
+	}
+	if !validOtp {
+		slog.Error("Invalid OTP", "email", req.Email)
+		return util.BadRequest("无效验证码")
 	}
 
 	user := &repository.User{
@@ -381,16 +386,22 @@ func (s *authService) ResetPassword(w http.ResponseWriter, r *http.Request) erro
 		return util.NotFound("用户不存在")
 	}
 
-	if !s.otpRepo.CheckOtp(repository.OtpResetPassword, req.Email, req.Otp) {
-		slog.Error("Invalid OTP", "email", req.Email)
-		return util.Unauthorized("无效的验证码")
-	}
-
 	newHashedPassword, err := util.GenerateHash(req.Password)
 	if err != nil {
 		slog.Error("Failed to hash password", "email", req.Email, "error", err)
 		return util.InternalServerError("密码哈希失败")
 	}
+
+	validOtp, err := s.otpRepo.CheckOtp(repository.OtpResetPassword, req.Email, req.Otp)
+	if err != nil {
+		slog.Error("Failed to verify OTP", "email", req.Email, "error", err)
+		return util.InternalServerError("验证码校验失败")
+	}
+	if !validOtp {
+		slog.Error("Invalid OTP", "email", req.Email)
+		return util.Unauthorized("无效的验证码")
+	}
+
 	user.Password = newHashedPassword
 	err = s.userRepo.UpdateHashedPassword(user)
 	if err != nil {

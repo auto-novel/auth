@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	_ "github.com/lib/pq"
-	"github.com/redis/go-redis/v9"
 )
 
 func NewSqlDb(host string, port int, user, password, dbname string) *sql.DB {
@@ -20,13 +19,4 @@ func NewSqlDb(host string, port int, user, password, dbname string) *sql.DB {
 		panic(err)
 	}
 	return db
-}
-
-func NewRedis(host string, port int, user, password string) *redis.Client {
-	return redis.NewClient(&redis.Options{
-		Addr:     fmt.Sprintf("%s:%d", host, port),
-		Username: user,
-		Password: password,
-		DB:       0,
-	})
 }

@@ -14,8 +14,6 @@ services:
     depends_on:
       postgresql:
         condition: service_healthy
-      redis:
-        condition: service_healthy
     restart: unless-stopped
     environment:
       - REFRESH_TOKEN_SECRET
@@ -23,8 +21,6 @@ services:
       - DB_HOST=postgresql
       - DB_PORT=5432
       - DB_PASSWORD=${POSTGRES_PASSWORD}
-      - RDB_HOST=redis
-      - RDB_PORT=6379
       - MAILGUN_DOMAIN
       - MAILGUN_APIKEY
     healthcheck:
@@ -46,15 +42,6 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
       interval: 5s
-      timeout: 5s
-      retries: 5
-
-  redis:
-    image: redis:7.4.5
-    restart: always
-    healthcheck:
-      test: [ "CMD-SHELL", "redis-cli", "--raw", "incr", "ping" ]
-      interval: 30s
       timeout: 5s
       retries: 5
 

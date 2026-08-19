@@ -18,7 +18,6 @@ docker compose up -d
 - Web: localhost:4000
 - Api: localhost:4000/api
 - Postgresql: localhost:4001
-- Redis: localhost:4002
 
 ## 前端开发
 

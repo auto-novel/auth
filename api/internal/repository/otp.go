@@ -1,14 +1,17 @@
 package repository
 
 import (
-	"context"
+	"auth/.gen/main/public/model"
+	. "auth/.gen/main/public/table"
 	"crypto/rand"
+	"crypto/sha256"
+	"database/sql"
 	"fmt"
-	"log/slog"
 	"math/big"
 	"time"
 
-	"github.com/redis/go-redis/v9"
+	. "github.com/go-jet/jet/v2/postgres"
+	"github.com/go-jet/jet/v2/qrm"
 )
 
 const (
@@ -18,17 +21,17 @@ const (
 
 type OtpRepository interface {
 	SetOtp(otpType string, email string) (string, error)
-	CheckOtp(otpType string, email string, otp string) bool
+	CheckOtp(otpType string, email string, otp string) (bool, error)
 }
+
+type Otp = model.AuthOtp
 
 type otpRepository struct {
-	rdb *redis.Client
+	db *sql.DB
 }
 
-func NewOtpRepository(rdb *redis.Client) OtpRepository {
-	return &otpRepository{
-		rdb: rdb,
-	}
+func NewOtpRepository(db *sql.DB) OtpRepository {
+	return &otpRepository{db: db}
 }
 
 func createOtp(otpType string) (string, error) {
@@ -46,26 +49,56 @@ func createOtp(otpType string) (string, error) {
 	}
 }
 
-var ctx = context.Background()
-
 func (r *otpRepository) SetOtp(otpType string, email string) (string, error) {
 	otp, err := createOtp(otpType)
 	if err != nil {
 		return "", err
 	}
-	err = r.rdb.Set(ctx, otpType+":"+email, otp, time.Minute*15).Err()
+
+	hash := sha256.Sum256([]byte(otp))
+	now := time.Now()
+	record := &Otp{
+		Email:     email,
+		Type:      otpType,
+		CodeHash:  hash[:],
+		ExpiresAt: now.Add(15 * time.Minute),
+		CreatedAt: now,
+	}
+	stmt := AuthOtp.
+		INSERT(AuthOtp.AllColumns).
+		MODEL(record).
+		ON_CONFLICT(AuthOtp.Email, AuthOtp.Type).
+		DO_UPDATE(SET(
+			AuthOtp.CodeHash.SET(AuthOtp.EXCLUDED.CodeHash),
+			AuthOtp.ExpiresAt.SET(AuthOtp.EXCLUDED.ExpiresAt),
+			AuthOtp.CreatedAt.SET(AuthOtp.EXCLUDED.CreatedAt),
+		))
+
+	_, err = stmt.Exec(r.db)
 	if err != nil {
-		slog.Error("Failed to set OTP in Redis", "error", err)
 		return "", err
 	}
 	return otp, nil
 }
 
-func (r *otpRepository) CheckOtp(otpType string, email, otp string) bool {
-	val, err := r.rdb.Get(ctx, otpType+":"+email).Result()
-	if err != nil {
-		slog.Error("Failed to get OTP from Redis", "error", err)
-		return false
+func (r *otpRepository) CheckOtp(otpType string, email, otp string) (bool, error) {
+	hash := sha256.Sum256([]byte(otp))
+	stmt := SELECT(AuthOtp.Email).
+		FROM(AuthOtp).
+		WHERE(AND(
+			AuthOtp.Email.EQ(String(email)),
+			AuthOtp.Type.EQ(String(otpType)),
+			AuthOtp.CodeHash.EQ(Bytea(hash[:])),
+			AuthOtp.ExpiresAt.GT(CURRENT_TIMESTAMP()),
+		))
+
+	var matched string
+	err := stmt.Query(r.db, &matched)
+	if err == qrm.ErrNoRows {
+		return false, nil
 	}
-	return val == otp
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }
