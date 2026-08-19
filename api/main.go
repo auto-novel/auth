@@ -5,10 +5,12 @@ import (
 	"auth/internal/repository"
 	"auth/internal/service"
 	"auth/internal/util"
+	"context"
 	"log/slog"
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -29,6 +31,32 @@ func envInt(key string, fallback int) int {
 		}
 	}
 	return fallback
+}
+
+func runOtpCleanup(ctx context.Context, repo repository.OtpRepository, interval time.Duration) {
+	cleanup := func() {
+		deleted, err := repo.DeleteExpiredOtps()
+		if err != nil {
+			slog.Error("Failed to delete expired OTPs", "error", err)
+			return
+		}
+		if deleted > 0 {
+			slog.Info("Deleted expired OTPs", "count", deleted)
+		}
+	}
+
+	cleanup()
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			cleanup()
+		}
+	}
 }
 
 func main() {
@@ -56,6 +84,13 @@ func main() {
 	userRepo := repository.NewUserRepository(db)
 	eventRepo := repository.NewEventRepository(db)
 	otpRepo := repository.NewOtpRepository(db)
+	otpCleanupCtx, stopOtpCleanup := context.WithCancel(context.Background())
+	defer stopOtpCleanup()
+	go runOtpCleanup(
+		otpCleanupCtx,
+		otpRepo,
+		time.Hour,
+	)
 
 	// service
 	authService := service.NewAuthService(

@@ -22,6 +22,7 @@ const (
 type OtpRepository interface {
 	SetOtp(otpType string, email string) (string, error)
 	CheckOtp(otpType string, email string, otp string) (bool, error)
+	DeleteExpiredOtps() (int64, error)
 }
 
 type Otp = model.AuthOtp
@@ -101,4 +102,16 @@ func (r *otpRepository) CheckOtp(otpType string, email, otp string) (bool, error
 		return false, err
 	}
 	return true, nil
+}
+
+func (r *otpRepository) DeleteExpiredOtps() (int64, error) {
+	result, err := AuthOtp.
+		DELETE().
+		WHERE(AuthOtp.ExpiresAt.LT_EQ(CURRENT_TIMESTAMP())).
+		Exec(r.db)
+	if err != nil {
+		return 0, err
+	}
+
+	return result.RowsAffected()
 }
