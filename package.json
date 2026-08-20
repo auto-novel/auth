@@ -1,0 +1,14 @@
+{
+  "name": "auth",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "pnpm --filter auth-login dev",
+    "dev:remote": "pnpm --filter auth-login dev:remote",
+    "dev:local": "pnpm --filter auth-login dev:local",
+    "dev:native": "pnpm --filter auth-login dev:native",
+    "build": "pnpm --filter auth-login build",
+    "preview": "pnpm --filter auth-login preview"
+  }
+}

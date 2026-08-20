@@ -8,7 +8,7 @@ import { createHtmlPlugin } from 'vite-plugin-html';
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd());
+  const env = loadEnv(mode, import.meta.dirname);
   const apiMode = env.VITE_API_MODE;
   const apiUrl = (() => {
     if (apiMode === 'remote') {

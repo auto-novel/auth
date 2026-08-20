@@ -4,7 +4,12 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: [.github/workflows/cd-web.yml, web/**]
+    paths:
+      - .github/workflows/cd-web.yml
+      - login/**
+      - package.json
+      - pnpm-lock.yaml
+      - pnpm-workspace.yaml
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}-web
@@ -33,7 +38,7 @@ jobs:
 
       - uses: docker/build-push-action@v7
         with:
-          file: web/Dockerfile
+          file: login/Dockerfile
           push: true
           provenance: false
           tags: ghcr.io/${{ env.IMAGE_OWNER }}/${{ env.IMAGE_NAME }}:latest

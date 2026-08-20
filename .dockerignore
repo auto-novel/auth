@@ -1,13 +1,13 @@
 .vscode/
 
 # Deploy
-data/
+/data/
 .env
 
 # Api
 /api/auth
 
-# Web
+# Login
 dist/
 node_modules/
 auto-imports.d.ts

@@ -1,3 +1,6 @@
+packages:
+  - login
+
 allowBuilds:
   esbuild: true
 minimumReleaseAgeExclude:

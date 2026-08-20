@@ -24,9 +24,7 @@ docker compose up -d
 基于 Vue3 / TypeScript / Vite 构建。
 
 ```bash
-cd web
 pnpm install
-pnpm prepare
 
 pnpm dev     # 启动开发服务器
 pnpm build   # 编译项目

@@ -6,7 +6,9 @@ settings:
 
 importers:
 
-  .:
+  .: {}
+
+  login:
     dependencies:
       '@csstools/postcss-cascade-layers':
         specifier: ^5.0.2
