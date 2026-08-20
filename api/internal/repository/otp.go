@@ -93,7 +93,9 @@ func (r *otpRepository) CheckOtp(otpType string, email, otp string) (bool, error
 			AuthOtp.ExpiresAt.GT(CURRENT_TIMESTAMP()),
 		))
 
-	var matched string
+	var matched struct {
+		Email string
+	}
 	err := stmt.Query(r.db, &matched)
 	if err == qrm.ErrNoRows {
 		return false, nil
