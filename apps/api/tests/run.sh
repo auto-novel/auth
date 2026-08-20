@@ -3,7 +3,7 @@
 set -euo pipefail
 
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-project_root="$(cd -- "$script_dir/../.." && pwd)"
+project_root="$(cd -- "$script_dir/../../.." && pwd)"
 container_name="auth-test-postgresql-$$"
 test_db_port="${TEST_DB_PORT:-4002}"
 container_started=false
@@ -51,7 +51,7 @@ if [[ "$(docker inspect --format '{{.State.Health.Status}}' "$container_name")" 
   exit 1
 fi
 
-cd "$project_root/api"
+cd "$project_root/apps/api"
 TEST_DB_HOST=127.0.0.1 \
 TEST_DB_PORT="$test_db_port" \
 TEST_DB_USER=auth \

@@ -12,6 +12,14 @@
 :80 {
 	encode gzip
 
+	# The admin site is a separate static application, published under /admin.
+	redir /admin /admin/
+	handle_path /admin/* {
+		root * /admin
+		try_files {path} /index.html
+		file_server
+	}
+
 	handle {
 		root * /dist
 		file_server

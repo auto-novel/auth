@@ -6,7 +6,9 @@ on:
     branches: [main]
     paths:
       - .github/workflows/cd-web.yml
-      - login/**
+      - deploy/web/**
+      - apps/login/**
+      - apps/admin/**
       - package.json
       - pnpm-lock.yaml
       - pnpm-workspace.yaml
@@ -38,7 +40,7 @@ jobs:
 
       - uses: docker/build-push-action@v7
         with:
-          file: login/Dockerfile
+          file: deploy/web/Dockerfile
           push: true
           provenance: false
           tags: ghcr.io/${{ env.IMAGE_OWNER }}/${{ env.IMAGE_NAME }}:latest

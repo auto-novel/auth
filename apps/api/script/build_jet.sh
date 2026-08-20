@@ -7,7 +7,7 @@ CONTAINER_ID=$(docker run -d \
   -e POSTGRES_PASSWORD=pass \
   -e POSTGRES_DB=main \
   -p 12345:5432 \
-  -v $(pwd)/../sql/init.sql:/docker-entrypoint-initdb.d/init.sql \
+  -v $(pwd)/../../sql/init.sql:/docker-entrypoint-initdb.d/init.sql \
   postgres:17-alpine)
 
 echo "等待 PostgreSQL 准备就绪"

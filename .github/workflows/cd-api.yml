@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: [.github/workflows/cd-api.yml, api/**]
+    paths: [.github/workflows/cd-api.yml, apps/api/**, deploy/api/**]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}-api
@@ -33,7 +33,7 @@ jobs:
 
       - uses: docker/build-push-action@v7
         with:
-          file: api/Dockerfile
+          file: deploy/api/Dockerfile
           push: true
           provenance: false
           tags: ghcr.io/${{ env.IMAGE_OWNER }}/${{ env.IMAGE_NAME }}:latest

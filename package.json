@@ -5,10 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "pnpm --filter auth-login dev",
+    "dev:admin": "pnpm --filter auth-admin dev",
     "dev:remote": "pnpm --filter auth-login dev:remote",
     "dev:local": "pnpm --filter auth-login dev:local",
     "dev:native": "pnpm --filter auth-login dev:native",
-    "build": "pnpm --filter auth-login build",
+    "build": "pnpm --filter auth-login build && pnpm --filter auth-admin build",
     "preview": "pnpm --filter auth-login preview"
   }
 }

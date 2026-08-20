@@ -4,14 +4,17 @@ ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable
 WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY login/package.json ./login/package.json
+COPY apps/admin/package.json ./apps/admin/package.json
+COPY apps/login/package.json ./apps/login/package.json
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --prod --frozen-lockfile
 
 FROM deps AS builder
 WORKDIR /app
-COPY login/. ./login/
+COPY apps/login/. ./apps/login/
+COPY apps/admin/. ./apps/admin/
 RUN pnpm run build
 
 FROM caddy:2.7.4
-COPY --from=builder /app/login/dist /dist
-COPY login/Caddyfile /etc/caddy/Caddyfile
+COPY --from=builder /app/apps/login/dist /dist
+COPY --from=builder /app/apps/admin/dist /admin
+COPY deploy/web/Caddyfile /etc/caddy/Caddyfile

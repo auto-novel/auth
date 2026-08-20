@@ -43,7 +43,7 @@ pnpm build   # 编译项目
 编译项目
 
 ```bash
-cd api
+cd apps/api
 go mod download
 ./script/build_jet.sh # 生成 Jet SQL 代码
 go build

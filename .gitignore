@@ -5,7 +5,7 @@
 .env
 
 # Api
-/api/auth
+/apps/api/auth
 
 # Login
 dist/
