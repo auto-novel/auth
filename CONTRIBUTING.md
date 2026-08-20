@@ -51,9 +51,15 @@ go mod download
 go build
 ```
 
-运行集成测试
+运行单元测试
 
 ```bash
 go clean -testcache
 go test ./... -v -p 4
+```
+
+运行集成测试（需要 Docker）
+
+```bash
+./tests/run.sh -v
 ```
