@@ -30,16 +30,10 @@ func GetRealIp(r *http.Request) string {
 	}
 }
 
-func isDebugHeaderSet(r *http.Request) bool {
-	return r.Header.Get("X-Debug-Log") != "true"
-}
-
 func RequestLogger() func(next http.Handler) http.Handler {
 	return httplog.RequestLogger(slog.Default(), &httplog.Options{
-		Level:           slog.LevelInfo,
-		Schema:          httplog.SchemaECS,
-		RecoverPanics:   true,
-		LogRequestBody:  isDebugHeaderSet,
-		LogResponseBody: isDebugHeaderSet,
+		Level:         slog.LevelInfo,
+		Schema:        httplog.SchemaECS,
+		RecoverPanics: true,
 	})
 }
