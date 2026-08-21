@@ -92,7 +92,7 @@ function handleMenuSelect(key: string) {
         :collapsed-width="64"
         :collapsed="collapsed"
       >
-        <sidebar-header :collapsed="collapsed" />
+        <SidebarHeader :collapsed="collapsed" />
         <n-menu
           :value="activeKey"
           :collapsed="collapsed"
@@ -100,7 +100,7 @@ function handleMenuSelect(key: string) {
           :options="menuOptions"
           @update:value="handleMenuSelect"
         />
-        <sidebar-footer
+        <SidebarFooter
           :collapsed="collapsed"
           :build-time="buildTime"
           :commit-url="commitUrl"
