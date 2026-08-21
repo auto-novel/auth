@@ -1,20 +1,24 @@
 <script setup lang="ts">
 import { AccessTimeOutlined, CommitOutlined } from '@vicons/material';
 import { NA, NDivider, NIcon, NText, NTime } from 'naive-ui';
+import { computed } from 'vue';
 
-defineProps<{
-  collapsed: boolean;
-  buildTime: Date | number;
-  commitUrl?: string;
-  shortCommit: string;
+const props = defineProps<{
+  repoUrl: string;
 }>();
+
+const buildTime = new Date(__BUILD_TIME__);
+const commitHash = __COMMIT_SHA__;
+const shortCommit = commitHash.slice(0, 12);
+const commitUrl = computed(() =>
+  commitHash !== 'unknown'
+    ? `${props.repoUrl.replace(/\/+$/, '')}/commit/${commitHash}`
+    : undefined,
+);
 </script>
 
 <template>
-  <footer
-    class="sidebar-footer"
-    :class="{ 'sidebar-footer--collapsed': collapsed }"
-  >
+  <footer class="sidebar-footer">
     <n-divider class="sidebar-footer-divider" />
     <div class="sidebar-build-info-item">
       <n-icon :component="AccessTimeOutlined" :size="15" />

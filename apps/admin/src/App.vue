@@ -39,12 +39,6 @@ const isDark = ref(
 );
 const route = useRoute();
 const router = useRouter();
-const buildTime = new Date(__BUILD_TIME__);
-const commitHash = __COMMIT_SHA__;
-const commitUrl = commitHash !== 'unknown'
-  ? `https://github.com/auto-novel/auth/commit/${commitHash}`
-  : undefined;
-const shortCommit = commitHash?.slice(0, 12);
 
 function renderIcon(icon: Component) {
   return () => h(NIcon, null, { default: () => h(icon) });
@@ -101,10 +95,8 @@ function handleMenuSelect(key: string) {
           @update:value="handleMenuSelect"
         />
         <SidebarFooter
-          :collapsed="collapsed"
-          :build-time="buildTime"
-          :commit-url="commitUrl"
-          :short-commit="shortCommit"
+          :class="{ 'sidebar-footer--collapsed': collapsed }"
+          repo-url="https://github.com/auto-novel/auth"
         />
       </n-layout-sider>
       <n-layout>
