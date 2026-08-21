@@ -41,7 +41,7 @@ const route = useRoute();
 const router = useRouter();
 const buildTime = new Date(__BUILD_TIME__);
 const commitHash = __COMMIT_SHA__;
-const commitUrl = commitHash
+const commitUrl = commitHash !== 'unknown'
   ? `https://github.com/auto-novel/auth/commit/${commitHash}`
   : undefined;
 const shortCommit = commitHash?.slice(0, 12);

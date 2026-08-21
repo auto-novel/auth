@@ -18,10 +18,10 @@ export default defineConfig(({ mode }) => {
   const isDevelopment = mode === 'development';
   const commitSha = isDevelopment
     ? readGitValue(['rev-parse', 'HEAD'])
-    : (env.VITE_COMMIT_SHA ?? '');
+    : (env.VITE_COMMIT_SHA || 'unknown');
   const buildTime = isDevelopment
     ? readGitValue(['show', '-s', '--format=%cI', 'HEAD'])
-    : (env.VITE_BUILD_TIME ?? '');
+    : (env.VITE_BUILD_TIME || new Date().toISOString());
 
   return {
     base: '/admin/',

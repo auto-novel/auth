@@ -10,9 +10,13 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --prod --frozen-l
 
 FROM deps AS builder
 WORKDIR /app
+ARG VITE_COMMIT_SHA
+ARG VITE_BUILD_TIME
 COPY apps/login/. ./apps/login/
 COPY apps/admin/. ./apps/admin/
-RUN pnpm run build
+RUN VITE_COMMIT_SHA="${VITE_COMMIT_SHA}" \
+    VITE_BUILD_TIME="${VITE_BUILD_TIME}" \
+    pnpm run build
 
 FROM caddy:2.7.4
 COPY --from=builder /app/apps/login/dist /dist
