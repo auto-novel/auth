@@ -21,7 +21,6 @@ import {
   NLayoutContent,
   NLayoutHeader,
   NLayoutSider,
-  NMenu,
   NPageHeader,
   NSpace,
   type MenuDividerOption,
@@ -38,8 +37,7 @@ import {
 } from 'vue';
 import { RouterView, useRoute, useRouter } from 'vue-router';
 
-import SidebarFooter from './components/SidebarFooter.vue';
-import SidebarHeader from './components/SidebarHeader.vue';
+import SidebarNavigation from './components/SidebarNavigation.vue';
 
 const mobileMenuOpen = ref(false);
 const mobileMediaQuery = window.matchMedia('(max-width: 767px)');
@@ -143,17 +141,12 @@ watch(
         :collapsed-width="64"
         :collapsed="collapsed"
       >
-        <SidebarHeader :collapsed="collapsed" brand="Auth" text="Admin" />
-        <n-menu
-          :value="activeKey"
+        <SidebarNavigation
+          :active-key="activeKey"
           :collapsed="collapsed"
-          :collapsed-width="64"
           :options="menuOptions"
-          @update:value="handleMenuSelect"
-        />
-        <SidebarFooter
-          :class="{ 'sidebar-footer--collapsed': collapsed }"
           repo-url="https://github.com/auto-novel/auth"
+          @select="handleMenuSelect"
         />
       </n-layout-sider>
 
@@ -167,15 +160,13 @@ watch(
           body-content-style="padding: 0; height: 100%;"
           :native-scrollbar="false"
         >
-          <div class="mobile-sidebar">
-            <SidebarHeader :collapsed="false" brand="Auth" text="Admin" />
-            <n-menu
-              :value="activeKey"
-              :options="menuOptions"
-              @update:value="handleMenuSelect"
-            />
-            <SidebarFooter repo-url="https://github.com/auto-novel/auth" />
-          </div>
+          <SidebarNavigation
+            :active-key="activeKey"
+            :collapsed="false"
+            :options="menuOptions"
+            repo-url="https://github.com/auto-novel/auth"
+            @select="handleMenuSelect"
+          />
         </n-drawer-content>
       </n-drawer>
 
@@ -249,17 +240,6 @@ watch(
 .sidebar-toggle:focus:not(:focus-visible) {
   color: var(--n-text-color);
   background-color: var(--n-color);
-}
-
-.app-sidebar :deep(.n-layout-sider-scroll-container) {
-  display: flex;
-  flex-direction: column;
-}
-
-.mobile-sidebar {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
 }
 
 .page-content {
