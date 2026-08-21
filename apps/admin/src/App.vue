@@ -23,6 +23,8 @@ import {
 import { computed, h, ref, type Component } from 'vue';
 import { RouterView, useRoute, useRouter } from 'vue-router';
 
+import robotIconUrl from './assets/robot.svg';
+
 const collapsed = ref(false);
 const route = useRoute();
 const router = useRouter();
@@ -56,15 +58,17 @@ function navigateTo(path: string) {
       :collapsed="collapsed"
     >
       <n-layout-header
-        bordered
-        style="
-          height: 64px;
-          padding: 0 24px;
-          display: flex;
-          align-items: center;
-        "
+        class="brand-header"
+        :class="{ 'brand-header--collapsed': collapsed }"
       >
-        <n-text strong>{{ collapsed ? 'A' : '管理后台' }}</n-text>
+        <span class="brand-logo" aria-hidden="true">
+          <img :src="robotIconUrl" alt="" />
+        </span>
+        <n-text class="brand-title">
+          <span class="brand-title__auth">Auth</span>
+          <span class="brand-title__divider" aria-hidden="true" />
+          <span class="brand-title__admin">Admin</span>
+        </n-text>
       </n-layout-header>
       <n-menu
         :value="activeKey"
@@ -113,3 +117,69 @@ function navigateTo(path: string) {
     </n-layout>
   </n-layout>
 </template>
+
+<style scoped>
+.brand-header {
+  height: 64px;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: gap 0.3s ease;
+}
+
+.brand-logo {
+  height: 36px;
+  flex: 0 0 36px;
+  display: grid;
+  place-items: center;
+}
+
+.brand-logo img {
+  width: 32px;
+  height: 32px;
+}
+
+.brand-title {
+  max-width: 112px;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  transform: translateY(2px);
+  gap: 5px;
+  font-size: 16px;
+  line-height: 1;
+  transition:
+    max-width 0.3s ease,
+    opacity 0.2s ease;
+}
+
+.brand-title__auth {
+  font-weight: 800;
+  letter-spacing: -0.055em;
+}
+
+.brand-title__divider {
+  width: 4px;
+  height: 4px;
+  flex: none;
+  border-radius: 1px;
+  background: var(--primary-color, #18a058);
+  transform: rotate(45deg);
+}
+
+.brand-title__admin {
+  color: var(--primary-color, #18a058);
+  font-weight: 650;
+  letter-spacing: -0.025em;
+}
+
+.brand-header--collapsed {
+  gap: 0;
+}
+
+.brand-header--collapsed .brand-title {
+  max-width: 0;
+  opacity: 0;
+}
+</style>
