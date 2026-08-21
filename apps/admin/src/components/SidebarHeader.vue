@@ -3,6 +3,7 @@ import { NLayoutHeader, NText } from 'naive-ui';
 
 defineProps<{
   collapsed: boolean;
+  brand: string;
   text: string;
 }>();
 </script>
@@ -16,7 +17,7 @@ defineProps<{
       <span class="brand-logo__image" />
     </n-text>
     <n-text class="brand-title">
-      <span class="brand-title__auth">Auth</span>
+      <span class="brand-title__brand">{{ brand }}</span>
       <n-text type="primary" class="brand-title__divider" aria-hidden="true" />
       <n-text type="primary" class="brand-title__text">{{ text }}</n-text>
     </n-text>
@@ -69,7 +70,7 @@ defineProps<{
     color 0.3s var(--n-bezier);
 }
 
-.brand-title__auth {
+.brand-title__brand {
   font-weight: 800;
   letter-spacing: -0.055em;
 }

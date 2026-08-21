@@ -86,7 +86,7 @@ function handleMenuSelect(key: string) {
         :collapsed-width="64"
         :collapsed="collapsed"
       >
-        <SidebarHeader :collapsed="collapsed" text="Admin" />
+        <SidebarHeader :collapsed="collapsed" brand="Auth" text="Admin" />
         <n-menu
           :value="activeKey"
           :collapsed="collapsed"
