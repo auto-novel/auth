@@ -30,7 +30,7 @@ function isLoginSuccessMessage(data: unknown): data is LoginSuccessMessage {
 }
 
 const iframeSrc = computed(() => {
-  const url = new URL('/', AUTH_URL);
+  const url = new URL(AUTH_URL);
   url.searchParams.set('app', AUTH_APP);
   url.searchParams.set('theme', isDark.value ? 'dark' : 'light');
   return url.toString();

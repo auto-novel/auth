@@ -4,7 +4,6 @@ import {
   NButton,
   NDropdown,
   NIcon,
-  NTag,
   NText,
   NTime,
   type MenuOption,
@@ -27,39 +26,19 @@ const dropdownOptions = computed<MenuOption[]>(() => [
         'div',
         {
           style: {
-            minWidth: '176px',
             padding: '6px 12px 8px',
           },
         },
         [
           h(
-            'div',
+            NText,
+            { style: { display: 'block' } },
             {
-              style: {
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: '16px',
-                marginBottom: '6px',
-              },
+              default: () =>
+                authSession.profile.value
+                  ? USER_ROLE_LABELS[authSession.profile.value.role]
+                  : '未知角色',
             },
-            [
-              h(
-                NText,
-                { depth: 3, style: { fontSize: '12px' } },
-                { default: () => '账号角色' },
-              ),
-              h(
-                NTag,
-                { bordered: false, round: true, size: 'small', type: 'info' },
-                {
-                  default: () =>
-                    authSession.profile.value
-                      ? USER_ROLE_LABELS[authSession.profile.value.role]
-                      : '未知角色',
-                },
-              ),
-            ],
           ),
           h(
             NText,
