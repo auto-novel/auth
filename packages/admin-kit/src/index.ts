@@ -7,6 +7,7 @@ import {
   adminKitKey,
   adminThemeKey,
   registerAdminKitContext,
+  useAdminKit,
   useAdminTheme,
 } from './context';
 import { createAuthSession } from './session';
@@ -38,6 +39,7 @@ export {
   AdminLoginView,
   AdminKitApp,
   AdminKitLayout,
+  useAdminKit,
   useAdminTheme,
 };
-export type { AdminKitOptions } from './types';
+export type { AdminKitOptions, AuthSession } from './types';
