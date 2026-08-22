@@ -2,11 +2,6 @@ import { createRouter, createWebHistory } from 'vue-router';
 
 import { AdminLoginView } from '@novelia/admin-kit';
 
-import LogsView from '@/views/LogsView.vue';
-import OverviewView from '@/views/OverviewView.vue';
-import SettingsView from '@/views/SettingsView.vue';
-import UsersView from '@/views/UsersView.vue';
-
 const router = createRouter({
   history: createWebHistory('/admin/'),
   routes: [
@@ -24,25 +19,25 @@ const router = createRouter({
         {
           path: 'overview',
           name: 'overview',
-          component: OverviewView,
+          component: () => import('@/views/OverviewView.vue'),
           meta: { title: '概览' },
         },
         {
           path: 'users',
           name: 'users',
-          component: UsersView,
+          component: () => import('@/views/UsersView.vue'),
           meta: { title: '用户管理' },
         },
         {
           path: 'logs',
           name: 'logs',
-          component: LogsView,
+          component: () => import('@/views/LogsView.vue'),
           meta: { title: '操作记录' },
         },
         {
           path: 'settings',
           name: 'settings',
-          component: SettingsView,
+          component: () => import('@/views/SettingsView.vue'),
           meta: { title: '系统设置' },
         },
       ],
