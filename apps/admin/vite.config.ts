@@ -22,6 +22,13 @@ export default defineConfig(({ mode }) => {
   const buildTime = isDevelopment
     ? readGitValue(['show', '-s', '--format=%cI', 'HEAD'])
     : (env.VITE_BUILD_TIME || new Date().toISOString());
+  const apiMode = env.VITE_API_MODE;
+  const apiUrl =
+    apiMode === 'native'
+      ? 'http://localhost:8080'
+      : apiMode === 'local'
+        ? 'http://localhost:3000'
+        : 'https://auth.novelia.cc';
 
   return {
     base: '/admin/',
@@ -30,6 +37,19 @@ export default defineConfig(({ mode }) => {
       __COMMIT_SHA__: JSON.stringify(commitSha),
     },
     plugins: [vue()],
+    server: {
+      port: 5174,
+      proxy: {
+        '/api': {
+          target: apiUrl,
+          changeOrigin: true,
+          rewrite:
+            apiMode === 'native'
+              ? (path: string) => path.replace(/^\/api/, '')
+              : undefined,
+        },
+      },
+    },
     resolve: {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url)),
