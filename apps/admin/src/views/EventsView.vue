@@ -281,9 +281,7 @@ onMounted(loadEvents);
         start-placeholder="开始日期"
         end-placeholder="结束日期"
       />
-      <n-button type="primary" :loading="loading" @click="search">
-        查询
-      </n-button>
+      <n-button type="primary" @click="search">查询</n-button>
     </div>
 
     <n-alert v-if="errorMessage" type="error" title="事件列表加载失败">

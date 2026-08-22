@@ -110,7 +110,6 @@ onMounted(loadUsers);
       v-model:query="queryInput"
       v-model:role="roleInput"
       v-model:created-range="createdRangeInput"
-      :loading="loading"
       @search="search"
     />
 

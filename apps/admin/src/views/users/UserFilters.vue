@@ -9,7 +9,6 @@ import {
   type SelectOption,
 } from 'naive-ui';
 
-defineProps<{ loading: boolean }>();
 defineEmits<{
   search: [];
 }>();
@@ -60,7 +59,6 @@ const roleOptions: SelectOption[] = [
     <n-button
       class="search-button"
       type="primary"
-      :loading="loading"
       @click="$emit('search')"
     >
       查询
@@ -71,13 +69,15 @@ const roleOptions: SelectOption[] = [
 <style scoped>
 .filters {
   display: flex;
+  width: 100%;
   gap: 12px;
   align-items: center;
 }
 
 .query-input {
-  width: 360px;
+  width: auto;
   min-width: 220px;
+  flex: 1;
 }
 
 .role-select {
