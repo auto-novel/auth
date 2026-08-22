@@ -19,7 +19,7 @@ function renderIcon(icon: Component) {
 const menuOptions: MenuOption[] = [
   { label: '概览', key: '/overview', icon: renderIcon(DashboardOutlined) },
   { label: '用户管理', key: '/users', icon: renderIcon(PeopleOutlined) },
-  { label: '操作记录', key: '/logs', icon: renderIcon(HistoryOutlined) },
+  { label: '事件记录', key: '/events', icon: renderIcon(HistoryOutlined) },
   { label: '系统设置', key: '/settings', icon: renderIcon(SettingsOutlined) },
 ];
 </script>

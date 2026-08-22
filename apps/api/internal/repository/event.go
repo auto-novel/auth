@@ -22,7 +22,7 @@ type EventFilter struct {
 }
 
 type EventRepository interface {
-	List(filter EventFilter, pageNumber, pageSize int64) ([]*Event, error)
+	List(filter EventFilter, size int64, skip int64) ([]*Event, error)
 	Count(filter EventFilter) (int64, error)
 	Save(action string, detail interface{}) error
 }
@@ -56,16 +56,19 @@ func (filter EventFilter) exp() BoolExpression {
 	if !filter.CreatedBefore.IsZero() {
 		exps = append(exps, AuthEvent.CreatedAt.LT(TimestampzT(filter.CreatedBefore)))
 	}
+	if len(exps) == 0 {
+		return RawBool("TRUE")
+	}
 	return AND(exps...)
 }
 
-func (r *eventRepository) List(filter EventFilter, pageNumber, pageSize int64) ([]*Event, error) {
+func (r *eventRepository) List(filter EventFilter, size int64, skip int64) ([]*Event, error) {
 	stmt := SELECT(AuthEvent.AllColumns).
 		FROM(AuthEvent).
 		WHERE(filter.exp()).
-		ORDER_BY(AuthEvent.ID.ASC()).
-		LIMIT(pageSize).
-		OFFSET(pageNumber * pageSize)
+		ORDER_BY(AuthEvent.ID.DESC()).
+		OFFSET(skip).
+		LIMIT(size)
 
 	var dest []*Event
 	err := stmt.Query(r.db, &dest)
@@ -78,18 +81,20 @@ func (r *eventRepository) List(filter EventFilter, pageNumber, pageSize int64) (
 }
 
 func (r *eventRepository) Count(filter EventFilter) (int64, error) {
-	stmt := SELECT(COUNT(AuthEvent.ID)).
+	stmt := SELECT(COUNT(STAR)).
 		FROM(AuthEvent).
 		WHERE(filter.exp())
 
-	var count int64
-	err := stmt.Query(r.db, &count)
+	var dest struct {
+		Count int64
+	}
+	err := stmt.Query(r.db, &dest)
 	if err == qrm.ErrNoRows {
 		return 0, nil
 	} else if err != nil {
 		return 0, err
 	}
-	return count, nil
+	return dest.Count, nil
 }
 
 func (r *eventRepository) Save(action string, detail interface{}) error {

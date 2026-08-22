@@ -29,11 +29,12 @@ const router = createRouter({
           meta: { title: '用户管理' },
         },
         {
-          path: 'logs',
-          name: 'logs',
-          component: () => import('@/views/LogsView.vue'),
-          meta: { title: '操作记录' },
+          path: 'events',
+          name: 'events',
+          component: () => import('@/views/EventsView.vue'),
+          meta: { title: '事件记录' },
         },
+        { path: 'logs', redirect: { name: 'events' } },
         {
           path: 'settings',
           name: 'settings',

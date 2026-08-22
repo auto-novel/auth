@@ -65,9 +65,8 @@ func (filter UserFilter) exp() BoolExpression {
 	}
 	if len(exps) == 0 {
 		return RawBool("TRUE")
-	} else {
-		return AND(exps...)
 	}
+	return AND(exps...)
 }
 
 func (r *userRepository) List(filter UserFilter, size int64, skip int64) ([]User, error) {

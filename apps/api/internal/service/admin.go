@@ -263,7 +263,7 @@ func (s *adminService) StrikeUser(w http.ResponseWriter, r *http.Request) error 
 		TargetUser:   req.Username,
 		Action:       EventRestrictUser,
 		CreatedAfter: time.Now().Add(-StrikePeriod),
-	}, 0, 3)
+	}, 3, 0)
 	if err != nil {
 		slog.Error("Failed to list recent strikes", "username", req.Username, "error", err)
 		return util.InternalServerError("查询用户违规记录失败")
