@@ -1,6 +1,7 @@
 packages:
   - apps/admin
   - apps/login
+  - packages/*
 
 allowBuilds:
   esbuild: true

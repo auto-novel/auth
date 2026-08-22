@@ -1,0 +1,26 @@
+{
+  "name": "@novelia/admin-kit",
+  "version": "0.1.0",
+  "type": "module",
+  "sideEffects": ["**/*.css", "**/*.vue"],
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "vue-tsc -b"
+  },
+  "peerDependencies": {
+    "@vicons/material": "^0.13.0",
+    "naive-ui": "^2.45.1",
+    "vue": "^3.5.41",
+    "vue-router": "^5.2.0"
+  },
+  "dependencies": {
+    "ky": "^2.0.2"
+  },
+  "devDependencies": {
+    "@vue/tsconfig": "^0.9.1",
+    "typescript": "^6.0.0",
+    "vue-tsc": "^3.3.10"
+  }
+}

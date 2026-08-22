@@ -9,9 +9,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@novelia/admin-kit": "workspace:*",
     "@vitejs/plugin-vue": "^6.0.8",
     "@vue/tsconfig": "^0.9.1",
-    "ky": "^2.0.2",
     "naive-ui": "^2.45.1",
     "typescript": "^6.0.0",
     "vite": "^8.2.2",

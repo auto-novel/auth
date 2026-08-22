@@ -3,24 +3,20 @@ import { NAlert } from 'naive-ui';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
-import { AUTH_APP, AUTH_ORIGIN, AUTH_URL } from '@/auth/api';
-import { useAuthSession } from '@/auth/session';
-import { useAdminTheme } from '@/composables/useAdminTheme';
+import { useAdminKit, useAdminTheme } from '../context';
 
-const authSession = useAuthSession();
+const { options, session } = useAdminKit();
 const { isDark } = useAdminTheme();
 const route = useRoute();
 const router = useRouter();
 const iframe = ref<HTMLIFrameElement>();
 const completingLogin = ref(false);
 const loginError = ref<string>();
+const authUrl = new URL(options.auth.url, window.location.origin).toString();
+const authOrigin = new URL(authUrl).origin;
 let disposed = false;
 
-interface LoginSuccessMessage {
-  type: 'login_success';
-}
-
-function isLoginSuccessMessage(data: unknown): data is LoginSuccessMessage {
+function isLoginSuccessMessage(data: unknown) {
   return (
     typeof data === 'object' &&
     data !== null &&
@@ -30,15 +26,15 @@ function isLoginSuccessMessage(data: unknown): data is LoginSuccessMessage {
 }
 
 const iframeSrc = computed(() => {
-  const url = new URL(AUTH_URL);
-  url.searchParams.set('app', AUTH_APP);
+  const url = new URL(authUrl);
+  url.searchParams.set('app', options.auth.app);
   url.searchParams.set('theme', isDark.value ? 'dark' : 'light');
   return url.toString();
 });
 
 async function handleMessage(event: MessageEvent) {
   if (
-    event.origin !== AUTH_ORIGIN ||
+    event.origin !== authOrigin ||
     event.source !== iframe.value?.contentWindow ||
     !isLoginSuccessMessage(event.data) ||
     completingLogin.value
@@ -49,21 +45,19 @@ async function handleMessage(event: MessageEvent) {
   completingLogin.value = true;
   loginError.value = undefined;
   try {
-    await authSession.refresh();
+    await session.refresh();
     if (disposed) return;
 
     const redirect = route.query.redirect;
     await router.replace(
       typeof redirect === 'string' &&
-      redirect.startsWith('/') &&
-      !redirect.startsWith('//')
+        redirect.startsWith('/') &&
+        !redirect.startsWith('//')
         ? redirect
-        : { name: 'overview' },
+        : '/',
     );
   } catch {
-    if (!disposed) {
-      loginError.value = '登录状态同步失败，请重试';
-    }
+    if (!disposed) loginError.value = '登录状态同步失败，请重试';
   } finally {
     if (!disposed) completingLogin.value = false;
   }

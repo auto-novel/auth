@@ -1,8 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 
-import { useAuthSession } from '@/auth/session';
-import AdminLayout from '@/layouts/AdminLayout.vue';
-import LoginView from '@/views/LoginView.vue';
+import { AdminLoginView } from '@novelia/admin-kit';
+
 import LogsView from '@/views/LogsView.vue';
 import OverviewView from '@/views/OverviewView.vue';
 import SettingsView from '@/views/SettingsView.vue';
@@ -14,12 +13,11 @@ const router = createRouter({
     {
       path: '/login',
       name: 'login',
-      component: LoginView,
+      component: AdminLoginView,
       meta: { title: '登录', guestOnly: true },
     },
     {
       path: '/',
-      component: AdminLayout,
       redirect: { name: 'overview' },
       meta: { requiresAuth: true },
       children: [
@@ -51,22 +49,6 @@ const router = createRouter({
     },
     { path: '/:pathMatch(.*)*', redirect: { name: 'overview' } },
   ],
-});
-
-router.beforeEach(async (to) => {
-  const authSession = useAuthSession();
-  await authSession.initialize();
-
-  if (to.meta.requiresAuth && !authSession.isSignedIn.value) {
-    return {
-      name: 'login',
-      query: to.fullPath === '/' ? undefined : { redirect: to.fullPath },
-    };
-  }
-
-  if (to.meta.guestOnly && authSession.isSignedIn.value) {
-    return { name: 'overview' };
-  }
 });
 
 export default router;

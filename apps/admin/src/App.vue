@@ -1,28 +1,32 @@
 <script setup lang="ts">
-import { darkTheme, NConfigProvider } from 'naive-ui';
-import { RouterView } from 'vue-router';
+import {
+  DashboardOutlined,
+  HistoryOutlined,
+  PeopleOutlined,
+  SettingsOutlined,
+} from '@vicons/material';
+import { AdminKitApp, AdminKitLayout } from '@novelia/admin-kit';
+import { NIcon, type MenuOption } from 'naive-ui';
+import { h, type Component } from 'vue';
+import { RouterView, useRoute } from 'vue-router';
 
-import { useAdminTheme } from '@/composables/useAdminTheme';
+const route = useRoute();
 
-const { isDark } = useAdminTheme();
+function renderIcon(icon: Component) {
+  return () => h(NIcon, null, { default: () => h(icon) });
+}
+
+const menuOptions: MenuOption[] = [
+  { label: '概览', key: '/overview', icon: renderIcon(DashboardOutlined) },
+  { label: '用户管理', key: '/users', icon: renderIcon(PeopleOutlined) },
+  { label: '操作记录', key: '/logs', icon: renderIcon(HistoryOutlined) },
+  { label: '系统设置', key: '/settings', icon: renderIcon(SettingsOutlined) },
+];
 </script>
 
 <template>
-  <n-config-provider :theme="isDark ? darkTheme : null">
-    <router-view />
-  </n-config-provider>
+  <AdminKitApp>
+    <AdminKitLayout v-if="route.meta.requiresAuth" :menu-options="menuOptions" />
+    <RouterView v-else />
+  </AdminKitApp>
 </template>
-
-<style>
-html,
-body,
-#app {
-  width: 100%;
-  height: 100%;
-  margin: 0;
-}
-
-body {
-  overflow: hidden;
-}
-</style>

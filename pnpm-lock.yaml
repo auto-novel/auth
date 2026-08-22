@@ -10,15 +10,15 @@ importers:
 
   apps/admin:
     dependencies:
+      '@novelia/admin-kit':
+        specifier: workspace:*
+        version: link:../../packages/admin-kit
       '@vitejs/plugin-vue':
         specifier: ^6.0.8
         version: 6.0.8(vite@8.2.2(@types/node@25.9.5)(jiti@2.7.0)(terser@5.50.0)(yaml@2.9.0))(vue@3.5.41(typescript@6.0.3))
       '@vue/tsconfig':
         specifier: ^0.9.1
         version: 0.9.1(typescript@6.0.3)(vue@3.5.41(typescript@6.0.3))
-      ky:
-        specifier: ^2.0.2
-        version: 2.0.2
       naive-ui:
         specifier: ^2.45.1
         version: 2.45.1(vue@3.5.41(typescript@6.0.3))
@@ -93,6 +93,34 @@ importers:
       prettier:
         specifier: ^3.9.6
         version: 3.9.6
+
+  packages/admin-kit:
+    dependencies:
+      '@vicons/material':
+        specifier: ^0.13.0
+        version: 0.13.0
+      ky:
+        specifier: ^2.0.2
+        version: 2.0.2
+      naive-ui:
+        specifier: ^2.45.1
+        version: 2.45.1(vue@3.5.41(typescript@6.0.3))
+      vue:
+        specifier: ^3.5.41
+        version: 3.5.41(typescript@6.0.3)
+      vue-router:
+        specifier: ^5.2.0
+        version: 5.2.0(@vue/compiler-sfc@3.5.41)(rolldown@1.2.4)(vite@8.2.2(@types/node@25.9.5)(jiti@2.7.0)(terser@5.50.0)(yaml@2.9.0))(vue@3.5.41(typescript@6.0.3))
+    devDependencies:
+      '@vue/tsconfig':
+        specifier: ^0.9.1
+        version: 0.9.1(typescript@6.0.3)(vue@3.5.41(typescript@6.0.3))
+      typescript:
+        specifier: ^6.0.0
+        version: 6.0.3
+      vue-tsc:
+        specifier: ^3.3.10
+        version: 3.3.10(typescript@6.0.3)
 
 packages:
 
