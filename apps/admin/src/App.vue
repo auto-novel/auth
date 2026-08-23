@@ -3,6 +3,7 @@ import {
   DashboardOutlined,
   HistoryOutlined,
   PeopleOutlined,
+  SettingsOutlined,
 } from '@vicons/material';
 import { AdminKitApp, AdminKitLayout } from '@novelia/admin-kit';
 import { NIcon, type MenuOption } from 'naive-ui';
@@ -19,6 +20,7 @@ const menuOptions: MenuOption[] = [
   { label: '概览', key: '/overview', icon: renderIcon(DashboardOutlined) },
   { label: '用户管理', key: '/users', icon: renderIcon(PeopleOutlined) },
   { label: '事件记录', key: '/events', icon: renderIcon(HistoryOutlined) },
+  { label: '系统设置', key: '/settings', icon: renderIcon(SettingsOutlined) },
 ];
 </script>
 

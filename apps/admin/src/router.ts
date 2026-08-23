@@ -34,6 +34,12 @@ const router = createRouter({
           component: () => import('@/views/events/EventsView.vue'),
           meta: { title: '事件记录' },
         },
+        {
+          path: 'settings',
+          name: 'settings',
+          component: () => import('@/views/settings/SettingsView.vue'),
+          meta: { title: '系统设置' },
+        },
         { path: 'logs', redirect: { name: 'events' } },
       ],
     },
