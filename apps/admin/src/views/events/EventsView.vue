@@ -5,8 +5,8 @@ import { computed, onMounted, ref } from 'vue';
 
 import { getEvents, type Event } from '@/data/events';
 
-import EventFilters from './events/EventFilters.vue';
-import EventList from './events/EventList.vue';
+import EventFilters from './EventFilters.vue';
+import EventList from './EventList.vue';
 
 const { session } = useAdminKit();
 const events = ref<Event[]>([]);

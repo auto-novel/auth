@@ -19,7 +19,7 @@ const router = createRouter({
         {
           path: 'overview',
           name: 'overview',
-          component: () => import('@/views/OverviewView.vue'),
+          component: () => import('@/views/overview/OverviewView.vue'),
           meta: { title: '概览' },
         },
         {
@@ -31,16 +31,10 @@ const router = createRouter({
         {
           path: 'events',
           name: 'events',
-          component: () => import('@/views/EventsView.vue'),
+          component: () => import('@/views/events/EventsView.vue'),
           meta: { title: '事件记录' },
         },
         { path: 'logs', redirect: { name: 'events' } },
-        {
-          path: 'settings',
-          name: 'settings',
-          component: () => import('@/views/SettingsView.vue'),
-          meta: { title: '系统设置' },
-        },
       ],
     },
     { path: '/:pathMatch(.*)*', redirect: { name: 'overview' } },
