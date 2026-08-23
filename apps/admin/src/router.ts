@@ -2,6 +2,8 @@ import { createRouter, createWebHistory } from 'vue-router';
 
 import { AdminLoginView } from '@novelia/admin-kit';
 
+const APP_TITLE = '认证服务管理后台';
+
 const router = createRouter({
   history: createWebHistory('/admin/'),
   routes: [
@@ -45,6 +47,13 @@ const router = createRouter({
     },
     { path: '/:pathMatch(.*)*', redirect: { name: 'overview' } },
   ],
+});
+
+router.afterEach((to) => {
+  const pageTitle = to.meta.title;
+  document.title = pageTitle
+    ? `${String(pageTitle)} | ${APP_TITLE}`
+    : APP_TITLE;
 });
 
 export default router;
