@@ -19,7 +19,9 @@ const actionLabels: Record<string, string> = {
   otp: '发送验证码',
   reset_password: '重置密码',
   'restrict-user': '限制用户',
+  'unrestrict-user': '取消限制',
   'ban-user': '封禁用户',
+  'unban-user': '取消封禁',
   'strike-user': '警告用户',
 };
 
@@ -33,7 +35,9 @@ const actionTypes: Record<
   otp: 'info',
   reset_password: 'warning',
   'restrict-user': 'warning',
+  'unrestrict-user': 'success',
   'ban-user': 'error',
+  'unban-user': 'success',
   'strike-user': 'warning',
 };
 

@@ -17,10 +17,12 @@ const (
 )
 
 const (
-	EventRestrictUser  string = "restrict-user"
-	EventBanUser       string = "ban-user"
-	EventStrikeUser    string = "strike-user"
-	EventUpdateSetting string = "update-setting"
+	EventRestrictUser   string = "restrict-user"
+	EventUnrestrictUser string = "unrestrict-user"
+	EventBanUser        string = "ban-user"
+	EventUnbanUser      string = "unban-user"
+	EventStrikeUser     string = "strike-user"
+	EventUpdateSetting  string = "update-setting"
 )
 
 type AdminService interface {
@@ -28,7 +30,9 @@ type AdminService interface {
 	GetOverview(http.ResponseWriter, *http.Request) error
 	GetUser(http.ResponseWriter, *http.Request) error
 	RestrictUser(http.ResponseWriter, *http.Request) error
+	UnrestrictUser(http.ResponseWriter, *http.Request) error
 	BanUser(http.ResponseWriter, *http.Request) error
+	UnbanUser(http.ResponseWriter, *http.Request) error
 	StrikeUser(http.ResponseWriter, *http.Request) error
 	GetEvent(http.ResponseWriter, *http.Request) error
 	GetSetting(http.ResponseWriter, *http.Request) error
@@ -58,7 +62,9 @@ func (s *adminService) Use(router chi.Router) {
 	router.Get("/overview", util.EH(s.GetOverview))
 	router.Get("/user", util.EH(s.GetUser))
 	router.Post("/user/restrict", util.EH(s.RestrictUser))
+	router.Post("/user/unrestrict", util.EH(s.UnrestrictUser))
 	router.Post("/user/ban", util.EH(s.BanUser))
+	router.Post("/user/unban", util.EH(s.UnbanUser))
 	router.Post("/user/strike", util.EH(s.StrikeUser))
 	router.Get("/event", util.EH(s.GetEvent))
 	router.Get("/setting", util.EH(s.GetSetting))
@@ -280,6 +286,102 @@ func (s *adminService) BanUser(w http.ResponseWriter, r *http.Request) error {
 
 	s.eventRepo.Save(
 		EventBanUser,
+		&struct {
+			ActorUser  string `json:"actor_user"`
+			TargetUser string `json:"target_user"`
+			Reason     string `json:"reason"`
+		}{
+			ActorUser:  adminUsername,
+			TargetUser: user.Username,
+			Reason:     req.Reason,
+		},
+	)
+
+	return nil
+}
+
+func (s *adminService) UnrestrictUser(w http.ResponseWriter, r *http.Request) error {
+	adminUsername, err := util.VerifyAccessToken(r, true)
+	if err != nil {
+		slog.Error("Access token verification failed", "error", err)
+		return err
+	}
+
+	req, err := util.Body[struct {
+		Username string `json:"username" validate:"required"`
+		Reason   string `json:"reason" validate:"required"`
+	}](r)
+	if err != nil {
+		slog.Error("Request body parse error", "error", err)
+		return err
+	}
+
+	user, err := s.userRepo.FindByUsername(req.Username)
+	if err != nil {
+		slog.Error("User lookup failed", "username", req.Username, "error", err)
+		return util.NotFound("用户不存在")
+	}
+	if user.Role != repository.RoleRestricted {
+		slog.Error("Unauthorized role change attempt", "username", req.Username, "current_role", user.Role)
+		return util.Unauthorized("只能取消受限用户的限制")
+	}
+
+	user.Role = repository.RoleMember
+	if err := s.userRepo.UpdateRole(user); err != nil {
+		slog.Error("Failed to update user role", "username", user.Username, "error", err)
+		return util.InternalServerError("更新用户角色失败")
+	}
+
+	s.eventRepo.Save(
+		EventUnrestrictUser,
+		&struct {
+			ActorUser  string `json:"actor_user"`
+			TargetUser string `json:"target_user"`
+			Reason     string `json:"reason"`
+		}{
+			ActorUser:  adminUsername,
+			TargetUser: user.Username,
+			Reason:     req.Reason,
+		},
+	)
+
+	return nil
+}
+
+func (s *adminService) UnbanUser(w http.ResponseWriter, r *http.Request) error {
+	adminUsername, err := util.VerifyAccessToken(r, true)
+	if err != nil {
+		slog.Error("Access token verification failed", "error", err)
+		return err
+	}
+
+	req, err := util.Body[struct {
+		Username string `json:"username" validate:"required"`
+		Reason   string `json:"reason" validate:"required"`
+	}](r)
+	if err != nil {
+		slog.Error("Request body parse error", "error", err)
+		return err
+	}
+
+	user, err := s.userRepo.FindByUsername(req.Username)
+	if err != nil {
+		slog.Error("User lookup failed", "username", req.Username, "error", err)
+		return util.NotFound("用户不存在")
+	}
+	if user.Role != repository.RoleBanned {
+		slog.Error("Unauthorized role change attempt", "username", req.Username, "current_role", user.Role)
+		return util.Unauthorized("只能取消已封禁用户的封禁")
+	}
+
+	user.Role = repository.RoleMember
+	if err := s.userRepo.UpdateRole(user); err != nil {
+		slog.Error("Failed to update user role", "username", user.Username, "error", err)
+		return util.InternalServerError("更新用户角色失败")
+	}
+
+	s.eventRepo.Save(
+		EventUnbanUser,
 		&struct {
 			ActorUser  string `json:"actor_user"`
 			TargetUser string `json:"target_user"`

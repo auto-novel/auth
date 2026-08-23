@@ -27,7 +27,9 @@ const actionOptions: SelectOption[] = [
   { label: '发送验证码', value: 'otp' },
   { label: '重置密码', value: 'reset_password' },
   { label: '限制用户', value: 'restrict-user' },
+  { label: '取消限制', value: 'unrestrict-user' },
   { label: '封禁用户', value: 'ban-user' },
+  { label: '取消封禁', value: 'unban-user' },
   { label: '警告用户', value: 'strike-user' },
 ];
 </script>

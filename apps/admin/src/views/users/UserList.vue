@@ -14,7 +14,7 @@ import {
 } from 'naive-ui';
 import { computed } from 'vue';
 
-import type { User } from '@/data/users';
+import type { User, UserAction } from '@/data/users';
 
 import UserListItem from './UserListItem.vue';
 
@@ -30,6 +30,7 @@ const emit = defineEmits<{
   updatePage: [page: number];
   updatePageSize: [pageSize: number];
   resetFilters: [];
+  action: [action: UserAction, user: User];
 }>();
 
 const pageSizeOptions: SelectOption[] = [
@@ -50,6 +51,10 @@ const rangeEnd = computed(() =>
 
 function changePageSize(value: string | number | null) {
   if (typeof value === 'number') emit('updatePageSize', value);
+}
+
+function forwardAction(action: UserAction, user: User) {
+  emit('action', action, user);
 }
 </script>
 
@@ -81,7 +86,7 @@ function changePageSize(value: string | number | null) {
       <n-spin v-else :show="loading">
         <n-list v-if="users.length">
           <n-list-item v-for="user in users" :key="user.id">
-            <UserListItem :user="user" :total="total" />
+            <UserListItem :user="user" :total="total" @action="forwardAction" />
           </n-list-item>
         </n-list>
         <n-empty

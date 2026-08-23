@@ -26,6 +26,13 @@ export interface UserListParams {
   createdBefore?: number;
 }
 
+export type UserAction = 'restrict' | 'unrestrict' | 'ban' | 'unban';
+
+export interface UserActionRequest {
+  username: string;
+  reason: string;
+}
+
 export async function getUsers(
   session: AuthSession,
   params: UserListParams,
@@ -49,4 +56,16 @@ export async function getUsers(
   );
 
   return response.json() as Promise<UserPage>;
+}
+
+export async function updateUserRole(
+  session: AuthSession,
+  action: UserAction,
+  request: UserActionRequest,
+): Promise<void> {
+  await adminFetch(session, `/api/v1/admin/user/${action}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
 }

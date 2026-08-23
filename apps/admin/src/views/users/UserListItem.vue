@@ -1,9 +1,12 @@
 <script setup lang="ts">
-import { NTag, NText } from 'naive-ui';
+import { NButton, NTag, NText } from 'naive-ui';
 
-import type { User } from '@/data/users';
+import type { User, UserAction } from '@/data/users';
 
 const props = defineProps<{ user: User; total: number }>();
+const emit = defineEmits<{
+  action: [action: UserAction, user: User];
+}>();
 
 const roleLabels: Record<string, string> = {
   admin: '管理员',
@@ -30,8 +33,18 @@ function formatDate(timestamp: number) {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
+  }).format(new Date(timestamp));
+}
+
+function formatDateTime(timestamp: number) {
+  if (!Number.isFinite(timestamp) || timestamp <= 0) return '—';
+  return new Intl.DateTimeFormat('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
     hour: '2-digit',
     minute: '2-digit',
+    second: '2-digit',
     hour12: false,
   }).format(new Date(timestamp));
 }
@@ -63,12 +76,54 @@ function formatId(id: number) {
     <div class="metadata">
       <div class="field">
         <n-text depth="3" class="field-label">注册</n-text>
-        <n-text>{{ formatDate(user.createdAt) }}</n-text>
+        <n-text :title="formatDateTime(user.createdAt)">
+          {{ formatDate(user.createdAt) }}
+        </n-text>
       </div>
       <div class="field">
         <n-text depth="3" class="field-label">最近登录</n-text>
-        <n-text>{{ formatDate(user.lastLogin) }}</n-text>
+        <n-text :title="formatDateTime(user.lastLogin)">
+          {{ formatDate(user.lastLogin) }}
+        </n-text>
       </div>
+    </div>
+
+    <div class="actions">
+      <n-button
+        v-if="user.role === 'member'"
+        size="small"
+        type="warning"
+        secondary
+        @click="emit('action', 'restrict', user)"
+      >
+        限制
+      </n-button>
+      <n-button
+        v-if="user.role === 'member'"
+        size="small"
+        type="error"
+        secondary
+        @click="emit('action', 'ban', user)"
+      >
+        封禁
+      </n-button>
+      <n-button
+        v-if="user.role === 'restricted'"
+        size="small"
+        type="warning"
+        secondary
+        @click="emit('action', 'unrestrict', user)"
+      >
+        取消限制
+      </n-button>
+      <n-button
+        v-if="user.role === 'banned'"
+        size="small"
+        secondary
+        @click="emit('action', 'unban', user)"
+      >
+        取消封禁
+      </n-button>
     </div>
   </div>
 </template>
@@ -76,7 +131,7 @@ function formatId(id: number) {
 <style scoped>
 .user-row {
   display: grid;
-  grid-template-columns: 100px minmax(200px, 1fr) 200px;
+  grid-template-columns: 100px minmax(180px, 1fr) 150px 124px;
   gap: 20px;
   align-items: center;
 }
@@ -115,22 +170,27 @@ function formatId(id: number) {
   font-variant-numeric: tabular-nums;
 }
 
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
 @media (max-width: 767px) {
   .user-row {
-    grid-template-columns: 1fr auto;
+    grid-template-columns: auto minmax(0, 1fr) auto;
     gap: 6px 10px;
   }
 
   .identity {
     gap: 2px;
-    grid-column: 1;
+    grid-column: 2;
     grid-row: 1;
   }
 
   .summary {
-    grid-column: 2;
+    grid-column: 1;
     grid-row: 1;
-    align-items: flex-end;
     gap: 2px;
   }
 
@@ -139,6 +199,14 @@ function formatId(id: number) {
     grid-row: 2;
     flex-direction: row;
     gap: 16px;
+  }
+
+  .actions {
+    grid-column: 3;
+    grid-row: 1;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
   }
 
   .field {
