@@ -26,8 +26,7 @@ function setupAuthProxy(config: UserConfig) {
   proxy['/auth-proxy/assets'] = {
     target: authUrl,
     changeOrigin: true,
-    rewrite: (path: string) =>
-      path.replace(/^\/auth-proxy\/assets/, '/assets'),
+    rewrite: (path: string) => path.replace(/^\/auth-proxy\/assets/, '/assets'),
   };
 
   proxy['/auth-proxy'] = {
@@ -66,10 +65,10 @@ export default defineConfig(({ command, mode }) => {
   const authUrl = isServe ? '/auth-proxy/' : 'https://auth.novelia.cc';
   const commitSha = isServe
     ? readGitValue(['rev-parse', 'HEAD'])
-    : (env.VITE_COMMIT_SHA || 'unknown');
+    : env.VITE_COMMIT_SHA || 'unknown';
   const buildTime = isServe
     ? readGitValue(['show', '-s', '--format=%cI', 'HEAD'])
-    : (env.VITE_BUILD_TIME || new Date().toISOString());
+    : env.VITE_BUILD_TIME || new Date().toISOString();
   const apiMode = env.VITE_API_MODE;
   const apiUrl =
     apiMode === 'native'

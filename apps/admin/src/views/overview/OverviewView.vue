@@ -23,7 +23,9 @@ function formatDate(date: Date) {
     month: '2-digit',
     day: '2-digit',
   }).formatToParts(date);
-  const values = Object.fromEntries(parts.map(({ type, value }) => [type, value]));
+  const values = Object.fromEntries(
+    parts.map(({ type, value }) => [type, value]),
+  );
   return `${values.year}-${values.month}-${values.day}`;
 }
 
@@ -41,7 +43,11 @@ async function loadOverview() {
   errorMessage.value = '';
 
   try {
-    const data = await getOverview(session, dateRange.startDate, dateRange.endDate);
+    const data = await getOverview(
+      session,
+      dateRange.startDate,
+      dateRange.endDate,
+    );
     authActivity.value = data.authActivity;
   } catch (error) {
     authActivity.value = [];
@@ -58,10 +64,14 @@ onMounted(loadOverview);
   <main class="overview-page">
     <section class="intro" aria-labelledby="overview-title">
       <div>
-        <n-text id="overview-title" tag="h1" class="intro-title">登录与注册统计</n-text>
+        <n-text id="overview-title" tag="h1" class="intro-title">
+          登录与注册统计
+        </n-text>
         <n-text depth="3">展示最近 7 天的认证活动。</n-text>
       </div>
-      <n-tag :bordered="false" round>{{ dateRange.startDate }} 至 {{ dateRange.endDate }}</n-tag>
+      <n-tag :bordered="false" round>
+        {{ dateRange.startDate }} 至 {{ dateRange.endDate }}
+      </n-tag>
     </section>
 
     <n-alert v-if="errorMessage" type="error" title="统计数据加载失败">
@@ -90,20 +100,60 @@ onMounted(loadOverview);
   flex-direction: column;
   gap: 20px;
 }
-.intro { min-height: 52px; display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
-.intro-title { display: block; margin: 0 0 5px; font-size: 22px; line-height: 1.35; font-weight: 650; }
-.error-content { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-.overview-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-areas: "trend metrics"; gap: 16px; }
-.metrics-panel { grid-area: metrics; }
-.trend-panel { grid-area: trend; }
+.intro {
+  min-height: 52px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+.intro-title {
+  display: block;
+  margin: 0 0 5px;
+  font-size: 22px;
+  line-height: 1.35;
+  font-weight: 650;
+}
+.error-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-areas: 'trend metrics';
+  gap: 16px;
+}
+.metrics-panel {
+  grid-area: metrics;
+}
+.trend-panel {
+  grid-area: trend;
+}
 
 @media (max-width: 767px) {
-  .overview-grid { grid-template-columns: minmax(0, 1fr); grid-template-areas: "metrics" "trend"; }
+  .overview-grid {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'metrics' 'trend';
+  }
 }
 @media (max-width: 599px) {
-  .overview-page { gap: 16px; }
-  .intro { min-height: auto; gap: 10px; }
-  .intro-title { white-space: nowrap; }
-  .intro > .n-tag { flex-shrink: 0; white-space: nowrap; font-size: 11px; }
+  .overview-page {
+    gap: 16px;
+  }
+  .intro {
+    min-height: auto;
+    gap: 10px;
+  }
+  .intro-title {
+    white-space: nowrap;
+  }
+  .intro > .n-tag {
+    flex-shrink: 0;
+    white-space: nowrap;
+    font-size: 11px;
+  }
 }
 </style>

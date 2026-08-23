@@ -13,7 +13,10 @@ const roleLabels: Record<string, string> = {
   banned: '已封禁',
 };
 
-const roleTypes: Record<string, 'default' | 'success' | 'warning' | 'error' | 'info'> = {
+const roleTypes: Record<
+  string,
+  'default' | 'success' | 'warning' | 'error' | 'info'
+> = {
   admin: 'error',
   trusted: 'success',
   member: 'info',

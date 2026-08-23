@@ -56,11 +56,7 @@ const roleOptions: SelectOption[] = [
       start-placeholder="注册开始日期"
       end-placeholder="注册结束日期"
     />
-    <n-button
-      class="search-button"
-      type="primary"
-      @click="$emit('search')"
-    >
+    <n-button class="search-button" type="primary" @click="$emit('search')">
       查询
     </n-button>
   </div>

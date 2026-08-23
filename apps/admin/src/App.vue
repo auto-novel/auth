@@ -24,7 +24,10 @@ const menuOptions: MenuOption[] = [
 
 <template>
   <AdminKitApp>
-    <AdminKitLayout v-if="route.meta.requiresAuth" :menu-options="menuOptions" />
+    <AdminKitLayout
+      v-if="route.meta.requiresAuth"
+      :menu-options="menuOptions"
+    />
     <RouterView v-else />
   </AdminKitApp>
 </template>
