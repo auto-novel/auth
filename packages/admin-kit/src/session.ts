@@ -1,4 +1,3 @@
-import ky, { HTTPError } from 'ky';
 import { computed, readonly, ref } from 'vue';
 
 import type { AdminKitOptions, AuthSession, UserProfile } from './types';
@@ -47,15 +46,30 @@ function parseAccessToken(token: string): UserProfile {
 export function createAuthSession(options: AdminKitOptions): AuthSession {
   const storageKey = `${options.auth.app}-admin-session`;
   const authUrl = new URL(options.auth.url, window.location.origin).toString();
-  const client = ky.create({
-    prefix: new URL('api/v1/', authUrl).toString(),
-    credentials: 'include',
-    timeout: 5000,
-  });
+  const apiUrl = new URL('api/v1/', authUrl);
   const profile = ref<UserProfile>();
   let initialized = false;
   let refreshRequest: Promise<void> | undefined;
   let initializeRequest: Promise<void> | undefined;
+
+  async function post(path: string, searchParams?: Record<string, string>) {
+    const url = new URL(path, apiUrl);
+    for (const [name, value] of Object.entries(searchParams ?? {})) {
+      url.searchParams.set(name, value);
+    }
+
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 5000);
+    try {
+      return await fetch(url, {
+        method: 'POST',
+        credentials: 'include',
+        signal: controller.signal,
+      });
+    } finally {
+      window.clearTimeout(timeout);
+    }
+  }
 
   function saveProfile(nextProfile?: UserProfile) {
     profile.value = nextProfile;
@@ -81,15 +95,13 @@ export function createAuthSession(options: AdminKitOptions): AuthSession {
   async function refresh() {
     if (refreshRequest) return refreshRequest;
 
-    refreshRequest = client
-      .post('auth/refresh', { searchParams: { app: options.auth.app } })
-      .text()
-      .then((token) => saveProfile(parseAccessToken(token)))
-      .catch((error: unknown) => {
-        if (error instanceof HTTPError && error.response.status === 401) {
-          saveProfile();
+    refreshRequest = post('auth/refresh', { app: options.auth.app })
+      .then(async (response) => {
+        if (!response.ok) {
+          if (response.status === 401) saveProfile();
+          throw new Error(`刷新会话失败：HTTP ${response.status}`);
         }
-        throw error;
+        saveProfile(parseAccessToken(await response.text()));
       })
       .finally(() => {
         refreshRequest = undefined;
@@ -115,7 +127,9 @@ export function createAuthSession(options: AdminKitOptions): AuthSession {
   async function logout() {
     saveProfile();
     try {
-      await client.post('auth/logout').text();
+      const response = await post('auth/logout');
+      if (!response.ok)
+        throw new Error(`退出登录失败：HTTP ${response.status}`);
     } catch {
       // Local logout still succeeds when the server session has expired.
     }
