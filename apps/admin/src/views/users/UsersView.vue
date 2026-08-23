@@ -240,11 +240,23 @@ onMounted(loadUsers);
       :close-on-esc="!actionInProgress"
     >
       <n-space vertical :size="16">
-        <n-text>
-          确认{{ actionConfig?.title }}
-          <n-text strong>{{ pendingAction?.user.name }}</n-text>
-          ？{{ actionConfig?.description }}
-        </n-text>
+        <div class="action-message">
+          <n-text>
+            确认{{ actionConfig?.title }}
+            <n-text strong>{{ pendingAction?.user.name }}</n-text>
+            ？{{ actionConfig?.description }}
+          </n-text>
+          <n-text
+            v-if="
+              pendingAction?.action === 'restrict' ||
+              pendingAction?.action === 'ban'
+            "
+            strong
+            :type="pendingAction.action === 'ban' ? 'error' : 'warning'"
+          >
+            ！不推荐直接限制/封禁用户，优先使用“三振出局”。
+          </n-text>
+        </div>
         <n-input
           v-model:value="actionReason"
           type="textarea"
@@ -284,6 +296,12 @@ onMounted(loadUsers);
 .users-page {
   max-width: 1000px;
   margin-inline: auto;
+}
+
+.action-message {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .modal-actions {

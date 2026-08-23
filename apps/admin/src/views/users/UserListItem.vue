@@ -60,12 +60,20 @@ function formatId(id: number) {
     <div class="summary">
       <n-text depth="3" class="user-id">#{{ formatId(user.id) }}</n-text>
       <n-tag
+        class="role-tag"
         size="small"
         :bordered="false"
         :type="roleTypes[user.role] ?? 'default'"
       >
         {{ roleLabels[user.role] ?? user.role }}
       </n-tag>
+      <n-text
+        class="role-text"
+        :class="{ 'role-text--placeholder': user.role === 'member' }"
+        :type="roleTypes[user.role] ?? 'default'"
+      >
+        {{ roleLabels[user.role] ?? user.role }}
+      </n-text>
     </div>
 
     <div class="identity">
@@ -91,7 +99,7 @@ function formatId(id: number) {
     <div class="actions">
       <n-button
         v-if="user.role === 'member'"
-        size="small"
+        size="tiny"
         type="warning"
         secondary
         @click="emit('action', 'restrict', user)"
@@ -100,7 +108,7 @@ function formatId(id: number) {
       </n-button>
       <n-button
         v-if="user.role === 'member'"
-        size="small"
+        size="tiny"
         type="error"
         secondary
         @click="emit('action', 'ban', user)"
@@ -109,7 +117,7 @@ function formatId(id: number) {
       </n-button>
       <n-button
         v-if="user.role === 'restricted'"
-        size="small"
+        size="tiny"
         type="warning"
         secondary
         @click="emit('action', 'unrestrict', user)"
@@ -118,7 +126,7 @@ function formatId(id: number) {
       </n-button>
       <n-button
         v-if="user.role === 'banned'"
-        size="small"
+        size="tiny"
         secondary
         @click="emit('action', 'unban', user)"
       >
@@ -170,6 +178,10 @@ function formatId(id: number) {
   font-variant-numeric: tabular-nums;
 }
 
+.role-text {
+  display: none;
+}
+
 .actions {
   display: flex;
   justify-content: flex-end;
@@ -178,40 +190,58 @@ function formatId(id: number) {
 
 @media (max-width: 767px) {
   .user-row {
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) auto;
     gap: 6px 10px;
   }
 
   .identity {
-    gap: 2px;
-    grid-column: 2;
-    grid-row: 1;
-  }
-
-  .summary {
     grid-column: 1;
     grid-row: 1;
     gap: 2px;
   }
 
+  .summary {
+    grid-column: 2;
+    grid-row: 1;
+    align-items: flex-end;
+    gap: 2px;
+    text-align: right;
+  }
+
+  .role-tag {
+    display: none;
+  }
+
+  .role-text {
+    display: inline;
+    font-size: 12px;
+  }
+
+  .role-text--placeholder {
+    visibility: hidden;
+  }
+
   .metadata {
-    grid-column: 1 / -1;
+    grid-column: 1;
     grid-row: 2;
     flex-direction: row;
-    gap: 16px;
+    gap: 10px;
   }
 
   .actions {
-    grid-column: 3;
-    grid-row: 1;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 6px;
+    grid-column: 2;
+    grid-row: 2;
+    justify-content: flex-end;
+    gap: 4px;
   }
 
   .field {
     gap: 4px;
     font-size: 12px;
+  }
+
+  .field-label {
+    width: auto;
   }
 }
 </style>
