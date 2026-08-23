@@ -6,8 +6,14 @@ import (
 	"log/slog"
 	"net/http"
 	"time"
+	_ "time/tzdata"
 
 	"github.com/go-chi/chi/v5"
+)
+
+const (
+	OverviewStatsMaxDays  int    = 30
+	OverviewStatsTimezone string = "Asia/Shanghai"
 )
 
 const (
@@ -18,6 +24,7 @@ const (
 
 type AdminService interface {
 	Use(chi.Router)
+	GetOverview(http.ResponseWriter, *http.Request) error
 	GetUser(http.ResponseWriter, *http.Request) error
 	RestrictUser(http.ResponseWriter, *http.Request) error
 	BanUser(http.ResponseWriter, *http.Request) error
@@ -42,6 +49,7 @@ func NewAdminService(
 }
 
 func (s *adminService) Use(router chi.Router) {
+	router.Get("/overview", util.EH(s.GetOverview))
 	router.Get("/user", util.EH(s.GetUser))
 	router.Post("/user/restrict", util.EH(s.RestrictUser))
 	router.Post("/user/ban", util.EH(s.BanUser))
@@ -69,6 +77,69 @@ type EventResponse struct {
 	Action    string    `json:"action"`
 	Detail    string    `json:"detail"`
 	CreatedAt time.Time `json:"createdAt"`
+}
+
+type DailyAuthStatResponse struct {
+	Date          string `json:"date"`
+	LoginCount    int64  `json:"loginCount"`
+	RegisterCount int64  `json:"registerCount"`
+}
+
+type OverviewResponse struct {
+	AuthActivity []DailyAuthStatResponse `json:"authActivity"`
+}
+
+func (s *adminService) GetOverview(w http.ResponseWriter, r *http.Request) error {
+	_, err := util.VerifyAccessToken(r, true)
+	if err != nil {
+		slog.Error("Access token verification failed", "error", err)
+		return err
+	}
+
+	query := r.URL.Query()
+	startDateValue := query.Get("start_date")
+	endDateValue := query.Get("end_date")
+	if startDateValue == "" || endDateValue == "" {
+		return util.BadRequest("必须提供 start_date 和 end_date")
+	}
+
+	location, err := time.LoadLocation(OverviewStatsTimezone)
+	if err != nil {
+		slog.Error("Failed to load overview statistics timezone", "timezone", OverviewStatsTimezone, "error", err)
+		return util.InternalServerError("无法加载统计时区")
+	}
+	startDate, err := time.ParseInLocation(time.DateOnly, startDateValue, location)
+	if err != nil {
+		return util.BadRequest("start_date 必须使用 YYYY-MM-DD 格式")
+	}
+	endDate, err := time.ParseInLocation(time.DateOnly, endDateValue, location)
+	if err != nil {
+		return util.BadRequest("end_date 必须使用 YYYY-MM-DD 格式")
+	}
+	if endDate.Before(startDate) {
+		return util.BadRequest("end_date 不能早于 start_date")
+	}
+	if endDate.After(startDate.AddDate(0, 0, OverviewStatsMaxDays-1)) {
+		return util.BadRequest("时间范围不能超过 30 天")
+	}
+
+	stats, err := s.eventRepo.DailyAuthStats(startDate, endDate, OverviewStatsTimezone)
+	if err != nil {
+		slog.Error("Failed to get daily authentication statistics", "error", err)
+		return err
+	}
+
+	response := OverviewResponse{
+		AuthActivity: make([]DailyAuthStatResponse, len(stats)),
+	}
+	for i, stat := range stats {
+		response.AuthActivity[i] = DailyAuthStatResponse{
+			Date:          stat.Date.Format(time.DateOnly),
+			LoginCount:    stat.LoginCount,
+			RegisterCount: stat.RegisterCount,
+		}
+	}
+	return util.RespondJson(w, response)
 }
 
 func (s *adminService) GetUser(w http.ResponseWriter, r *http.Request) error {

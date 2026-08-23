@@ -59,6 +59,7 @@ func TestMain(m *testing.M) {
 	otpRepo = repository.NewOtpRepository(testDB)
 	eventRepo := repository.NewEventRepository(testDB)
 	authService := service.NewAuthService(userRepo, eventRepo, otpRepo, noopEmailClient{})
+	adminService := service.NewAdminService(userRepo, eventRepo)
 
 	util.AccessTokenSecret = testAccessTokenSecret
 	util.RefreshTokenSecret = testRefreshTokenSecret
@@ -66,6 +67,7 @@ func TestMain(m *testing.M) {
 	router := chi.NewRouter()
 	router.Use(middleware.Recoverer)
 	router.Route("/v1/auth", authService.Use)
+	router.Route("/v1/admin", adminService.Use)
 	server := httptest.NewServer(router)
 	Url = server.URL
 	Client = server.Client()

@@ -16,6 +16,11 @@ create table if not exists auth_event
     detail     jsonb        not null default '{}'::jsonb,
     created_at timestamptz  not null default current_timestamp
 );
+
+create index if not exists idx_auth_event_auth_activity_created_at
+    on auth_event (created_at)
+    where action in ('login', 'register');
+
 create table if not exists auth_otp
 (
     email      varchar(255) not null,
