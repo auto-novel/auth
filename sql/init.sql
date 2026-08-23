@@ -30,6 +30,14 @@ create table if not exists auth_otp
     created_at timestamptz  not null default current_timestamp,
     primary key (email, type)
 );
+
+create table if not exists auth_setting
+(
+    key        varchar(128) primary key,
+    value      jsonb       not null,
+    updated_at timestamptz not null default current_timestamp
+);
+
 create table if not exists auth_strike_record
 (
     id          bigint generated always as identity primary key,

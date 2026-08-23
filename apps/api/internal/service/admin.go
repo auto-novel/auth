@@ -17,9 +17,10 @@ const (
 )
 
 const (
-	EventRestrictUser string = "restrict-user"
-	EventBanUser      string = "ban-user"
-	EventStrikeUser   string = "strike-user"
+	EventRestrictUser  string = "restrict-user"
+	EventBanUser       string = "ban-user"
+	EventStrikeUser    string = "strike-user"
+	EventUpdateSetting string = "update-setting"
 )
 
 type AdminService interface {
@@ -30,20 +31,25 @@ type AdminService interface {
 	BanUser(http.ResponseWriter, *http.Request) error
 	StrikeUser(http.ResponseWriter, *http.Request) error
 	GetEvent(http.ResponseWriter, *http.Request) error
+	GetSetting(http.ResponseWriter, *http.Request) error
+	UpdateSetting(http.ResponseWriter, *http.Request) error
 }
 
 type adminService struct {
-	userRepo  repository.UserRepository
-	eventRepo repository.EventRepository
+	userRepo    repository.UserRepository
+	eventRepo   repository.EventRepository
+	settingRepo repository.SettingRepository
 }
 
 func NewAdminService(
 	userRepo repository.UserRepository,
 	eventRepo repository.EventRepository,
+	settingRepo repository.SettingRepository,
 ) AdminService {
 	s := &adminService{
-		userRepo:  userRepo,
-		eventRepo: eventRepo,
+		userRepo:    userRepo,
+		eventRepo:   eventRepo,
+		settingRepo: settingRepo,
 	}
 	return s
 }
@@ -55,6 +61,8 @@ func (s *adminService) Use(router chi.Router) {
 	router.Post("/user/ban", util.EH(s.BanUser))
 	router.Post("/user/strike", util.EH(s.StrikeUser))
 	router.Get("/event", util.EH(s.GetEvent))
+	router.Get("/setting", util.EH(s.GetSetting))
+	router.Post("/setting", util.EH(s.UpdateSetting))
 }
 
 type PageResponse[T any] struct {
@@ -407,4 +415,56 @@ func (s *adminService) GetEvent(w http.ResponseWriter, r *http.Request) error {
 		}
 	}
 	return util.RespondJson(w, eventPage)
+}
+
+func (s *adminService) GetSetting(w http.ResponseWriter, r *http.Request) error {
+	_, err := util.VerifyAccessToken(r, true)
+	if err != nil {
+		slog.Error("Access token verification failed", "error", err)
+		return err
+	}
+
+	settings := s.settingRepo.Get()
+	return util.RespondJson(w, settings)
+}
+
+func (s *adminService) UpdateSetting(w http.ResponseWriter, r *http.Request) error {
+	adminUsername, err := util.VerifyAccessToken(r, true)
+	if err != nil {
+		slog.Error("Access token verification failed", "error", err)
+		return err
+	}
+
+	req, err := util.Body[struct {
+		RegisterEnabled      *bool `json:"registerEnabled" validate:"required"`
+		ResetPasswordEnabled *bool `json:"resetPasswordEnabled" validate:"required"`
+	}](r)
+	if err != nil {
+		slog.Error("Setting request body parse error", "error", err)
+		return err
+	}
+
+	settings, err := s.settingRepo.Update(repository.AuthSettings{
+		RegisterEnabled:      *req.RegisterEnabled,
+		ResetPasswordEnabled: *req.ResetPasswordEnabled,
+	})
+	if err != nil {
+		slog.Error("Failed to update auth settings", "error", err)
+		return util.InternalServerError("更新认证设置失败")
+	}
+
+	s.eventRepo.Save(
+		EventUpdateSetting,
+		&struct {
+			ActorUser            string `json:"actor_user"`
+			RegisterEnabled      bool   `json:"register_enabled"`
+			ResetPasswordEnabled bool   `json:"reset_password_enabled"`
+		}{
+			ActorUser:            adminUsername,
+			RegisterEnabled:      settings.RegisterEnabled,
+			ResetPasswordEnabled: settings.ResetPasswordEnabled,
+		},
+	)
+
+	return util.RespondJson(w, settings)
 }

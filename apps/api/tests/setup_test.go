@@ -27,9 +27,10 @@ const (
 )
 
 var (
-	testDB   *sql.DB
-	userRepo repository.UserRepository
-	otpRepo  repository.OtpRepository
+	testDB      *sql.DB
+	userRepo    repository.UserRepository
+	otpRepo     repository.OtpRepository
+	settingRepo repository.SettingRepository
 )
 
 type noopEmailClient struct{}
@@ -58,8 +59,20 @@ func TestMain(m *testing.M) {
 	userRepo = repository.NewUserRepository(testDB)
 	otpRepo = repository.NewOtpRepository(testDB)
 	eventRepo := repository.NewEventRepository(testDB)
-	authService := service.NewAuthService(userRepo, eventRepo, otpRepo, noopEmailClient{})
-	adminService := service.NewAdminService(userRepo, eventRepo)
+	settingRepo = repository.NewSettingRepository(testDB)
+	if err := settingRepo.Load(); err != nil {
+		fmt.Fprintf(os.Stderr, "load auth settings: %v\n", err)
+		testDB.Close()
+		os.Exit(1)
+	}
+	authService := service.NewAuthService(
+		userRepo,
+		eventRepo,
+		otpRepo,
+		noopEmailClient{},
+		settingRepo,
+	)
+	adminService := service.NewAdminService(userRepo, eventRepo, settingRepo)
 
 	util.AccessTokenSecret = testAccessTokenSecret
 	util.RefreshTokenSecret = testRefreshTokenSecret
@@ -97,6 +110,20 @@ func resetDatabase(t *testing.T) {
 	_, err := testDB.Exec("TRUNCATE auth_event, auth_otp, auth_user RESTART IDENTITY")
 	if err != nil {
 		t.Fatalf("reset integration database: %v", err)
+	}
+	_, err = settingRepo.Update(repository.AuthSettings{
+		RegisterEnabled:      true,
+		ResetPasswordEnabled: true,
+	})
+	if err != nil {
+		t.Fatalf("reset auth settings: %v", err)
+	}
+	_, err = testDB.Exec(`
+		DELETE FROM auth_setting
+		WHERE key NOT IN ($1, $2)
+	`, repository.SettingRegisterEnabled, repository.SettingResetPasswordEnabled)
+	if err != nil {
+		t.Fatalf("remove extra auth settings: %v", err)
 	}
 }
 

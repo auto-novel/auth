@@ -84,6 +84,11 @@ func main() {
 	userRepo := repository.NewUserRepository(db)
 	eventRepo := repository.NewEventRepository(db)
 	otpRepo := repository.NewOtpRepository(db)
+	settingRepo := repository.NewSettingRepository(db)
+	if err := settingRepo.Load(); err != nil {
+		slog.Error("Failed to load auth settings", "error", err)
+		return
+	}
 	otpCleanupCtx, stopOtpCleanup := context.WithCancel(context.Background())
 	defer stopOtpCleanup()
 	go runOtpCleanup(
@@ -98,10 +103,12 @@ func main() {
 		eventRepo,
 		otpRepo,
 		email,
+		settingRepo,
 	)
 	adminService := service.NewAdminService(
 		userRepo,
 		eventRepo,
+		settingRepo,
 	)
 
 	// router

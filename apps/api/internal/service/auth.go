@@ -32,10 +32,11 @@ type AuthService interface {
 }
 
 type authService struct {
-	userRepo  repository.UserRepository
-	eventRepo repository.EventRepository
-	otpRepo   repository.OtpRepository
-	email     infra.EmailClient
+	userRepo    repository.UserRepository
+	eventRepo   repository.EventRepository
+	otpRepo     repository.OtpRepository
+	email       infra.EmailClient
+	settingRepo repository.SettingRepository
 }
 
 func NewAuthService(
@@ -43,12 +44,14 @@ func NewAuthService(
 	eventRepo repository.EventRepository,
 	otpRepo repository.OtpRepository,
 	email infra.EmailClient,
+	settingRepo repository.SettingRepository,
 ) AuthService {
 	s := &authService{
-		userRepo:  userRepo,
-		eventRepo: eventRepo,
-		otpRepo:   otpRepo,
-		email:     email,
+		userRepo:    userRepo,
+		eventRepo:   eventRepo,
+		otpRepo:     otpRepo,
+		email:       email,
+		settingRepo: settingRepo,
 	}
 	return s
 }
@@ -79,6 +82,11 @@ func validateUserCanAuthenticate(user *repository.User) error {
 }
 
 func (s *authService) Register(w http.ResponseWriter, r *http.Request) error {
+	settings := s.settingRepo.Get()
+	if !settings.RegisterEnabled {
+		return util.Forbidden("注册功能已关闭")
+	}
+
 	req, err := util.Body[struct {
 		App      string `json:"app" validate:"required"`
 		Username string `json:"username" validate:"required,min=2,max=16"`
@@ -335,6 +343,13 @@ func (s *authService) RequestOtp(w http.ResponseWriter, r *http.Request) error {
 		slog.Error("Request OTP body parse error", "error", err)
 		return err
 	}
+	settings := s.settingRepo.Get()
+	if req.Type == repository.OtpVerify && !settings.RegisterEnabled {
+		return util.Forbidden("注册功能已关闭")
+	}
+	if req.Type == repository.OtpResetPassword && !settings.ResetPasswordEnabled {
+		return util.Forbidden("重置密码功能已关闭")
+	}
 
 	user, err := s.userRepo.FindByEmail(req.Email)
 	if err != nil {
@@ -388,6 +403,11 @@ func (s *authService) RequestOtp(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (s *authService) ResetPassword(w http.ResponseWriter, r *http.Request) error {
+	settings := s.settingRepo.Get()
+	if !settings.ResetPasswordEnabled {
+		return util.Forbidden("重置密码功能已关闭")
+	}
+
 	req, err := util.Body[struct {
 		Email    string `json:"email" validate:"required,email"`
 		Otp      string `json:"otp" validate:"required,len=26"`
