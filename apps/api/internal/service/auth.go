@@ -58,12 +58,24 @@ func (s *authService) Use(router chi.Router) {
 		router.Use(util.RateLimiter(100))
 		router.Post("/register", util.EH(s.Register))
 	})
+	router.Group(func(router chi.Router) {
+		router.Use(util.RateLimiter(100))
+		router.Post("/otp/request", util.EH(s.RequestOtp))
+	})
 
 	router.Post("/login", util.EH(s.Login))
 	router.Post("/logout", util.EH(s.Logout))
 	router.Post("/refresh", util.EH(s.Refresh))
-	router.Post("/otp/request", util.EH(s.RequestOtp))
 	router.Post("/password/reset", util.EH(s.ResetPassword))
+}
+
+func validateUserCanAuthenticate(user *repository.User) error {
+	switch user.Role {
+	case repository.RoleBanned:
+		return util.Forbidden("用户已被封禁")
+	default:
+		return nil
+	}
 }
 
 func (s *authService) Register(w http.ResponseWriter, r *http.Request) error {
@@ -119,10 +131,12 @@ func (s *authService) Register(w http.ResponseWriter, r *http.Request) error {
 		} else if util.IsUniqueConstraintViolation(err, "auth_user_email_key") {
 			slog.Error("Email already exist")
 			return util.Conflict("邮箱已被占用")
-		} else {
-			slog.Error("Failed to save user", "error", err)
-			return util.InternalServerError("创建用户失败")
 		}
+		slog.Error("Failed to save user", "error", err)
+		return util.InternalServerError("创建用户失败")
+	}
+	if err := s.otpRepo.DeleteOtp(repository.OtpVerify, req.Email, req.Otp); err != nil {
+		slog.Warn("Failed to delete used OTP", "email", req.Email, "error", err)
 	}
 
 	s.eventRepo.Save(
@@ -185,6 +199,10 @@ func (s *authService) Login(w http.ResponseWriter, r *http.Request) error {
 		slog.Error("Password validation failed", "username", user.Username, "error", err)
 		return util.Unauthorized("密码错误")
 	}
+	if err := validateUserCanAuthenticate(user); err != nil {
+		slog.Warn("User is not allowed to log in", "username", user.Username, "role", user.Role)
+		return err
+	}
 	if v.Obsolete {
 		newHashedPassword, err := util.GenerateHash(req.Password)
 		if err == nil {
@@ -235,6 +253,10 @@ func (s *authService) Refresh(w http.ResponseWriter, r *http.Request) error {
 	if user == nil {
 		slog.Error("User not found", "username", username)
 		return util.NotFound("用户不存在")
+	}
+	if err := validateUserCanAuthenticate(user); err != nil {
+		slog.Warn("User is not allowed to refresh token", "username", user.Username, "role", user.Role)
+		return err
 	}
 
 	user.LastLogin = time.Now()
@@ -407,6 +429,9 @@ func (s *authService) ResetPassword(w http.ResponseWriter, r *http.Request) erro
 	if err != nil {
 		slog.Error("Failed to update password", "email", req.Email, "error", err)
 		return util.InternalServerError("密码重置失败")
+	}
+	if err := s.otpRepo.DeleteOtp(repository.OtpResetPassword, req.Email, req.Otp); err != nil {
+		slog.Warn("Failed to delete used OTP", "email", req.Email, "error", err)
 	}
 
 	s.eventRepo.Save(

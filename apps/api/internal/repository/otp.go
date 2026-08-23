@@ -22,6 +22,7 @@ const (
 type OtpRepository interface {
 	SetOtp(otpType string, email string) (string, error)
 	CheckOtp(otpType string, email string, otp string) (bool, error)
+	DeleteOtp(otpType string, email string, otp string) error
 	DeleteExpiredOtps() (int64, error)
 }
 
@@ -104,6 +105,20 @@ func (r *otpRepository) CheckOtp(otpType string, email, otp string) (bool, error
 		return false, err
 	}
 	return true, nil
+}
+
+func (r *otpRepository) DeleteOtp(otpType string, email, otp string) error {
+	hash := sha256.Sum256([]byte(otp))
+	stmt := AuthOtp.
+		DELETE().
+		WHERE(AND(
+			AuthOtp.Email.EQ(String(email)),
+			AuthOtp.Type.EQ(String(otpType)),
+			AuthOtp.CodeHash.EQ(Bytea(hash[:])),
+		))
+
+	_, err := stmt.Exec(r.db)
+	return err
 }
 
 func (r *otpRepository) DeleteExpiredOtps() (int64, error) {

@@ -156,6 +156,17 @@ func TestAuthRegisterSuccess(t *testing.T) {
 	if user.Password == req.Password {
 		t.Fatal("password was stored in plaintext")
 	}
+	var otpCount int
+	if err := testDB.QueryRow(
+		"SELECT count(*) FROM auth_otp WHERE email = $1 AND type = $2",
+		req.Email,
+		repository.OtpVerify,
+	).Scan(&otpCount); err != nil {
+		t.Fatalf("count OTP records: %v", err)
+	}
+	if otpCount != 0 {
+		t.Fatalf("expected successful OTP to be consumed, found %d records", otpCount)
+	}
 	validation, err := util.ValidateHash(user.Password, req.Password)
 	if err != nil || !validation.Valid {
 		t.Fatalf("stored password hash does not validate: %v", err)
@@ -270,16 +281,34 @@ func TestAuthRegisterConflicts(t *testing.T) {
 			t, http.MethodPost, "/v1/auth/register", req,
 			http.StatusConflict, "用户名已被占用",
 		)
+		assertOtpExists(t, req.Email, repository.OtpVerify)
 	})
 
 	t.Run("Email", func(t *testing.T) {
 		req := first
 		req.Username = "different-user"
+		req.Otp = prepareOtp(t, req.Email)
 		SendRequestAndExpectError(
 			t, http.MethodPost, "/v1/auth/register", req,
 			http.StatusConflict, "邮箱已被占用",
 		)
+		assertOtpExists(t, req.Email, repository.OtpVerify)
 	})
+}
+
+func assertOtpExists(t *testing.T, email, otpType string) {
+	t.Helper()
+	var count int
+	if err := testDB.QueryRow(
+		"SELECT count(*) FROM auth_otp WHERE email = $1 AND type = $2",
+		email,
+		otpType,
+	).Scan(&count); err != nil {
+		t.Fatalf("count OTP records: %v", err)
+	}
+	if count != 1 {
+		t.Fatalf("expected OTP to remain usable after failed operation, found %d records", count)
+	}
 }
 
 func prepareOtp(t *testing.T, email string) string {
