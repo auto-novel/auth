@@ -4,12 +4,12 @@ import { adminFetch } from './client';
 
 export interface User {
   id: number;
-  name: string;
+  username: string;
   email: string;
   role: string;
-  createdAt: number;
-  lastLogin: number;
-  attr: string;
+  createdAt: string;
+  lastLogin: string;
+  attr: Record<string, unknown>;
 }
 
 export interface UserPage {

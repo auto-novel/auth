@@ -76,23 +76,11 @@ const detailLabels: Record<string, string> = {
 };
 
 const detail = computed<EventDetail>(() => {
-  try {
-    const value: unknown = JSON.parse(props.event.detail);
-    if (value && typeof value === 'object' && !Array.isArray(value)) {
-      return value as EventDetail;
-    }
-  } catch {
-    // Malformed legacy details are shown as their original text below.
-  }
-  return {};
+  return props.event.detail;
 });
 
 const formattedDetail = computed(() => {
-  try {
-    return JSON.stringify(JSON.parse(props.event.detail), null, 2);
-  } catch {
-    return props.event.detail || '—';
-  }
+  return JSON.stringify(props.event.detail, null, 2);
 });
 
 const detailSummary = computed(() => {

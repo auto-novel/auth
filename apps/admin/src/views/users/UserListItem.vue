@@ -27,17 +27,19 @@ const roleTypes: Record<
   banned: 'default',
 };
 
-function formatDate(timestamp: number) {
-  if (!Number.isFinite(timestamp) || timestamp <= 0) return '—';
+function formatDate(value: string) {
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return '—';
   return new Intl.DateTimeFormat('zh-CN', {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
-  }).format(new Date(timestamp));
+  }).format(date);
 }
 
-function formatDateTime(timestamp: number) {
-  if (!Number.isFinite(timestamp) || timestamp <= 0) return '—';
+function formatDateTime(value: string) {
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return '—';
   return new Intl.DateTimeFormat('zh-CN', {
     year: 'numeric',
     month: '2-digit',
@@ -46,7 +48,7 @@ function formatDateTime(timestamp: number) {
     minute: '2-digit',
     second: '2-digit',
     hour12: false,
-  }).format(new Date(timestamp));
+  }).format(date);
 }
 
 function formatId(id: number) {
@@ -77,7 +79,7 @@ function formatId(id: number) {
     </div>
 
     <div class="identity">
-      <n-text strong class="username">{{ user.name }}</n-text>
+      <n-text strong class="username">{{ user.username }}</n-text>
       <n-text depth="3" class="email">{{ user.email }}</n-text>
     </div>
 

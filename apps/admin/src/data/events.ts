@@ -5,7 +5,7 @@ import { adminFetch } from './client';
 export interface Event {
   id: number;
   action: string;
-  detail: string;
+  detail: Record<string, unknown>;
   createdAt: string;
 }
 

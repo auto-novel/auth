@@ -3,6 +3,7 @@ package service
 import (
 	"auth/internal/repository"
 	"auth/internal/util"
+	"encoding/json"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -39,16 +40,16 @@ func NewAdminStrikeService(
 }
 
 type StrikeResponse struct {
-	ID         int64      `json:"id"`
-	UserID     int64      `json:"userId"`
-	OperatorID *int64     `json:"operatorId,omitempty"`
-	Reason     string     `json:"reason"`
-	Evidence   string     `json:"evidence"`
-	Point      int16      `json:"point"`
-	CreatedAt  time.Time  `json:"createdAt"`
-	RevokedAt  *time.Time `json:"revokedAt,omitempty"`
-	RevokedBy  *int64     `json:"revokedBy,omitempty"`
-	Attr       string     `json:"attr"`
+	ID         int64           `json:"id"`
+	UserID     int64           `json:"userId"`
+	OperatorID *int64          `json:"operatorId,omitempty"`
+	Reason     string          `json:"reason"`
+	Evidence   string          `json:"evidence"`
+	Point      int16           `json:"point"`
+	CreatedAt  time.Time       `json:"createdAt"`
+	RevokedAt  *time.Time      `json:"revokedAt,omitempty"`
+	RevokedBy  *int64          `json:"revokedBy,omitempty"`
+	Attr       json.RawMessage `json:"attr"`
 }
 
 func (s *adminStrikeService) Use(router chi.Router) {
@@ -62,7 +63,7 @@ func strikeResponse(record repository.StrikeRecord) StrikeResponse {
 		ID: record.ID, UserID: record.UserID, OperatorID: record.OperatorID,
 		Reason: record.Reason, Evidence: record.Evidence, Point: record.Point,
 		CreatedAt: record.CreatedAt, RevokedAt: record.RevokedAt,
-		RevokedBy: record.RevokedBy, Attr: record.Attr,
+		RevokedBy: record.RevokedBy, Attr: jsonObject(record.Attr),
 	}
 }
 

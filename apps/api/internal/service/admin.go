@@ -3,6 +3,7 @@ package service
 import (
 	"auth/internal/repository"
 	"auth/internal/util"
+	"encoding/json"
 	"log/slog"
 	"net/http"
 	"strings"
@@ -80,20 +81,28 @@ const (
 )
 
 type UserResponse struct {
-	ID        int64  `json:"id"`
-	Name      string `json:"name"`
-	Email     string `json:"email"`
-	Role      string `json:"role"`
-	CreatedAt int64  `json:"createdAt"`
-	LastLogin int64  `json:"lastLogin"`
-	Attr      string `json:"attr"`
+	ID        int64           `json:"id"`
+	Username  string          `json:"username"`
+	Email     string          `json:"email"`
+	Role      string          `json:"role"`
+	CreatedAt time.Time       `json:"createdAt"`
+	LastLogin time.Time       `json:"lastLogin"`
+	Attr      json.RawMessage `json:"attr"`
 }
 
 type EventResponse struct {
-	ID        int64     `json:"id"`
-	Action    string    `json:"action"`
-	Detail    string    `json:"detail"`
-	CreatedAt time.Time `json:"createdAt"`
+	ID        int64           `json:"id"`
+	Action    string          `json:"action"`
+	Detail    json.RawMessage `json:"detail"`
+	CreatedAt time.Time       `json:"createdAt"`
+}
+
+func jsonObject(value string) json.RawMessage {
+	var object map[string]json.RawMessage
+	if err := json.Unmarshal([]byte(value), &object); err != nil || object == nil {
+		return json.RawMessage(`{}`)
+	}
+	return json.RawMessage(value)
 }
 
 type DailyAuthStatResponse struct {
@@ -189,12 +198,12 @@ func (s *adminService) GetUser(w http.ResponseWriter, r *http.Request) error {
 	for i, user := range users {
 		userPage.Items[i] = UserResponse{
 			ID:        user.ID,
-			Name:      user.Username,
+			Username:  user.Username,
 			Email:     user.Email,
 			Role:      user.Role,
-			CreatedAt: user.CreatedAt.UnixMilli(),
-			LastLogin: user.LastLogin.UnixMilli(),
-			Attr:      user.Attr,
+			CreatedAt: user.CreatedAt,
+			LastLogin: user.LastLogin,
+			Attr:      jsonObject(user.Attr),
 		}
 	}
 	return util.RespondJson(w, userPage)
@@ -434,7 +443,7 @@ func (s *adminService) GetEvent(w http.ResponseWriter, r *http.Request) error {
 		eventPage.Items[i] = EventResponse{
 			ID:        event.ID,
 			Action:    event.Action,
-			Detail:    event.Detail,
+			Detail:    jsonObject(event.Detail),
 			CreatedAt: event.CreatedAt,
 		}
 	}

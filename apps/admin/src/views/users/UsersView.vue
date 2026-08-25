@@ -177,11 +177,11 @@ async function confirmAction() {
   actionError.value = '';
   try {
     await updateUserRole(session, target.action, {
-      username: target.user.name,
+      username: target.user.username,
       reason,
     });
     pendingAction.value = null;
-    actionSucceeded.value = `${config.result} ${target.user.name}`;
+    actionSucceeded.value = `${config.result} ${target.user.username}`;
     await loadUsers();
   } catch (error) {
     actionError.value = error instanceof Error ? error.message : String(error);
@@ -244,7 +244,7 @@ onMounted(loadUsers);
         <div class="action-message">
           <n-text>
             确认{{ actionConfig?.title }}
-            <n-text strong>{{ pendingAction?.user.name }}</n-text>
+            <n-text strong>{{ pendingAction?.user.username }}</n-text>
             ？{{ actionConfig?.description }}
           </n-text>
           <n-text

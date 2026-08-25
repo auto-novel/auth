@@ -12,7 +12,7 @@ export interface Strike {
   createdAt: string;
   revokedAt?: string;
   revokedBy?: number;
-  attr: string;
+  attr: Record<string, unknown>;
 }
 
 export interface StrikePage {
