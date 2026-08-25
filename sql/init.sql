@@ -1,3 +1,5 @@
+begin;
+
 create table if not exists auth_user
 (
     id         bigint generated always as identity primary key,
@@ -9,6 +11,7 @@ create table if not exists auth_user
     last_login timestamptz  not null default current_timestamp,
     attr       jsonb        not null default '{}'::jsonb
 );
+
 create table if not exists auth_event
 (
     id         bigint generated always as identity primary key,
@@ -52,9 +55,16 @@ create table if not exists auth_strike_record
     attr        jsonb       not null default '{}'::jsonb
 );
 
-create index if not exists idx_user_id on auth_strike_record (user_id);
-create index if not exists idx_created_at on auth_strike_record (created_at);
-comment on table auth_strike_record is '用户违规记录表';
-comment on column auth_strike_record.point is '扣分点数,默认1分';
+comment on table auth_strike_record is '用户违规记录';
+comment on column auth_strike_record.operator_id is '记录违规的操作人用户 ID';
+comment on column auth_strike_record.point is '违规扣分，默认为 1 分';
 comment on column auth_strike_record.revoked_at is '撤销时间';
 comment on column auth_strike_record.revoked_by is '撤销操作人用户 ID';
+
+create index if not exists idx_auth_strike_record_user_id
+    on auth_strike_record (user_id);
+
+create index if not exists idx_auth_strike_record_created_at
+    on auth_strike_record (created_at);
+
+commit;
