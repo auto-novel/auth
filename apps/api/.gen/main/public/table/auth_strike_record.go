@@ -24,8 +24,9 @@ type authStrikeRecordTable struct {
 	Reason     postgres.ColumnString
 	Evidence   postgres.ColumnString
 	Point      postgres.ColumnInteger // 扣分点数,默认1分
-	Status     postgres.ColumnInteger // 处罚状态: 0-生效中, 1-已撤销
 	CreatedAt  postgres.ColumnTimestampz
+	RevokedAt  postgres.ColumnTimestampz // 撤销时间
+	RevokedBy  postgres.ColumnInteger    // 撤销操作人用户 ID
 	Attr       postgres.ColumnString
 
 	AllColumns     postgres.ColumnList
@@ -74,12 +75,13 @@ func newAuthStrikeRecordTableImpl(schemaName, tableName, alias string) authStrik
 		ReasonColumn     = postgres.StringColumn("reason")
 		EvidenceColumn   = postgres.StringColumn("evidence")
 		PointColumn      = postgres.IntegerColumn("point")
-		StatusColumn     = postgres.IntegerColumn("status")
 		CreatedAtColumn  = postgres.TimestampzColumn("created_at")
+		RevokedAtColumn  = postgres.TimestampzColumn("revoked_at")
+		RevokedByColumn  = postgres.IntegerColumn("revoked_by")
 		AttrColumn       = postgres.StringColumn("attr")
-		allColumns       = postgres.ColumnList{IDColumn, UserIDColumn, OperatorIDColumn, ReasonColumn, EvidenceColumn, PointColumn, StatusColumn, CreatedAtColumn, AttrColumn}
-		mutableColumns   = postgres.ColumnList{UserIDColumn, OperatorIDColumn, ReasonColumn, EvidenceColumn, PointColumn, StatusColumn, CreatedAtColumn, AttrColumn}
-		defaultColumns   = postgres.ColumnList{PointColumn, StatusColumn, CreatedAtColumn, AttrColumn}
+		allColumns       = postgres.ColumnList{IDColumn, UserIDColumn, OperatorIDColumn, ReasonColumn, EvidenceColumn, PointColumn, CreatedAtColumn, RevokedAtColumn, RevokedByColumn, AttrColumn}
+		mutableColumns   = postgres.ColumnList{UserIDColumn, OperatorIDColumn, ReasonColumn, EvidenceColumn, PointColumn, CreatedAtColumn, RevokedAtColumn, RevokedByColumn, AttrColumn}
+		defaultColumns   = postgres.ColumnList{PointColumn, CreatedAtColumn, AttrColumn}
 	)
 
 	return authStrikeRecordTable{
@@ -92,8 +94,9 @@ func newAuthStrikeRecordTableImpl(schemaName, tableName, alias string) authStrik
 		Reason:     ReasonColumn,
 		Evidence:   EvidenceColumn,
 		Point:      PointColumn,
-		Status:     StatusColumn,
 		CreatedAt:  CreatedAtColumn,
+		RevokedAt:  RevokedAtColumn,
+		RevokedBy:  RevokedByColumn,
 		Attr:       AttrColumn,
 
 		AllColumns:     allColumns,

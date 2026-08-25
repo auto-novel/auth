@@ -19,7 +19,8 @@ type AuthStrikeRecord struct {
 	Reason     string
 	Evidence   string
 	Point      int16 // 扣分点数,默认1分
-	Status     int16 // 处罚状态: 0-生效中, 1-已撤销
 	CreatedAt  time.Time
+	RevokedAt  *time.Time // 撤销时间
+	RevokedBy  *int64     // 撤销操作人用户 ID
 	Attr       string
 }

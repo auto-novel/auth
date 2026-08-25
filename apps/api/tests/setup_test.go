@@ -31,6 +31,7 @@ var (
 	userRepo    repository.UserRepository
 	otpRepo     repository.OtpRepository
 	settingRepo repository.SettingRepository
+	strikeRepo  repository.StrikeRepository
 )
 
 type noopEmailClient struct{}
@@ -59,6 +60,7 @@ func TestMain(m *testing.M) {
 	userRepo = repository.NewUserRepository(testDB)
 	otpRepo = repository.NewOtpRepository(testDB)
 	eventRepo := repository.NewEventRepository(testDB)
+	strikeRepo = repository.NewStrikeRepository(testDB)
 	settingRepo = repository.NewSettingRepository(testDB)
 	if err := settingRepo.Load(); err != nil {
 		fmt.Fprintf(os.Stderr, "load auth settings: %v\n", err)
@@ -73,6 +75,8 @@ func TestMain(m *testing.M) {
 		settingRepo,
 	)
 	adminService := service.NewAdminService(userRepo, eventRepo, settingRepo)
+	adminStrikeService := service.NewAdminStrikeService(userRepo, eventRepo, strikeRepo)
+	meService := service.NewMeService(userRepo, strikeRepo)
 
 	util.AccessTokenSecret = testAccessTokenSecret
 	util.RefreshTokenSecret = testRefreshTokenSecret
@@ -80,12 +84,16 @@ func TestMain(m *testing.M) {
 	router := chi.NewRouter()
 	router.Use(middleware.Recoverer)
 	router.Route("/v1/auth", authService.Use)
-	router.Route("/v1/admin", adminService.Use)
+	router.Route("/v1/admin", func(router chi.Router) {
+		adminService.Use(router)
+		router.Route("/strikes", adminStrikeService.Use)
+	})
+	router.Route("/v1/me", meService.Use)
 	server := httptest.NewServer(router)
 	Url = server.URL
 	Client = server.Client()
 
-	if _, err := testDB.Exec("TRUNCATE auth_event, auth_otp, auth_user RESTART IDENTITY"); err != nil {
+	if _, err := testDB.Exec("TRUNCATE auth_event, auth_otp, auth_strike_record, auth_user RESTART IDENTITY"); err != nil {
 		fmt.Fprintf(os.Stderr, "reset integration database: %v\n", err)
 		server.Close()
 		testDB.Close()
@@ -94,7 +102,7 @@ func TestMain(m *testing.M) {
 
 	code := m.Run()
 	server.Close()
-	if _, err := testDB.Exec("TRUNCATE auth_event, auth_otp, auth_user RESTART IDENTITY"); err != nil {
+	if _, err := testDB.Exec("TRUNCATE auth_event, auth_otp, auth_strike_record, auth_user RESTART IDENTITY"); err != nil {
 		fmt.Fprintf(os.Stderr, "clean integration database: %v\n", err)
 		code = 1
 	}
@@ -107,7 +115,7 @@ func TestMain(m *testing.M) {
 
 func resetDatabase(t *testing.T) {
 	t.Helper()
-	_, err := testDB.Exec("TRUNCATE auth_event, auth_otp, auth_user RESTART IDENTITY")
+	_, err := testDB.Exec("TRUNCATE auth_event, auth_otp, auth_strike_record, auth_user RESTART IDENTITY")
 	if err != nil {
 		t.Fatalf("reset integration database: %v", err)
 	}

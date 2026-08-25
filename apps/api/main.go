@@ -85,6 +85,7 @@ func main() {
 	eventRepo := repository.NewEventRepository(db)
 	otpRepo := repository.NewOtpRepository(db)
 	settingRepo := repository.NewSettingRepository(db)
+	strikeRepo := repository.NewStrikeRepository(db)
 	if err := settingRepo.Load(); err != nil {
 		slog.Error("Failed to load auth settings", "error", err)
 		return
@@ -110,6 +111,12 @@ func main() {
 		eventRepo,
 		settingRepo,
 	)
+	adminStrikeService := service.NewAdminStrikeService(
+		userRepo,
+		eventRepo,
+		strikeRepo,
+	)
+	meService := service.NewMeService(userRepo, strikeRepo)
 
 	// router
 	router := chi.NewRouter()
@@ -122,7 +129,11 @@ func main() {
 	router.Route("/v1", func(router chi.Router) {
 		router.Use(util.RequestLogger())
 		router.Route("/auth", authService.Use)
-		router.Route("/admin", adminService.Use)
+		router.Route("/admin", func(router chi.Router) {
+			adminService.Use(router)
+			router.Route("/strikes", adminStrikeService.Use)
+		})
+		router.Route("/me", meService.Use)
 	})
 
 	// start server
