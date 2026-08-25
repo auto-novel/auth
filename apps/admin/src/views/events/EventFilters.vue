@@ -24,7 +24,6 @@ const moderationActions = [
   'unrestrict-user',
   'ban-user',
   'unban-user',
-  'strike-user',
 ];
 const settingsActions = ['update-setting'];
 
@@ -46,7 +45,6 @@ const customActionOptions = [
   { label: '取消限制', value: 'unrestrict-user' },
   { label: '封禁用户', value: 'ban-user' },
   { label: '取消封禁', value: 'unban-user' },
-  { label: '警告用户', value: 'strike-user' },
   { label: '更新设置', value: 'update-setting' },
 ];
 
