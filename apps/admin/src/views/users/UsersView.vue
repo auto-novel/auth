@@ -31,6 +31,7 @@ const actionReason = ref('');
 const actionInProgress = ref(false);
 const actionError = ref('');
 const actionSucceeded = ref('');
+const banReasonOptions = ['广告', '倒狗'];
 let requestId = 0;
 const hasFilters = computed(() =>
   Boolean(query.value || role.value || createdRange.value),
@@ -257,6 +258,24 @@ onMounted(loadUsers);
             ！不推荐直接限制/封禁用户，优先使用“三振出局”。
           </n-text>
         </div>
+        <n-space
+          v-if="pendingAction?.action === 'ban'"
+          align="center"
+          size="small"
+        >
+          <n-text depth="3">快速填写：</n-text>
+          <n-button
+            v-for="reason in banReasonOptions"
+            :key="reason"
+            size="small"
+            secondary
+            :type="actionReason === reason ? 'primary' : 'default'"
+            :disabled="actionInProgress"
+            @click="actionReason = reason"
+          >
+            {{ reason }}
+          </n-button>
+        </n-space>
         <n-input
           v-model:value="actionReason"
           type="textarea"
