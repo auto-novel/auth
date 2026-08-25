@@ -1,9 +1,4 @@
-import {
-  jsonRequest,
-  requestText,
-  requestVoid,
-  type ApiRequestOptions,
-} from './client';
+import { jsonRequest, type ApiClient } from './client';
 
 export interface UserProfile {
   token: string;
@@ -82,63 +77,35 @@ export function parseAccessToken(token: string): UserProfile {
   };
 }
 
-export function register(request: RegisterRequest, options: ApiRequestOptions) {
-  return requestText('auth/register', {
-    timeout: 5000,
-    ...options,
-    method: 'POST',
-    ...jsonRequest(request),
-  });
-}
+export function createAuthEndpoints(client: ApiClient, timeout: number) {
+  const post = <T>(path: string, request: T) =>
+    client.text(path, {
+      timeout,
+      method: 'POST',
+      ...jsonRequest(request),
+    });
 
-export function login(request: LoginRequest, options: ApiRequestOptions) {
-  return requestText('auth/login', {
-    timeout: 5000,
-    ...options,
-    method: 'POST',
-    ...jsonRequest(request),
-  });
-}
-
-export function requestOtp(
-  request: RequestOtpRequest,
-  options: ApiRequestOptions,
-) {
-  return requestText('auth/otp/request', {
-    timeout: 5000,
-    ...options,
-    method: 'POST',
-    ...jsonRequest(request),
-  });
-}
-
-export function resetPassword(
-  request: ResetPasswordRequest,
-  options: ApiRequestOptions,
-) {
-  return requestText('auth/password/reset', {
-    timeout: 5000,
-    ...options,
-    method: 'POST',
-    ...jsonRequest(request),
-  });
-}
-
-export function refresh(app: string, options: ApiRequestOptions) {
-  const searchParams = new URLSearchParams({ app });
-  return requestText(`auth/refresh?${searchParams}`, {
-    timeout: 5000,
-    ...options,
-    method: 'POST',
-    credentials: 'include',
-  });
-}
-
-export function logout(options: ApiRequestOptions) {
-  return requestVoid('auth/logout', {
-    timeout: 5000,
-    ...options,
-    method: 'POST',
-    credentials: 'include',
-  });
+  return {
+    register: (request: RegisterRequest) => post('auth/register', request),
+    login: (request: LoginRequest) => post('auth/login', request),
+    requestOtp: (request: RequestOtpRequest) =>
+      post('auth/otp/request', request),
+    resetPassword: (request: ResetPasswordRequest) =>
+      post('auth/password/reset', request),
+    refresh: (app: string) => {
+      const searchParams = new URLSearchParams({ app });
+      return client.text(`auth/refresh?${searchParams}`, {
+        timeout,
+        method: 'POST',
+        credentials: 'include',
+      });
+    },
+    async logout() {
+      await client.request('auth/logout', {
+        timeout,
+        method: 'POST',
+        credentials: 'include',
+      });
+    },
+  };
 }

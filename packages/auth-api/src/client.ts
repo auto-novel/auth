@@ -9,8 +9,13 @@ export interface AccessTokenSession {
   refreshAccessToken(): Promise<string | undefined>;
 }
 
-export interface ApiFetchOptions extends ApiRequestOptions, RequestInit {
+export interface ApiClientOptions extends ApiRequestOptions {
   session?: AccessTokenSession;
+}
+
+interface ApiCallOptions extends RequestInit {
+  authenticated?: boolean;
+  timeout?: number;
 }
 
 export class ApiError extends Error {
@@ -89,41 +94,58 @@ async function fetchWithToken(
   return request(token);
 }
 
-export async function apiRequest(path: string, options: ApiFetchOptions) {
-  const {
-    baseUrl,
-    timeout,
-    fetch: fetcher = globalThis.fetch,
-    session,
-    ...init
-  } = options;
-  const url = resolveUrl(path, baseUrl);
-  const response = session
-    ? await fetchWithToken(session, fetcher, url, init, timeout)
-    : await fetchWithTimeout(fetcher, url, init, timeout);
+export function createApiClient(options: ApiClientOptions) {
+  if (!options.baseUrl.trim()) throw new Error('必须配置 baseUrl');
 
-  if (!response.ok) {
-    const message = await response.text();
-    throw new ApiError(
-      message || `请求失败（${response.status}）`,
-      response.status,
-    );
+  const fetcher = options.fetch ?? globalThis.fetch;
+
+  async function request(path: string, callOptions: ApiCallOptions = {}) {
+    const {
+      authenticated = false,
+      timeout = options.timeout,
+      ...init
+    } = callOptions;
+    const url = resolveUrl(path, options.baseUrl);
+
+    let response: Response;
+    if (authenticated) {
+      if (!options.session) {
+        throw new Error('调用受保护接口前必须配置 session');
+      }
+      response = await fetchWithToken(
+        options.session,
+        fetcher,
+        url,
+        init,
+        timeout,
+      );
+    } else {
+      response = await fetchWithTimeout(fetcher, url, init, timeout);
+    }
+
+    if (!response.ok) {
+      const message = await response.text();
+      throw new ApiError(
+        message || `请求失败（${response.status}）`,
+        response.status,
+      );
+    }
+
+    return response;
   }
 
-  return response;
+  async function text(path: string, callOptions?: ApiCallOptions) {
+    return (await request(path, callOptions)).text();
+  }
+
+  async function json<T>(path: string, callOptions?: ApiCallOptions) {
+    return (await request(path, callOptions)).json() as Promise<T>;
+  }
+
+  return { request, text, json };
 }
 
-export async function requestText(path: string, options: ApiFetchOptions) {
-  return (await apiRequest(path, options)).text();
-}
-
-export async function requestJson<T>(path: string, options: ApiFetchOptions) {
-  return (await apiRequest(path, options)).json() as Promise<T>;
-}
-
-export async function requestVoid(path: string, options: ApiFetchOptions) {
-  await apiRequest(path, options);
-}
+export type ApiClient = ReturnType<typeof createApiClient>;
 
 export function jsonRequest(
   body: unknown,

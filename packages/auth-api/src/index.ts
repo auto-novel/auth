@@ -31,9 +31,5 @@ export type {
   UserProfile,
 } from './auth';
 export { ApiError, SessionExpiredError } from './client';
-export type {
-  AccessTokenSession,
-  ApiFetchOptions,
-  ApiRequestOptions,
-} from './client';
+export type { AccessTokenSession, ApiRequestOptions } from './client';
 export type { MyStrike, MyStrikeListParams } from './me';

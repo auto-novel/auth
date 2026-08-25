@@ -1,10 +1,4 @@
-import {
-  jsonRequest,
-  requestJson,
-  requestVoid,
-  type AccessTokenSession,
-  type ApiRequestOptions,
-} from './client';
+import { jsonRequest, type ApiClient } from './client';
 
 export interface Page<T> {
   total: number;
@@ -108,10 +102,6 @@ export interface CreateStrikeRequest {
   point: number;
 }
 
-function withSession(session: AccessTokenSession, options: ApiRequestOptions) {
-  return { ...options, session };
-}
-
 function setCreatedRange(
   searchParams: URLSearchParams,
   params: CreatedRangeParams,
@@ -131,124 +121,69 @@ function createPagination(params: PaginationParams) {
   });
 }
 
-export function getUsers(
-  session: AccessTokenSession,
-  params: UserListParams,
-  options: ApiRequestOptions,
-) {
-  const searchParams = createPagination(params);
-  if (params.query) searchParams.set('q', `%${params.query}%`);
-  if (params.role) searchParams.set('role', params.role);
-  setCreatedRange(searchParams, params);
-  return requestJson<UserPage>(
-    `admin/user?${searchParams}`,
-    withSession(session, options),
-  );
-}
+export function createAdminEndpoints(client: ApiClient) {
+  const get = <T>(path: string) =>
+    client.json<T>(path, { authenticated: true });
+  const post = async (path: string, body?: unknown) => {
+    await client.request(path, {
+      authenticated: true,
+      method: 'POST',
+      ...(body === undefined ? {} : jsonRequest(body)),
+    });
+  };
+  const postJson = <T>(path: string, body: unknown) =>
+    client.json<T>(path, {
+      authenticated: true,
+      method: 'POST',
+      ...jsonRequest(body),
+    });
 
-export function updateUserRole(
-  session: AccessTokenSession,
-  action: UserAction,
-  request: UserActionRequest,
-  options: ApiRequestOptions,
-) {
-  return requestVoid(`admin/user/${action}`, {
-    ...withSession(session, options),
-    method: 'POST',
-    ...jsonRequest(request),
-  });
-}
-
-export function getOverview(
-  session: AccessTokenSession,
-  startDate: string,
-  endDate: string,
-  options: ApiRequestOptions,
-) {
-  const searchParams = new URLSearchParams({
-    start_date: startDate,
-    end_date: endDate,
-  });
-  return requestJson<Overview>(
-    `admin/overview?${searchParams}`,
-    withSession(session, options),
-  );
-}
-
-export function getEvents(
-  session: AccessTokenSession,
-  params: EventListParams,
-  options: ApiRequestOptions,
-) {
-  const searchParams = createPagination(params);
-  if (params.actorUser) searchParams.set('actor_user', params.actorUser);
-  if (params.targetUser) searchParams.set('target_user', params.targetUser);
-  params.actions?.forEach((action) => searchParams.append('action', action));
-  setCreatedRange(searchParams, params);
-  return requestJson<EventPage>(
-    `admin/event?${searchParams}`,
-    withSession(session, options),
-  );
-}
-
-export function getAuthSettings(
-  session: AccessTokenSession,
-  options: ApiRequestOptions,
-) {
-  return requestJson<AuthSettings>(
-    'admin/setting',
-    withSession(session, options),
-  );
-}
-
-export function updateAuthSettings(
-  session: AccessTokenSession,
-  settings: UpdateAuthSettingsRequest,
-  options: ApiRequestOptions,
-) {
-  return requestJson<AuthSettings>('admin/setting', {
-    ...withSession(session, options),
-    method: 'POST',
-    ...jsonRequest(settings),
-  });
-}
-
-export function getStrikes(
-  session: AccessTokenSession,
-  params: StrikeListParams,
-  options: ApiRequestOptions,
-) {
-  const searchParams = createPagination(params);
-  if (params.username) searchParams.set('username', params.username);
-  if (params.operatorUsername) {
-    searchParams.set('operator_username', params.operatorUsername);
-  }
-  setCreatedRange(searchParams, params);
-  return requestJson<StrikePage>(
-    `admin/strikes?${searchParams}`,
-    withSession(session, options),
-  );
-}
-
-export function createStrike(
-  session: AccessTokenSession,
-  request: CreateStrikeRequest,
-  options: ApiRequestOptions,
-) {
-  return requestJson<Strike>('admin/strikes', {
-    ...withSession(session, options),
-    method: 'POST',
-    ...jsonRequest(request),
-  });
-}
-
-export function revokeStrike(
-  session: AccessTokenSession,
-  strikeId: number,
-  options: ApiRequestOptions,
-) {
-  return requestJson<Strike>(`admin/strikes/${strikeId}/revoke`, {
-    ...withSession(session, options),
-    method: 'POST',
-  });
+  return {
+    getUsers(params: UserListParams) {
+      const searchParams = createPagination(params);
+      if (params.query) searchParams.set('q', `%${params.query}%`);
+      if (params.role) searchParams.set('role', params.role);
+      setCreatedRange(searchParams, params);
+      return get<UserPage>(`admin/user?${searchParams}`);
+    },
+    updateUserRole(action: UserAction, request: UserActionRequest) {
+      return post(`admin/user/${action}`, request);
+    },
+    getOverview(startDate: string, endDate: string) {
+      const searchParams = new URLSearchParams({
+        start_date: startDate,
+        end_date: endDate,
+      });
+      return get<Overview>(`admin/overview?${searchParams}`);
+    },
+    getEvents(params: EventListParams) {
+      const searchParams = createPagination(params);
+      if (params.actorUser) searchParams.set('actor_user', params.actorUser);
+      if (params.targetUser) searchParams.set('target_user', params.targetUser);
+      params.actions?.forEach((action) =>
+        searchParams.append('action', action),
+      );
+      setCreatedRange(searchParams, params);
+      return get<EventPage>(`admin/event?${searchParams}`);
+    },
+    getAuthSettings: () => get<AuthSettings>('admin/setting'),
+    updateAuthSettings: (settings: UpdateAuthSettingsRequest) =>
+      postJson<AuthSettings>('admin/setting', settings),
+    getStrikes(params: StrikeListParams) {
+      const searchParams = createPagination(params);
+      if (params.username) searchParams.set('username', params.username);
+      if (params.operatorUsername) {
+        searchParams.set('operator_username', params.operatorUsername);
+      }
+      setCreatedRange(searchParams, params);
+      return get<StrikePage>(`admin/strikes?${searchParams}`);
+    },
+    createStrike: (request: CreateStrikeRequest) =>
+      postJson<Strike>('admin/strikes', request),
+    revokeStrike: (strikeId: number) =>
+      client.json<Strike>(`admin/strikes/${strikeId}/revoke`, {
+        authenticated: true,
+        method: 'POST',
+      }),
+  };
 }
