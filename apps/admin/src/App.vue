@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {
   DashboardOutlined,
+  GavelOutlined,
   HistoryOutlined,
   PeopleOutlined,
   SettingsOutlined,
@@ -19,6 +20,7 @@ function renderIcon(icon: Component) {
 const menuOptions: MenuOption[] = [
   { label: '概览', key: '/overview', icon: renderIcon(DashboardOutlined) },
   { label: '用户管理', key: '/users', icon: renderIcon(PeopleOutlined) },
+  { label: '处罚管理', key: '/strikes', icon: renderIcon(GavelOutlined) },
   { label: '事件记录', key: '/events', icon: renderIcon(HistoryOutlined) },
   { label: '系统设置', key: '/settings', icon: renderIcon(SettingsOutlined) },
 ];

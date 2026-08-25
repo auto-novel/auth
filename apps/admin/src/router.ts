@@ -31,6 +31,12 @@ const router = createRouter({
           meta: { title: '用户管理' },
         },
         {
+          path: 'strikes',
+          name: 'strikes',
+          component: () => import('@/views/strikes/StrikesView.vue'),
+          meta: { title: '处罚管理' },
+        },
+        {
           path: 'events',
           name: 'events',
           component: () => import('@/views/events/EventsView.vue'),
