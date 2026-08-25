@@ -13,6 +13,13 @@ import (
 
 type StrikeRecord = model.AuthStrikeRecord
 
+type StrikeDetails struct {
+	model.AuthStrikeRecord
+	Username          *string
+	OperatorUsername  *string
+	RevokedByUsername *string
+}
+
 type StrikeFilter struct {
 	UserID        int64
 	OperatorID    *int64
@@ -23,10 +30,55 @@ type StrikeFilter struct {
 
 type StrikeRepository interface {
 	List(filter StrikeFilter, size int64, skip int64) ([]StrikeRecord, error)
+	ListDetails(filter StrikeFilter, size int64, skip int64) ([]StrikeDetails, error)
 	Count(filter StrikeFilter) (int64, error)
-	FindByID(id int64) (*StrikeRecord, error)
+	FindDetailsByID(id int64) (*StrikeDetails, error)
 	SaveAndRestrictUser(record *StrikeRecord, createdAfter time.Time, maxPoints int64) (bool, error)
 	Revoke(id int64, revokedBy int64, revokedAt time.Time) (*StrikeRecord, error)
+}
+
+func selectStrikeDetails() SelectStatement {
+	targetUser := AuthUser.AS("target_user")
+	operatorUser := AuthUser.AS("operator_user")
+	revokerUser := AuthUser.AS("revoker_user")
+	return SELECT(
+		AuthStrikeRecord.AllColumns,
+		targetUser.Username.AS("StrikeDetails.Username"),
+		operatorUser.Username.AS("StrikeDetails.OperatorUsername"),
+		revokerUser.Username.AS("StrikeDetails.RevokedByUsername"),
+	).FROM(
+		AuthStrikeRecord.LEFT_JOIN(
+			targetUser,
+			AuthStrikeRecord.UserID.EQ(targetUser.ID),
+		).
+			LEFT_JOIN(
+				operatorUser,
+				AuthStrikeRecord.OperatorID.EQ(operatorUser.ID),
+			).
+			LEFT_JOIN(
+				revokerUser,
+				AuthStrikeRecord.RevokedBy.EQ(revokerUser.ID),
+			),
+	)
+}
+
+func (r *strikeRepository) ListDetails(
+	filter StrikeFilter,
+	size int64,
+	skip int64,
+) ([]StrikeDetails, error) {
+	stmt := selectStrikeDetails().
+		WHERE(filter.exp()).
+		ORDER_BY(AuthStrikeRecord.CreatedAt.DESC(), AuthStrikeRecord.ID.DESC()).
+		OFFSET(skip).
+		LIMIT(size)
+
+	var dest []StrikeDetails
+	err := stmt.Query(r.db, &dest)
+	if err == qrm.ErrNoRows {
+		return nil, nil
+	}
+	return dest, err
 }
 
 type strikeRepository struct {
@@ -96,11 +148,11 @@ func sumStrikePoints(db qrm.DB, filter StrikeFilter) (int64, error) {
 	return dest.Total, err
 }
 
-func (r *strikeRepository) FindByID(id int64) (*StrikeRecord, error) {
-	stmt := SELECT(AuthStrikeRecord.AllColumns).
-		FROM(AuthStrikeRecord).
+func (r *strikeRepository) FindDetailsByID(id int64) (*StrikeDetails, error) {
+	stmt := selectStrikeDetails().
 		WHERE(AuthStrikeRecord.ID.EQ(Int(id)))
-	var dest StrikeRecord
+
+	var dest StrikeDetails
 	err := stmt.Query(r.db, &dest)
 	if err == qrm.ErrNoRows {
 		return nil, nil

@@ -40,16 +40,16 @@ func NewAdminStrikeService(
 }
 
 type StrikeResponse struct {
-	ID         int64           `json:"id"`
-	UserID     int64           `json:"userId"`
-	OperatorID *int64          `json:"operatorId,omitempty"`
-	Reason     string          `json:"reason"`
-	Evidence   string          `json:"evidence"`
-	Point      int16           `json:"point"`
-	CreatedAt  time.Time       `json:"createdAt"`
-	RevokedAt  *time.Time      `json:"revokedAt,omitempty"`
-	RevokedBy  *int64          `json:"revokedBy,omitempty"`
-	Attr       json.RawMessage `json:"attr"`
+	ID                int64           `json:"id"`
+	Username          *string         `json:"username"`
+	OperatorUsername  *string         `json:"operatorUsername,omitempty"`
+	Reason            string          `json:"reason"`
+	Evidence          string          `json:"evidence"`
+	Point             int16           `json:"point"`
+	CreatedAt         time.Time       `json:"createdAt"`
+	RevokedAt         *time.Time      `json:"revokedAt,omitempty"`
+	RevokedByUsername *string         `json:"revokedByUsername,omitempty"`
+	Attr              json.RawMessage `json:"attr"`
 }
 
 func (s *adminStrikeService) Use(router chi.Router) {
@@ -58,16 +58,16 @@ func (s *adminStrikeService) Use(router chi.Router) {
 	router.Post("/{strikeID}/revoke", util.EH(s.RevokeStrike))
 }
 
-func strikeResponse(record repository.StrikeRecord) StrikeResponse {
+func strikeResponse(record repository.StrikeDetails) StrikeResponse {
 	return StrikeResponse{
-		ID: record.ID, UserID: record.UserID, OperatorID: record.OperatorID,
+		ID: record.ID, Username: record.Username, OperatorUsername: record.OperatorUsername,
 		Reason: record.Reason, Evidence: record.Evidence, Point: record.Point,
 		CreatedAt: record.CreatedAt, RevokedAt: record.RevokedAt,
-		RevokedBy: record.RevokedBy, Attr: jsonObject(record.Attr),
+		RevokedByUsername: record.RevokedByUsername, Attr: jsonObject(record.Attr),
 	}
 }
 
-func strikePage(records []repository.StrikeRecord, total int64) PageResponse[StrikeResponse] {
+func strikePage(records []repository.StrikeDetails, total int64) PageResponse[StrikeResponse] {
 	response := PageResponse[StrikeResponse]{Total: total, Items: make([]StrikeResponse, len(records))}
 	for i, record := range records {
 		response.Items[i] = strikeResponse(record)
@@ -152,12 +152,12 @@ func (s *adminStrikeService) GetStrikes(w http.ResponseWriter, r *http.Request) 
 		}
 		filter.UserID = target.ID
 	}
-	if value := query.Get("operator_id"); value != "" {
-		operatorID, parseErr := strconv.ParseInt(value, 10, 64)
-		if parseErr != nil || operatorID <= 0 {
-			return util.BadRequest("operator_id 必须为正整数")
+	if operatorUsername := query.Get("operator_username"); operatorUsername != "" {
+		operator, err := s.findStrikeTarget(operatorUsername)
+		if err != nil {
+			return err
 		}
-		filter.OperatorID = &operatorID
+		filter.OperatorID = &operator.ID
 	}
 	pagination, err := util.ParsePagination(query, defaultPageSize, maxPageSize)
 	if err != nil {
@@ -167,7 +167,7 @@ func (s *adminStrikeService) GetStrikes(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		return util.InternalError(err, "查询违规记录失败")
 	}
-	records, err := s.strikeRepo.List(filter, pagination.Limit, pagination.Offset)
+	records, err := s.strikeRepo.ListDetails(filter, pagination.Limit, pagination.Offset)
 	if err != nil {
 		return util.InternalError(err, "查询违规记录失败")
 	}
@@ -196,7 +196,13 @@ func (s *adminStrikeService) CreateStrike(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		return err
 	}
-	return util.RespondJson(w, strikeResponse(record))
+	operatorUsername := principal.Username
+	targetUsername := target.Username
+	return util.RespondJson(w, strikeResponse(repository.StrikeDetails{
+		AuthStrikeRecord: record,
+		Username:         &targetUsername,
+		OperatorUsername: &operatorUsername,
+	}))
 }
 
 func (s *adminStrikeService) RevokeStrike(w http.ResponseWriter, r *http.Request) error {
@@ -208,7 +214,7 @@ func (s *adminStrikeService) RevokeStrike(w http.ResponseWriter, r *http.Request
 	if err != nil || strikeID <= 0 {
 		return util.BadRequest("无效的违规记录 ID")
 	}
-	record, err := s.strikeRepo.FindByID(strikeID)
+	record, err := s.strikeRepo.FindDetailsByID(strikeID)
 	if err != nil {
 		return util.InternalError(err, "查询违规记录失败")
 	}
@@ -229,5 +235,11 @@ func (s *adminStrikeService) RevokeStrike(w http.ResponseWriter, r *http.Request
 	if revoked == nil {
 		return util.Conflict("违规记录已撤销")
 	}
-	return util.RespondJson(w, strikeResponse(*revoked))
+	revokedByUsername := principal.Username
+	return util.RespondJson(w, strikeResponse(repository.StrikeDetails{
+		AuthStrikeRecord:  *revoked,
+		Username:          record.Username,
+		OperatorUsername:  record.OperatorUsername,
+		RevokedByUsername: &revokedByUsername,
+	}))
 }

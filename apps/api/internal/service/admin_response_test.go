@@ -8,6 +8,7 @@ import (
 
 func TestAdminResponsesUseConsistentResourceTypes(t *testing.T) {
 	timestamp := time.Date(2026, time.August, 26, 12, 34, 56, 0, time.UTC)
+	username := "alice"
 
 	tests := []struct {
 		name     string
@@ -46,10 +47,18 @@ func TestAdminResponsesUseConsistentResourceTypes(t *testing.T) {
 		{
 			name: "strike",
 			response: StrikeResponse{
-				ID: 1, UserID: 2, Reason: "spam", Evidence: "evidence", Point: 1,
+				ID: 1, Username: &username, Reason: "spam", Evidence: "evidence", Point: 1,
 				CreatedAt: timestamp, Attr: json.RawMessage(`{"source":"manual"}`),
 			},
 			check: func(t *testing.T, fields map[string]any) {
+				if fields["username"] != "alice" {
+					t.Fatalf("expected username field, got %#v", fields)
+				}
+				for _, field := range []string{"userId", "operatorId", "revokedBy"} {
+					if _, exists := fields[field]; exists {
+						t.Fatalf("unexpected user ID field %q: %#v", field, fields)
+					}
+				}
 				assertObjectField(t, fields, "attr")
 				assertRFC3339Field(t, fields, "createdAt", timestamp)
 			},

@@ -17,11 +17,12 @@ import (
 )
 
 type strikeResponse struct {
-	ID        int64      `json:"id"`
-	UserID    int64      `json:"userId"`
-	Point     int16      `json:"point"`
-	RevokedAt *time.Time `json:"revokedAt"`
-	RevokedBy *int64     `json:"revokedBy"`
+	ID                int64      `json:"id"`
+	Username          *string    `json:"username"`
+	OperatorUsername  *string    `json:"operatorUsername"`
+	Point             int16      `json:"point"`
+	RevokedAt         *time.Time `json:"revokedAt"`
+	RevokedByUsername *string    `json:"revokedByUsername"`
 }
 
 type strikePageResponse struct {
@@ -46,7 +47,13 @@ func TestAdminStrikesLifecycle(t *testing.T) {
 		"username": "strike-target", "reason": "spam",
 		"evidence": "https://example.com/evidence/1", "point": 2,
 	})
-	if first.ID == 0 || first.Point != 2 || first.RevokedAt != nil || first.RevokedBy != nil {
+	if first.ID == 0 || first.Username == nil || *first.Username != "strike-target" || first.Point != 2 {
+		t.Fatalf("unexpected created strike: %#v", first)
+	}
+	if first.OperatorUsername == nil || *first.OperatorUsername != "integration-admin" {
+		t.Fatalf("unexpected strike operator: %#v", first)
+	}
+	if first.RevokedAt != nil || first.RevokedByUsername != nil {
 		t.Fatalf("unexpected created strike: %#v", first)
 	}
 
@@ -54,15 +61,45 @@ func TestAdminStrikesLifecycle(t *testing.T) {
 		"username": "other-strike-target", "reason": "spam",
 		"evidence": "https://example.com/evidence/other",
 	})
+	orphan := repository.StrikeRecord{
+		UserID: 999999, Reason: "orphaned target", Evidence: "historical record",
+		Point: 1, CreatedAt: time.Now(), Attr: "{}",
+	}
+	saveStrikeRecord(t, &orphan)
 
 	page := getStrikePage(t, "/v1/admin/strikes", adminAccessToken(t))
-	if page.Total != 2 || len(page.Items) != 2 {
+	if page.Total != 3 || len(page.Items) != 3 {
 		t.Fatalf("unexpected unfiltered admin strike page: %#v", page)
+	}
+	foundOrphan := false
+	for _, strike := range page.Items {
+		if strike.ID == orphan.ID {
+			foundOrphan = true
+			if strike.Username != nil {
+				t.Fatalf("expected nullable username for orphaned strike, got %#v", strike)
+			}
+			continue
+		}
+		if strike.Username == nil || strike.OperatorUsername == nil {
+			t.Fatalf("expected strike usernames, got %#v", strike)
+		}
+	}
+	if !foundOrphan {
+		t.Fatalf("expected orphaned strike in page: %#v", page)
+	}
+	revokedOrphan := postStrike(t, "/v1/admin/strikes/"+itoa(orphan.ID)+"/revoke", adminAccessToken(t), map[string]any{})
+	if revokedOrphan.Username != nil || revokedOrphan.RevokedAt == nil {
+		t.Fatalf("expected revocable orphaned strike with nullable username, got %#v", revokedOrphan)
 	}
 
 	page = getStrikePage(t, "/v1/admin/strikes?username=strike-target", adminAccessToken(t))
-	if page.Total != 1 || len(page.Items) != 1 || page.Items[0].ID != first.ID {
+	if page.Total != 1 || len(page.Items) != 1 || page.Items[0].ID != first.ID || page.Items[0].Username == nil || *page.Items[0].Username != "strike-target" {
 		t.Fatalf("unexpected filtered admin strike page: %#v", page)
+	}
+
+	page = getStrikePage(t, "/v1/admin/strikes?operator_username=integration-admin", adminAccessToken(t))
+	if page.Total != 2 || len(page.Items) != 2 {
+		t.Fatalf("unexpected operator-filtered admin strike page: %#v", page)
 	}
 
 	memberToken := accessToken(t, "strike-target", repository.RoleMember)
@@ -84,10 +121,13 @@ func TestAdminStrikesLifecycle(t *testing.T) {
 	}
 
 	revoked := postStrike(t, "/v1/admin/strikes/"+itoa(first.ID)+"/revoke", adminAccessToken(t), map[string]any{})
-	if revoked.RevokedAt == nil || revoked.RevokedBy == nil {
+	if revoked.Username == nil || *revoked.Username != "strike-target" || revoked.RevokedAt == nil {
 		t.Fatalf("expected complete revocation metadata, got %#v", revoked)
 	}
-	points := strikePoints(t, first.UserID, true)
+	if revoked.RevokedByUsername == nil || *revoked.RevokedByUsername != "integration-admin" {
+		t.Fatalf("expected complete revocation metadata, got %#v", revoked)
+	}
+	points := strikePoints(t, user.ID, true)
 	if points != 1 {
 		t.Fatalf("expected revoked strike to be excluded from active points, got %d", points)
 	}
