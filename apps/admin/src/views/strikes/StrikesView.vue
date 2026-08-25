@@ -32,10 +32,10 @@ const page = ref(1);
 const pageSize = ref(50);
 const total = ref(0);
 const usernameInput = ref('');
-const operatorIdInput = ref<number | null>(null);
+const operatorUsernameInput = ref('');
 const createdRangeInput = ref<[number, number] | null>(null);
 const username = ref('');
-const operatorId = ref<number | null>(null);
+const operatorUsername = ref('');
 const createdRange = ref<[number, number] | null>(null);
 const showCreateModal = ref(false);
 const createInProgress = ref(false);
@@ -52,7 +52,7 @@ const revokeError = ref('');
 let requestId = 0;
 
 const hasFilters = computed(() =>
-  Boolean(username.value || operatorId.value || createdRange.value),
+  Boolean(username.value || operatorUsername.value || createdRange.value),
 );
 const canCreate = computed(() =>
   Boolean(
@@ -90,7 +90,7 @@ async function loadStrikes() {
       page: page.value,
       pageSize: pageSize.value,
       username: username.value,
-      operatorId: operatorId.value ?? undefined,
+      operatorUsername: operatorUsername.value,
       ...getCreatedBounds(createdRange.value),
     });
     if (currentRequestId !== requestId) return;
@@ -108,7 +108,7 @@ async function loadStrikes() {
 
 function search() {
   username.value = usernameInput.value.trim();
-  operatorId.value = operatorIdInput.value;
+  operatorUsername.value = operatorUsernameInput.value.trim();
   createdRange.value = createdRangeInput.value
     ? [...createdRangeInput.value]
     : null;
@@ -118,10 +118,10 @@ function search() {
 
 function resetFilters() {
   usernameInput.value = '';
-  operatorIdInput.value = null;
+  operatorUsernameInput.value = '';
   createdRangeInput.value = null;
   username.value = '';
-  operatorId.value = null;
+  operatorUsername.value = '';
   createdRange.value = null;
   page.value = 1;
   void loadStrikes();
@@ -203,7 +203,7 @@ onMounted(loadStrikes);
   <n-space vertical :size="16" class="strikes-page">
     <StrikeFilters
       v-model:username="usernameInput"
-      v-model:operator-id="operatorIdInput"
+      v-model:operator-username="operatorUsernameInput"
       v-model:created-range="createdRangeInput"
       @search="search"
       @create="openCreateModal"

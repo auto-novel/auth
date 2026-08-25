@@ -4,14 +4,14 @@ import { adminFetch } from './client';
 
 export interface Strike {
   id: number;
-  userId: number;
-  operatorId?: number;
+  username: string | null;
+  operatorUsername?: string;
   reason: string;
   evidence: string;
   point: number;
   createdAt: string;
   revokedAt?: string;
-  revokedBy?: number;
+  revokedByUsername?: string;
   attr: Record<string, unknown>;
 }
 
@@ -24,7 +24,7 @@ export interface StrikeListParams {
   page: number;
   pageSize: number;
   username?: string;
-  operatorId?: number;
+  operatorUsername?: string;
   createdAfter?: number;
   createdBefore?: number;
 }
@@ -45,8 +45,8 @@ export async function getStrikes(
     page_size: String(params.pageSize),
   });
   if (params.username) searchParams.set('username', params.username);
-  if (params.operatorId !== undefined) {
-    searchParams.set('operator_id', String(params.operatorId));
+  if (params.operatorUsername) {
+    searchParams.set('operator_username', params.operatorUsername);
   }
   if (params.createdAfter !== undefined) {
     searchParams.set('created_after', String(params.createdAfter));

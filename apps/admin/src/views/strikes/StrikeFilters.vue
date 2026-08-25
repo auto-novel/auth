@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { SearchOutlined } from '@vicons/material';
-import { NButton, NIcon, NInput, NInputNumber } from 'naive-ui';
+import { NButton, NIcon, NInput } from 'naive-ui';
 
 import FilterRow from '@/components/FilterRow.vue';
 import TimeRangeFilter from '@/components/TimeRangeFilter.vue';
@@ -11,7 +11,9 @@ const emit = defineEmits<{
 }>();
 
 const username = defineModel<string>('username', { required: true });
-const operatorId = defineModel<number | null>('operatorId', { required: true });
+const operatorUsername = defineModel<string>('operatorUsername', {
+  required: true,
+});
 const createdRange = defineModel<[number, number] | null>('createdRange', {
   required: true,
 });
@@ -25,17 +27,17 @@ function changeCreatedRange(value: [number, number] | null) {
 <template>
   <div class="filters">
     <FilterRow label="操作者">
-      <n-input-number
-        v-model:value="operatorId"
+      <n-input
+        v-model:value="operatorUsername"
         class="filter-input"
         clearable
-        :min="1"
-        :precision="0"
-        placeholder="操作者 ID"
-        @keyup.enter="$emit('search')"
-        @blur="$emit('search')"
-        @clear="$emit('search')"
-      />
+        placeholder="操作者用户名"
+        @change="$emit('search')"
+      >
+        <template #suffix>
+          <n-icon :component="SearchOutlined" />
+        </template>
+      </n-input>
     </FilterRow>
 
     <FilterRow label="目标用户">

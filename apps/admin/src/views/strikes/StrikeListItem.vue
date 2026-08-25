@@ -44,12 +44,16 @@ function formatId(id: number) {
 
     <div class="participants">
       <div class="field">
-        <n-text depth="3" class="field-label">用户 ID</n-text>
-        <n-text class="field-value">{{ strike.userId }}</n-text>
+        <n-text depth="3" class="field-label">目标用户</n-text>
+        <n-text class="field-value" :title="strike.username ?? undefined">
+          {{ strike.username ?? '—' }}
+        </n-text>
       </div>
       <div class="field">
         <n-text depth="3" class="field-label">操作者</n-text>
-        <n-text class="field-value">{{ strike.operatorId ?? '—' }}</n-text>
+        <n-text class="field-value" :title="strike.operatorUsername">
+          {{ strike.operatorUsername ?? '—' }}
+        </n-text>
       </div>
     </div>
 
@@ -77,7 +81,7 @@ function formatId(id: number) {
         <n-text depth="3" class="field-label">撤销时间</n-text>
         <n-text
           class="field-value"
-          :title="`操作者 ${strike.revokedBy ?? '—'}`"
+          :title="`撤销人 ${strike.revokedByUsername ?? '—'}`"
         >
           {{ formatDate(strike.revokedAt) }}
         </n-text>
@@ -100,7 +104,9 @@ function formatId(id: number) {
 <style scoped>
 .strike-row {
   display: grid;
-  grid-template-columns: 86px 110px minmax(180px, 1fr) 180px 52px;
+  grid-template-columns:
+    86px minmax(120px, 220px) minmax(180px, 1fr)
+    180px 52px;
   gap: 16px;
   align-items: center;
 }
