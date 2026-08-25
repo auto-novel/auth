@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -86,13 +87,37 @@ func Body[T any](r *http.Request) (T, error) {
 	return result, nil
 }
 
-func GetQueryAsInt(query url.Values, key string, defaultValue int64) int64 {
-	createAtStr := query.Get(key)
-	epochSeconds, err := strconv.ParseInt(createAtStr, 10, 64)
-	if err != nil {
-		return defaultValue
+func ParsePagination(query url.Values, defaultPageSize, maxPageSize int64) (int64, int64, error) {
+	if defaultPageSize <= 0 || maxPageSize < defaultPageSize {
+		return 0, 0, InternalServerError("分页参数配置无效")
 	}
-	return epochSeconds
+	page, err := getPositiveQueryInt(query, "page", 1)
+	if err != nil {
+		return 0, 0, err
+	}
+	pageSize, err := getPositiveQueryInt(query, "page_size", defaultPageSize)
+	if err != nil {
+		return 0, 0, err
+	}
+	if pageSize > maxPageSize {
+		return 0, 0, BadRequest(fmt.Sprintf("page_size 不能超过 %d", maxPageSize))
+	}
+	if page-1 > math.MaxInt64/pageSize {
+		return 0, 0, BadRequest("page 超出可支持的范围")
+	}
+	return pageSize, (page - 1) * pageSize, nil
+}
+
+func getPositiveQueryInt(query url.Values, key string, defaultValue int64) (int64, error) {
+	value := query.Get(key)
+	if value == "" {
+		return defaultValue, nil
+	}
+	parsed, err := strconv.ParseInt(value, 10, 64)
+	if err != nil || parsed <= 0 {
+		return 0, BadRequest(fmt.Sprintf("%s 必须为正整数", key))
+	}
+	return parsed, nil
 }
 
 func GetQueryAsTime(query url.Values, key string, defaultValue time.Time) time.Time {

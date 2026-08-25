@@ -73,6 +73,11 @@ type PageResponse[T any] struct {
 	Items []T   `json:"items"`
 }
 
+const (
+	defaultPageSize int64 = 50
+	maxPageSize     int64 = 100
+)
+
 type UserResponse struct {
 	ID        int64  `json:"id"`
 	Name      string `json:"name"`
@@ -101,12 +106,6 @@ type OverviewResponse struct {
 }
 
 func (s *adminService) GetOverview(w http.ResponseWriter, r *http.Request) error {
-	_, err := util.VerifyAccessToken(r, true)
-	if err != nil {
-		slog.Error("Access token verification failed", "error", err)
-		return err
-	}
-
 	query := r.URL.Query()
 	startDateValue := query.Get("start_date")
 	endDateValue := query.Get("end_date")
@@ -154,11 +153,6 @@ func (s *adminService) GetOverview(w http.ResponseWriter, r *http.Request) error
 }
 
 func (s *adminService) GetUser(w http.ResponseWriter, r *http.Request) error {
-	_, err := util.VerifyAccessToken(r, true)
-	if err != nil {
-		slog.Error("Access token verification failed", "error", err)
-		return err
-	}
 	query := r.URL.Query()
 	filter := repository.UserFilter{
 		Query:         query.Get("q"),
@@ -166,8 +160,10 @@ func (s *adminService) GetUser(w http.ResponseWriter, r *http.Request) error {
 		CreatedAfter:  util.GetQueryAsTime(query, "created_after", time.Time{}),
 		CreatedBefore: util.GetQueryAsTime(query, "created_before", time.Time{}),
 	}
-	page := util.GetQueryAsInt(query, "page", 1)
-	pageSize := util.GetQueryAsInt(query, "page_size", 50)
+	limit, offset, err := util.ParsePagination(query, defaultPageSize, maxPageSize)
+	if err != nil {
+		return err
+	}
 
 	usersCount, err := s.userRepo.Count(filter)
 	if err != nil {
@@ -175,7 +171,7 @@ func (s *adminService) GetUser(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	users, err := s.userRepo.List(filter, pageSize, (page-1)*pageSize)
+	users, err := s.userRepo.List(filter, limit, offset)
 	if err != nil {
 		slog.Error("Failed to list users", "error", err)
 		return err
@@ -200,11 +196,7 @@ func (s *adminService) GetUser(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (s *adminService) RestrictUser(w http.ResponseWriter, r *http.Request) error {
-	adminUsername, err := util.VerifyAccessToken(r, true)
-	if err != nil {
-		slog.Error("Access token verification failed", "error", err)
-		return err
-	}
+	adminUsername := util.AuthenticatedUsername(r)
 
 	req, err := util.Body[struct {
 		Username string `json:"username" validate:"required"`
@@ -249,11 +241,7 @@ func (s *adminService) RestrictUser(w http.ResponseWriter, r *http.Request) erro
 }
 
 func (s *adminService) BanUser(w http.ResponseWriter, r *http.Request) error {
-	adminUsername, err := util.VerifyAccessToken(r, true)
-	if err != nil {
-		slog.Error("Access token verification failed", "error", err)
-		return err
-	}
+	adminUsername := util.AuthenticatedUsername(r)
 
 	req, err := util.Body[struct {
 		Username string `json:"username" validate:"required"`
@@ -298,11 +286,7 @@ func (s *adminService) BanUser(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (s *adminService) UnrestrictUser(w http.ResponseWriter, r *http.Request) error {
-	adminUsername, err := util.VerifyAccessToken(r, true)
-	if err != nil {
-		slog.Error("Access token verification failed", "error", err)
-		return err
-	}
+	adminUsername := util.AuthenticatedUsername(r)
 
 	req, err := util.Body[struct {
 		Username string `json:"username" validate:"required"`
@@ -346,11 +330,7 @@ func (s *adminService) UnrestrictUser(w http.ResponseWriter, r *http.Request) er
 }
 
 func (s *adminService) UnbanUser(w http.ResponseWriter, r *http.Request) error {
-	adminUsername, err := util.VerifyAccessToken(r, true)
-	if err != nil {
-		slog.Error("Access token verification failed", "error", err)
-		return err
-	}
+	adminUsername := util.AuthenticatedUsername(r)
 
 	req, err := util.Body[struct {
 		Username string `json:"username" validate:"required"`
@@ -394,11 +374,6 @@ func (s *adminService) UnbanUser(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (s *adminService) GetEvent(w http.ResponseWriter, r *http.Request) error {
-	_, err := util.VerifyAccessToken(r, true)
-	if err != nil {
-		slog.Error("Access token verification failed", "error", err)
-		return err
-	}
 	query := r.URL.Query()
 	filter := repository.EventFilter{
 		ActorUser:     query.Get("actor_user"),
@@ -407,8 +382,10 @@ func (s *adminService) GetEvent(w http.ResponseWriter, r *http.Request) error {
 		CreatedAfter:  util.GetQueryAsTime(query, "created_after", time.Time{}),
 		CreatedBefore: util.GetQueryAsTime(query, "created_before", time.Time{}),
 	}
-	page := util.GetQueryAsInt(query, "page", 1)
-	pageSize := util.GetQueryAsInt(query, "page_size", 50)
+	limit, offset, err := util.ParsePagination(query, defaultPageSize, maxPageSize)
+	if err != nil {
+		return err
+	}
 
 	eventsCount, err := s.eventRepo.Count(filter)
 	if err != nil {
@@ -416,7 +393,7 @@ func (s *adminService) GetEvent(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	events, err := s.eventRepo.List(filter, pageSize, (page-1)*pageSize)
+	events, err := s.eventRepo.List(filter, limit, offset)
 	if err != nil {
 		slog.Error("Failed to list events", "error", err)
 		return err
@@ -438,22 +415,12 @@ func (s *adminService) GetEvent(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (s *adminService) GetSetting(w http.ResponseWriter, r *http.Request) error {
-	_, err := util.VerifyAccessToken(r, true)
-	if err != nil {
-		slog.Error("Access token verification failed", "error", err)
-		return err
-	}
-
 	settings := s.settingRepo.Get()
 	return util.RespondJson(w, settings)
 }
 
 func (s *adminService) UpdateSetting(w http.ResponseWriter, r *http.Request) error {
-	adminUsername, err := util.VerifyAccessToken(r, true)
-	if err != nil {
-		slog.Error("Access token verification failed", "error", err)
-		return err
-	}
+	adminUsername := util.AuthenticatedUsername(r)
 
 	req, err := util.Body[struct {
 		RegisterEnabled      *bool `json:"registerEnabled" validate:"required"`

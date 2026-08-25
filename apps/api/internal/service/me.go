@@ -57,16 +57,19 @@ func (s *meService) GetStrikes(w http.ResponseWriter, r *http.Request) error {
 		CreatedAfter:  util.GetQueryAsTime(query, "created_after", time.Time{}),
 		CreatedBefore: util.GetQueryAsTime(query, "created_before", time.Time{}),
 	}
-	page, pageSize := pageParams(query)
-	return s.respondStrikes(w, filter, page, pageSize)
+	limit, offset, err := util.ParsePagination(query, defaultPageSize, maxPageSize)
+	if err != nil {
+		return err
+	}
+	return s.respondStrikes(w, filter, limit, offset)
 }
 
-func (s *meService) respondStrikes(w http.ResponseWriter, filter repository.StrikeFilter, page, pageSize int64) error {
+func (s *meService) respondStrikes(w http.ResponseWriter, filter repository.StrikeFilter, limit, offset int64) error {
 	total, err := s.strikeRepo.Count(filter)
 	if err != nil {
 		return util.InternalServerError("查询违规记录失败")
 	}
-	records, err := s.strikeRepo.List(filter, pageSize, (page-1)*pageSize)
+	records, err := s.strikeRepo.List(filter, limit, offset)
 	if err != nil {
 		return util.InternalServerError("查询违规记录失败")
 	}

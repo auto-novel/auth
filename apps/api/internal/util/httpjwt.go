@@ -2,6 +2,7 @@ package util
 
 import (
 	"auth/internal/repository"
+	"context"
 	"log/slog"
 	"net/http"
 	"strings"
@@ -28,6 +29,8 @@ type accessClaim struct {
 	Role      string           `json:"role"`
 	CreatedAt *jwt.NumericDate `json:"crat"`
 }
+
+type accessTokenSubjectKey struct{}
 
 func VerifyRefreshToken(r *http.Request) (string, error) {
 	cookie, err := r.Cookie(RefreshTokenCookieName)
@@ -57,10 +60,27 @@ func VerifyAccessToken(r *http.Request, requireAdmin bool) (string, error) {
 	}
 
 	if requireAdmin && claims.Role != repository.RoleAdmin {
-		return "", Unauthorized("权限不足")
+		return "", Forbidden("权限不足")
 	}
 
 	return claims.Subject, nil
+}
+
+func RequireAdmin(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		username, err := VerifyAccessToken(r, true)
+		if err != nil {
+			RespondError(w, err)
+			return
+		}
+		ctx := context.WithValue(r.Context(), accessTokenSubjectKey{}, username)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func AuthenticatedUsername(r *http.Request) string {
+	username, _ := r.Context().Value(accessTokenSubjectKey{}).(string)
+	return username
 }
 
 type TokenPolicy struct {

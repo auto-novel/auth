@@ -5,7 +5,6 @@ import (
 	"auth/internal/util"
 	"log/slog"
 	"net/http"
-	"net/url"
 	"strconv"
 	"time"
 
@@ -75,12 +74,6 @@ func strikePage(records []repository.StrikeRecord, total int64) PageResponse[Str
 	return response
 }
 
-func pageParams(query url.Values) (int64, int64) {
-	page := util.GetQueryAsInt(query, "page", 1)
-	pageSize := util.GetQueryAsInt(query, "page_size", 50)
-	return page, pageSize
-}
-
 func (s *adminStrikeService) findStrikeTarget(username string) (*repository.User, error) {
 	if username == "" {
 		return nil, util.BadRequest("无效的用户名")
@@ -142,9 +135,6 @@ func (s *adminStrikeService) createStrike(
 }
 
 func (s *adminStrikeService) GetStrikes(w http.ResponseWriter, r *http.Request) error {
-	if _, err := util.VerifyAccessToken(r, true); err != nil {
-		return err
-	}
 	query := r.URL.Query()
 	filter := repository.StrikeFilter{
 		CreatedAfter:  util.GetQueryAsTime(query, "created_after", time.Time{}),
@@ -164,12 +154,15 @@ func (s *adminStrikeService) GetStrikes(w http.ResponseWriter, r *http.Request) 
 		}
 		filter.OperatorID = &operatorID
 	}
-	page, pageSize := pageParams(query)
+	limit, offset, err := util.ParsePagination(query, defaultPageSize, maxPageSize)
+	if err != nil {
+		return err
+	}
 	total, err := s.strikeRepo.Count(filter)
 	if err != nil {
 		return util.InternalServerError("查询违规记录失败")
 	}
-	records, err := s.strikeRepo.List(filter, pageSize, (page-1)*pageSize)
+	records, err := s.strikeRepo.List(filter, limit, offset)
 	if err != nil {
 		return util.InternalServerError("查询违规记录失败")
 	}
@@ -177,10 +170,7 @@ func (s *adminStrikeService) GetStrikes(w http.ResponseWriter, r *http.Request) 
 }
 
 func (s *adminStrikeService) CreateStrike(w http.ResponseWriter, r *http.Request) error {
-	adminUsername, err := util.VerifyAccessToken(r, true)
-	if err != nil {
-		return err
-	}
+	adminUsername := util.AuthenticatedUsername(r)
 	req, err := util.Body[struct {
 		Username string `json:"username" validate:"required"`
 		Reason   string `json:"reason" validate:"required"`
@@ -202,10 +192,7 @@ func (s *adminStrikeService) CreateStrike(w http.ResponseWriter, r *http.Request
 }
 
 func (s *adminStrikeService) RevokeStrike(w http.ResponseWriter, r *http.Request) error {
-	adminUsername, err := util.VerifyAccessToken(r, true)
-	if err != nil {
-		return err
-	}
+	adminUsername := util.AuthenticatedUsername(r)
 	strikeID, err := strconv.ParseInt(chi.URLParam(r, "strikeID"), 10, 64)
 	if err != nil || strikeID <= 0 {
 		return util.BadRequest("无效的违规记录 ID")

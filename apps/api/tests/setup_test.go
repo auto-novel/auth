@@ -85,6 +85,7 @@ func TestMain(m *testing.M) {
 	router.Use(middleware.Recoverer)
 	router.Route("/v1/auth", authService.Use)
 	router.Route("/v1/admin", func(router chi.Router) {
+		router.Use(util.RequireAdmin)
 		adminService.Use(router)
 		router.Route("/strikes", adminStrikeService.Use)
 	})

@@ -130,6 +130,7 @@ func main() {
 		router.Use(util.RequestLogger())
 		router.Route("/auth", authService.Use)
 		router.Route("/admin", func(router chi.Router) {
+			router.Use(util.RequireAdmin)
 			adminService.Use(router)
 			router.Route("/strikes", adminStrikeService.Use)
 		})
