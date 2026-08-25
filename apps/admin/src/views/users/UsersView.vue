@@ -1,14 +1,13 @@
 <script setup lang="ts">
 import { useAdminKit } from '@novelia/admin-kit';
-import { NAlert, NButton, NInput, NModal, NSpace, NText } from 'naive-ui';
-import { computed, onMounted, ref } from 'vue';
-
 import {
   getUsers,
   updateUserRole,
   type User,
   type UserAction,
-} from '@/data/users';
+} from '@novelia/auth-api';
+import { NAlert, NButton, NInput, NModal, NSpace, NText } from 'naive-ui';
+import { computed, onMounted, ref } from 'vue';
 
 import UserFilters from './UserFilters.vue';
 import UserList from './UserList.vue';

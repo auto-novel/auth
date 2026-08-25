@@ -42,4 +42,4 @@ export {
   useAdminKit,
   useAdminTheme,
 };
-export type { AdminKitOptions, AuthSession } from './types';
+export type { AdminKitOptions, AuthSession, UserProfile } from './types';

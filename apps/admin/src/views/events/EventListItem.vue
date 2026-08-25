@@ -2,7 +2,7 @@
 import { NTag, NText, NTooltip } from 'naive-ui';
 import { computed } from 'vue';
 
-import type { Event } from '@/data/events';
+import type { Event } from '@novelia/auth-api';
 
 interface EventDetail {
   actor_user?: string;

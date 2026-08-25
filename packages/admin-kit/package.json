@@ -19,6 +19,7 @@
     "vue-router": "^5.2.0"
   },
   "dependencies": {
+    "@novelia/auth-api": "workspace:*",
     "@vue/tsconfig": "^0.9.1",
     "typescript": "^6.0.0",
     "vue-tsc": "^3.3.10"

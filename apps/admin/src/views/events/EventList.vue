@@ -14,7 +14,7 @@ import {
 } from 'naive-ui';
 import { computed } from 'vue';
 
-import type { Event } from '@/data/events';
+import type { Event } from '@novelia/auth-api';
 
 import EventListItem from './EventListItem.vue';
 

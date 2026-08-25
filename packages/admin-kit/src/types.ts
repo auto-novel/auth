@@ -1,15 +1,7 @@
+import type { AccessTokenSession, UserProfile } from '@novelia/auth-api';
 import type { ComputedRef, DeepReadonly, Plugin, Ref } from 'vue';
 
-export interface UserProfile {
-  token: string;
-  username: string;
-  role: string;
-  createdAt: number;
-  issuedAt: number;
-  expiredAt: number;
-}
-
-export interface AuthSession {
+export interface AuthSession extends AccessTokenSession {
   profile: DeepReadonly<Ref<UserProfile | undefined>>;
   isSignedIn: ComputedRef<boolean>;
   isAuthorized: ComputedRef<boolean>;
@@ -37,3 +29,5 @@ export interface AdminKitContext {
 }
 
 export type AdminKit = Plugin;
+
+export type { UserProfile } from '@novelia/auth-api';

@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import { useAdminKit } from '@novelia/admin-kit';
 import {
+  createStrike,
+  getStrikes,
+  revokeStrike,
+  type Strike,
+} from '@novelia/auth-api';
+import {
   NAlert,
   NButton,
   NForm,
@@ -12,13 +18,6 @@ import {
   NText,
 } from 'naive-ui';
 import { computed, onMounted, reactive, ref } from 'vue';
-
-import {
-  createStrike,
-  getStrikes,
-  revokeStrike,
-  type Strike,
-} from '@/data/strikes';
 
 import StrikeFilters from './StrikeFilters.vue';
 import StrikeList from './StrikeList.vue';

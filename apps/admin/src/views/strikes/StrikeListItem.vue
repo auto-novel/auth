@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { NButton, NTag, NText } from 'naive-ui';
 
-import type { Strike } from '@/data/strikes';
+import type { Strike } from '@novelia/auth-api';
 
 const props = defineProps<{ strike: Strike; total: number }>();
 defineEmits<{

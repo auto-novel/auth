@@ -3,7 +3,7 @@ import { LockOpenOutlined, PersonAddAltOutlined } from '@vicons/material';
 import { NCard, NIcon, NText } from 'naive-ui';
 import { computed } from 'vue';
 
-import type { DailyAuthStat } from '@/data/overview';
+import type { DailyAuthStat } from '@novelia/auth-api';
 
 const props = defineProps<{ activity: DailyAuthStat[] }>();
 

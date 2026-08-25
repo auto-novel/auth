@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { useAdminKit } from '@novelia/admin-kit';
+import { getOverview, type DailyAuthStat } from '@novelia/auth-api';
 import { NAlert, NButton, NSpin, NTag, NText } from 'naive-ui';
 import { onMounted, ref } from 'vue';
-
-import { getOverview, type DailyAuthStat } from '@/data/overview';
 
 import OverviewMetrics from './OverviewMetrics.vue';
 import OverviewTrend from './OverviewTrend.vue';

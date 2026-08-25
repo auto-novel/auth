@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { useAdminKit } from '@novelia/admin-kit';
+import { getEvents, type Event } from '@novelia/auth-api';
 import { NAlert, NButton, NSpace, NText } from 'naive-ui';
 import { computed, onMounted, ref } from 'vue';
-
-import { getEvents, type Event } from '@/data/events';
 
 import EventFilters from './EventFilters.vue';
 import EventList from './EventList.vue';

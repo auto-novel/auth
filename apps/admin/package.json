@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@novelia/admin-kit": "workspace:*",
+    "@novelia/auth-api": "workspace:*",
     "@vitejs/plugin-vue": "^6.0.8",
     "@vicons/material": "^0.13.0",
     "@vue/tsconfig": "^0.9.1",

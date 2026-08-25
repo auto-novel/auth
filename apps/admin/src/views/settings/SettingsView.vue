@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { useAdminKit } from '@novelia/admin-kit';
 import {
+  getAuthSettings,
+  updateAuthSettings,
+  type AuthSettings,
+} from '@novelia/auth-api';
+import {
   NAlert,
   NButton,
   NCard,
@@ -11,12 +16,6 @@ import {
   NText,
 } from 'naive-ui';
 import { computed, onMounted, ref } from 'vue';
-
-import {
-  getAuthSettings,
-  type AuthSettings,
-  updateAuthSettings,
-} from '@/data/settings';
 
 const { session } = useAdminKit();
 const settings = ref<AuthSettings | null>(null);

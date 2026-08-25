@@ -9,6 +9,7 @@ on:
       - deploy/web/**
       - apps/login/**
       - apps/admin/**
+      - packages/auth-api/**
       - packages/admin-kit/**
       - package.json
       - pnpm-lock.yaml

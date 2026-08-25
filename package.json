@@ -9,7 +9,7 @@
     "dev:remote": "pnpm --filter auth-login dev:remote",
     "dev:local": "pnpm --filter auth-login dev:local",
     "dev:native": "pnpm --filter auth-login dev:native",
-    "build": "pnpm --filter @novelia/admin-kit build && pnpm --filter auth-login build && pnpm --filter auth-admin build",
+    "build": "pnpm --filter @novelia/auth-api build && pnpm --filter @novelia/admin-kit build && pnpm --filter auth-login build && pnpm --filter auth-admin build",
     "preview": "pnpm --filter auth-login preview"
   }
 }
