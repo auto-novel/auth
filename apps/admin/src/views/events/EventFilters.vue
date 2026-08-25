@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { SearchOutlined } from '@vicons/material';
-import { NIcon, NInput } from 'naive-ui';
+import { NIcon, NInput, NSelect } from 'naive-ui';
 import { ref, watch } from 'vue';
 
 import FilterChoiceGroup from '@/components/FilterChoiceGroup.vue';
@@ -30,8 +30,8 @@ const settingsActions = ['update-setting'];
 
 const actionGroups = [
   { label: '全部', value: 'all' },
-  { label: '注册与登录', value: 'auth' },
-  { label: '限制与封禁', value: 'moderation' },
+  { label: '登录注册', value: 'auth' },
+  { label: '限制封禁', value: 'moderation' },
   { label: '系统设置', value: 'settings' },
   { label: '自定义', value: 'custom' },
 ];
@@ -84,7 +84,8 @@ function changeActionGroup(value: string) {
   emit('search');
 }
 
-function changeCustomAction(value: string) {
+function changeCustomAction(value: string | number | null) {
+  if (typeof value !== 'string') return;
   actions.value = [value];
   emit('search');
 }
@@ -132,9 +133,11 @@ watch(actions, (value) => {
         @update:value="changeActionGroup"
       />
       <div v-if="selectedActionGroup === 'custom'" class="custom-actions">
-        <FilterChoiceGroup
+        <n-select
+          class="custom-action-select"
           :value="actions.length === 1 ? actions[0] : null"
           :options="customActionOptions"
+          placeholder="选择具体事件"
           @update:value="changeCustomAction"
         />
       </div>
@@ -163,5 +166,9 @@ watch(actions, (value) => {
 
 .custom-actions {
   margin-top: 12px;
+}
+
+.custom-action-select {
+  width: min(280px, 100%);
 }
 </style>

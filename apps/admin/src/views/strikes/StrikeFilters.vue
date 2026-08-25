@@ -24,20 +24,6 @@ function changeCreatedRange(value: [number, number] | null) {
 
 <template>
   <div class="filters">
-    <FilterRow label="目标用户">
-      <n-input
-        v-model:value="username"
-        class="filter-input"
-        clearable
-        placeholder="目标用户名"
-        @change="$emit('search')"
-      >
-        <template #suffix>
-          <n-icon :component="SearchOutlined" />
-        </template>
-      </n-input>
-    </FilterRow>
-
     <FilterRow label="操作者">
       <n-input-number
         v-model:value="operatorId"
@@ -50,6 +36,20 @@ function changeCreatedRange(value: [number, number] | null) {
         @blur="$emit('search')"
         @clear="$emit('search')"
       />
+    </FilterRow>
+
+    <FilterRow label="目标用户">
+      <n-input
+        v-model:value="username"
+        class="filter-input"
+        clearable
+        placeholder="目标用户名"
+        @change="$emit('search')"
+      >
+        <template #suffix>
+          <n-icon :component="SearchOutlined" />
+        </template>
+      </n-input>
     </FilterRow>
 
     <FilterRow label="时间">
