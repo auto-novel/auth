@@ -1,11 +1,6 @@
 import { computed, readonly, ref } from 'vue';
 
-import {
-  logout as logoutRequest,
-  parseAccessToken,
-  refresh as refreshApi,
-  type ApiRequestOptions,
-} from '@novelia/auth-api';
+import { createAuthApi, parseAccessToken } from '@novelia/auth-api';
 
 import type { AdminKitOptions, AuthSession, UserProfile } from './types';
 
@@ -13,7 +8,7 @@ export function createAuthSession(options: AdminKitOptions): AuthSession {
   const storageKey = `${options.auth.app}-admin-session`;
   const authUrl = new URL(options.auth.url, window.location.origin).toString();
   const apiUrl = new URL('api/v1/', authUrl);
-  const requestOptions: ApiRequestOptions = { baseUrl: apiUrl.toString() };
+  const api = createAuthApi({ baseUrl: apiUrl.toString() });
   const profile = ref<UserProfile>();
   let initialized = false;
   let refreshRequest: Promise<void> | undefined;
@@ -43,7 +38,8 @@ export function createAuthSession(options: AdminKitOptions): AuthSession {
   async function refresh() {
     if (refreshRequest) return refreshRequest;
 
-    refreshRequest = refreshApi(options.auth.app, requestOptions)
+    refreshRequest = api.auth
+      .refresh(options.auth.app)
       .then((token) => {
         saveProfile(parseAccessToken(token));
       })
@@ -81,7 +77,7 @@ export function createAuthSession(options: AdminKitOptions): AuthSession {
   async function logout() {
     saveProfile();
     try {
-      await logoutRequest(requestOptions);
+      await api.auth.logout();
     } catch {
       // Local logout still succeeds when the server session has expired.
     }

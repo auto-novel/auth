@@ -1,18 +1,13 @@
 <script setup lang="ts">
 import { useAdminKit } from '@novelia/admin-kit';
-import {
-  getUsers,
-  updateUserRole,
-  type User,
-  type UserAction,
-} from '@novelia/auth-api';
+import type { User, UserAction } from '@novelia/auth-api';
 import { NAlert, NButton, NInput, NModal, NSpace, NText } from 'naive-ui';
 import { computed, onMounted, ref } from 'vue';
 
 import UserFilters from './UserFilters.vue';
 import UserList from './UserList.vue';
 
-const { session } = useAdminKit();
+const { api } = useAdminKit();
 const users = ref<User[]>([]);
 const loading = ref(false);
 const errorMessage = ref('');
@@ -101,7 +96,7 @@ async function loadUsers() {
   errorMessage.value = '';
 
   try {
-    const data = await getUsers(session, {
+    const data = await api.admin.getUsers({
       page: page.value,
       pageSize: pageSize.value,
       query: query.value,
@@ -175,7 +170,7 @@ async function confirmAction() {
   actionInProgress.value = true;
   actionError.value = '';
   try {
-    await updateUserRole(session, target.action, {
+    await api.admin.updateUserRole(target.action, {
       username: target.user.username,
       reason,
     });

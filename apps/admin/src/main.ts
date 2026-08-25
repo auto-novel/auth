@@ -6,6 +6,9 @@ import { createAdminAuthGuard, createAdminKit } from '@novelia/admin-kit';
 import router from './router';
 
 const adminKit = createAdminKit({
+  api: {
+    baseUrl: '/api/v1',
+  },
   auth: {
     app: 'auth',
     url: __AUTH_URL__,

@@ -1,10 +1,6 @@
 <script setup lang="ts">
 import { useAdminKit } from '@novelia/admin-kit';
-import {
-  getAuthSettings,
-  updateAuthSettings,
-  type AuthSettings,
-} from '@novelia/auth-api';
+import type { AuthSettings } from '@novelia/auth-api';
 import {
   NAlert,
   NButton,
@@ -17,7 +13,7 @@ import {
 } from 'naive-ui';
 import { computed, onMounted, ref } from 'vue';
 
-const { session } = useAdminKit();
+const { api } = useAdminKit();
 const settings = ref<AuthSettings | null>(null);
 const registerEnabled = ref(true);
 const resetPasswordEnabled = ref(true);
@@ -72,7 +68,7 @@ async function loadSettings() {
   saveSucceeded.value = false;
 
   try {
-    applySettings(await getAuthSettings(session));
+    applySettings(await api.admin.getAuthSettings());
   } catch (error) {
     settings.value = null;
     loadError.value = error instanceof Error ? error.message : String(error);
@@ -87,7 +83,7 @@ async function saveSettings() {
   saveSucceeded.value = false;
 
   try {
-    const nextSettings = await updateAuthSettings(session, {
+    const nextSettings = await api.admin.updateAuthSettings({
       registerEnabled: registerEnabled.value,
       resetPasswordEnabled: resetPasswordEnabled.value,
     });

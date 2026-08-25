@@ -1,4 +1,9 @@
-import type { AccessTokenSession, UserProfile } from '@novelia/auth-api';
+import type {
+  AccessTokenSession,
+  ApiRequestOptions,
+  AuthApi,
+  UserProfile,
+} from '@novelia/auth-api';
 import type { ComputedRef, DeepReadonly, Plugin, Ref } from 'vue';
 
 export interface AuthSession extends AccessTokenSession {
@@ -11,6 +16,7 @@ export interface AuthSession extends AccessTokenSession {
 }
 
 export interface AdminKitOptions {
+  api: ApiRequestOptions;
   auth: {
     app: string;
     url: string;
@@ -25,6 +31,7 @@ export interface AdminKitOptions {
 
 export interface AdminKitContext {
   options: Readonly<AdminKitOptions>;
+  api: AuthApi;
   session: AuthSession;
 }
 

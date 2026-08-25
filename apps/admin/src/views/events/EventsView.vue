@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { useAdminKit } from '@novelia/admin-kit';
-import { getEvents, type Event } from '@novelia/auth-api';
+import type { Event } from '@novelia/auth-api';
 import { NAlert, NButton, NSpace, NText } from 'naive-ui';
 import { computed, onMounted, ref } from 'vue';
 
 import EventFilters from './EventFilters.vue';
 import EventList from './EventList.vue';
 
-const { session } = useAdminKit();
+const { api } = useAdminKit();
 const events = ref<Event[]>([]);
 const loading = ref(false);
 const errorMessage = ref('');
@@ -49,7 +49,7 @@ async function loadEvents() {
   errorMessage.value = '';
 
   try {
-    const data = await getEvents(session, {
+    const data = await api.admin.getEvents({
       page: page.value,
       pageSize: pageSize.value,
       actorUser: actor.value,

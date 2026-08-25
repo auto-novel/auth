@@ -1,4 +1,6 @@
-import { login, register, requestOtp, resetPassword } from '@novelia/auth-api';
+import { createAuthApi } from '@novelia/auth-api';
+
+const api = createAuthApi({ baseUrl: '/api/v1' });
 
 function debounce<T extends (...args: any[]) => Promise<any>>(func: T) {
   const newFunc = async function (
@@ -19,8 +21,8 @@ function debounce<T extends (...args: any[]) => Promise<any>>(func: T) {
 export type { OtpType } from '@novelia/auth-api';
 
 export const Api = {
-  register: debounce(register),
-  login: debounce(login),
-  requestOtp: debounce(requestOtp),
-  resetPassword: debounce(resetPassword),
+  register: debounce(api.auth.register),
+  login: debounce(api.auth.login),
+  requestOtp: debounce(api.auth.requestOtp),
+  resetPassword: debounce(api.auth.resetPassword),
 };

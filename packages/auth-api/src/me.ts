@@ -20,7 +20,7 @@ export interface MyStrikeListParams
 export function getMyStrikes(
   session: AccessTokenSession,
   params: MyStrikeListParams,
-  options?: ApiRequestOptions,
+  options: ApiRequestOptions,
 ) {
   const searchParams = new URLSearchParams({
     page: String(params.page),

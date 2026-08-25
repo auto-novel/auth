@@ -1,11 +1,6 @@
 <script setup lang="ts">
 import { useAdminKit } from '@novelia/admin-kit';
-import {
-  createStrike,
-  getStrikes,
-  revokeStrike,
-  type Strike,
-} from '@novelia/auth-api';
+import type { Strike } from '@novelia/auth-api';
 import {
   NAlert,
   NButton,
@@ -22,7 +17,7 @@ import { computed, onMounted, reactive, ref } from 'vue';
 import StrikeFilters from './StrikeFilters.vue';
 import StrikeList from './StrikeList.vue';
 
-const { session } = useAdminKit();
+const { api } = useAdminKit();
 const strikes = ref<Strike[]>([]);
 const loading = ref(false);
 const errorMessage = ref('');
@@ -85,7 +80,7 @@ async function loadStrikes() {
   loading.value = true;
   errorMessage.value = '';
   try {
-    const data = await getStrikes(session, {
+    const data = await api.admin.getStrikes({
       page: page.value,
       pageSize: pageSize.value,
       username: username.value,
@@ -157,7 +152,7 @@ async function submitCreate() {
   createInProgress.value = true;
   createError.value = '';
   try {
-    await createStrike(session, {
+    await api.admin.createStrike({
       username: createForm.username.trim(),
       reason: createForm.reason.trim(),
       evidence: createForm.evidence.trim(),
@@ -184,7 +179,7 @@ async function confirmRevoke() {
   revokeInProgress.value = true;
   revokeError.value = '';
   try {
-    await revokeStrike(session, pendingRevoke.value.id);
+    await api.admin.revokeStrike(pendingRevoke.value.id);
     successMessage.value = `已撤销违规记录 #${pendingRevoke.value.id}`;
     pendingRevoke.value = null;
     await loadStrikes();

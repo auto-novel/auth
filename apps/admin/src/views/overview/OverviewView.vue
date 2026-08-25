@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useAdminKit } from '@novelia/admin-kit';
-import { getOverview, type DailyAuthStat } from '@novelia/auth-api';
+import type { DailyAuthStat } from '@novelia/auth-api';
 import { NAlert, NButton, NSpin, NTag, NText } from 'naive-ui';
 import { onMounted, ref } from 'vue';
 
@@ -10,7 +10,7 @@ import OverviewTrend from './OverviewTrend.vue';
 const DAYS = 7;
 const TIME_ZONE = 'Asia/Shanghai';
 
-const { session } = useAdminKit();
+const { api } = useAdminKit();
 const authActivity = ref<DailyAuthStat[]>([]);
 const loading = ref(true);
 const errorMessage = ref('');
@@ -42,8 +42,7 @@ async function loadOverview() {
   errorMessage.value = '';
 
   try {
-    const data = await getOverview(
-      session,
+    const data = await api.admin.getOverview(
       dateRange.startDate,
       dateRange.endDate,
     );

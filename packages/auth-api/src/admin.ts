@@ -108,7 +108,7 @@ export interface CreateStrikeRequest {
   point: number;
 }
 
-function withSession(session: AccessTokenSession, options?: ApiRequestOptions) {
+function withSession(session: AccessTokenSession, options: ApiRequestOptions) {
   return { ...options, session };
 }
 
@@ -134,7 +134,7 @@ function createPagination(params: PaginationParams) {
 export function getUsers(
   session: AccessTokenSession,
   params: UserListParams,
-  options?: ApiRequestOptions,
+  options: ApiRequestOptions,
 ) {
   const searchParams = createPagination(params);
   if (params.query) searchParams.set('q', `%${params.query}%`);
@@ -150,7 +150,7 @@ export function updateUserRole(
   session: AccessTokenSession,
   action: UserAction,
   request: UserActionRequest,
-  options?: ApiRequestOptions,
+  options: ApiRequestOptions,
 ) {
   return requestVoid(`admin/user/${action}`, {
     ...withSession(session, options),
@@ -163,7 +163,7 @@ export function getOverview(
   session: AccessTokenSession,
   startDate: string,
   endDate: string,
-  options?: ApiRequestOptions,
+  options: ApiRequestOptions,
 ) {
   const searchParams = new URLSearchParams({
     start_date: startDate,
@@ -178,7 +178,7 @@ export function getOverview(
 export function getEvents(
   session: AccessTokenSession,
   params: EventListParams,
-  options?: ApiRequestOptions,
+  options: ApiRequestOptions,
 ) {
   const searchParams = createPagination(params);
   if (params.actorUser) searchParams.set('actor_user', params.actorUser);
@@ -193,7 +193,7 @@ export function getEvents(
 
 export function getAuthSettings(
   session: AccessTokenSession,
-  options?: ApiRequestOptions,
+  options: ApiRequestOptions,
 ) {
   return requestJson<AuthSettings>(
     'admin/setting',
@@ -204,7 +204,7 @@ export function getAuthSettings(
 export function updateAuthSettings(
   session: AccessTokenSession,
   settings: UpdateAuthSettingsRequest,
-  options?: ApiRequestOptions,
+  options: ApiRequestOptions,
 ) {
   return requestJson<AuthSettings>('admin/setting', {
     ...withSession(session, options),
@@ -216,7 +216,7 @@ export function updateAuthSettings(
 export function getStrikes(
   session: AccessTokenSession,
   params: StrikeListParams,
-  options?: ApiRequestOptions,
+  options: ApiRequestOptions,
 ) {
   const searchParams = createPagination(params);
   if (params.username) searchParams.set('username', params.username);
@@ -233,7 +233,7 @@ export function getStrikes(
 export function createStrike(
   session: AccessTokenSession,
   request: CreateStrikeRequest,
-  options?: ApiRequestOptions,
+  options: ApiRequestOptions,
 ) {
   return requestJson<Strike>('admin/strikes', {
     ...withSession(session, options),
@@ -245,7 +245,7 @@ export function createStrike(
 export function revokeStrike(
   session: AccessTokenSession,
   strikeId: number,
-  options?: ApiRequestOptions,
+  options: ApiRequestOptions,
 ) {
   return requestJson<Strike>(`admin/strikes/${strikeId}/revoke`, {
     ...withSession(session, options),

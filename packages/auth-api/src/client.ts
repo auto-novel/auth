@@ -1,7 +1,5 @@
-export const defaultApiBaseUrl = '/api/v1';
-
 export interface ApiRequestOptions {
-  baseUrl?: string;
+  baseUrl: string;
   timeout?: number;
   fetch?: typeof globalThis.fetch;
 }
@@ -36,7 +34,7 @@ export class SessionExpiredError extends ApiError {
   }
 }
 
-function resolveUrl(path: string, baseUrl = defaultApiBaseUrl) {
+function resolveUrl(path: string, baseUrl: string) {
   return `${baseUrl.replace(/\/+$/, '')}/${path.replace(/^\/+/, '')}`;
 }
 
@@ -91,7 +89,7 @@ async function fetchWithToken(
   return request(token);
 }
 
-export async function apiRequest(path: string, options: ApiFetchOptions = {}) {
+export async function apiRequest(path: string, options: ApiFetchOptions) {
   const {
     baseUrl,
     timeout,
@@ -115,18 +113,15 @@ export async function apiRequest(path: string, options: ApiFetchOptions = {}) {
   return response;
 }
 
-export async function requestText(path: string, options: ApiFetchOptions = {}) {
+export async function requestText(path: string, options: ApiFetchOptions) {
   return (await apiRequest(path, options)).text();
 }
 
-export async function requestJson<T>(
-  path: string,
-  options: ApiFetchOptions = {},
-) {
+export async function requestJson<T>(path: string, options: ApiFetchOptions) {
   return (await apiRequest(path, options)).json() as Promise<T>;
 }
 
-export async function requestVoid(path: string, options: ApiFetchOptions = {}) {
+export async function requestVoid(path: string, options: ApiFetchOptions) {
   await apiRequest(path, options);
 }
 

@@ -1,5 +1,7 @@
 import type { App } from 'vue';
 
+import { createAuthApi } from '@novelia/auth-api';
+
 import AdminLoginView from './components/AdminLoginView.vue';
 import AdminKitApp from './components/AdminKitApp.vue';
 import AdminKitLayout from './components/AdminKitLayout.vue';
@@ -17,9 +19,11 @@ import type { AdminKit, AdminKitOptions } from './types';
 export { createAdminAuthGuard } from './router';
 
 export function createAdminKit(options: AdminKitOptions): AdminKit {
+  const session = createAuthSession(options);
   const context = {
     options,
-    session: createAuthSession(options),
+    api: createAuthApi({ ...options.api, session }),
+    session,
   };
   const kit = {
     install(app: App) {
