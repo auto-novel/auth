@@ -30,7 +30,12 @@ type accessClaim struct {
 	CreatedAt *jwt.NumericDate `json:"crat"`
 }
 
-type accessTokenSubjectKey struct{}
+type Principal struct {
+	Username string
+	Role     string
+}
+
+type principalContextKey struct{}
 
 func VerifyRefreshToken(r *http.Request) (string, error) {
 	cookie, err := r.Cookie(RefreshTokenCookieName)
@@ -47,40 +52,63 @@ func VerifyRefreshToken(r *http.Request) (string, error) {
 	return claims.Subject, nil
 }
 
-func VerifyAccessToken(r *http.Request, requireAdmin bool) (string, error) {
+func verifyAccessToken(r *http.Request) (Principal, error) {
 	tokenString := r.Header.Get("Authorization")
 
 	if (tokenString == "") || !strings.HasPrefix(tokenString, "Bearer ") {
-		return "", Unauthorized("缺少访问令牌")
+		return Principal{}, Unauthorized("缺少访问令牌")
 	}
 
 	claims, err := parseClaims(tokenString[len("Bearer "):], AccessTokenSecret, &accessClaim{})
 	if err != nil {
-		return "", Unauthorized("无效的访问令牌")
+		return Principal{}, Unauthorized("无效的访问令牌")
+	}
+	if claims.Subject == "" {
+		return Principal{}, Unauthorized("无效的访问令牌")
 	}
 
-	if requireAdmin && claims.Role != repository.RoleAdmin {
-		return "", Forbidden("权限不足")
-	}
-
-	return claims.Subject, nil
+	return Principal{Username: claims.Subject, Role: claims.Role}, nil
 }
 
-func RequireAdmin(next http.Handler) http.Handler {
+func RequireAccessToken(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		username, err := VerifyAccessToken(r, true)
+		principal, err := verifyAccessToken(r)
 		if err != nil {
 			RespondError(w, err)
 			return
 		}
-		ctx := context.WithValue(r.Context(), accessTokenSubjectKey{}, username)
+		ctx := context.WithValue(r.Context(), principalContextKey{}, principal)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
-func AuthenticatedUsername(r *http.Request) string {
-	username, _ := r.Context().Value(accessTokenSubjectKey{}).(string)
-	return username
+func RequireRole(role string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return RequireAccessToken(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			principal, err := AuthenticatedPrincipal(r)
+			if err != nil {
+				RespondError(w, err)
+				return
+			}
+			if principal.Role != role {
+				RespondError(w, Forbidden("权限不足"))
+				return
+			}
+			next.ServeHTTP(w, r)
+		}))
+	}
+}
+
+func RequireAdmin(next http.Handler) http.Handler {
+	return RequireRole(repository.RoleAdmin)(next)
+}
+
+func AuthenticatedPrincipal(r *http.Request) (Principal, error) {
+	principal, ok := r.Context().Value(principalContextKey{}).(Principal)
+	if !ok || principal.Username == "" {
+		return Principal{}, Unauthorized("缺少认证上下文")
+	}
+	return principal, nil
 }
 
 type TokenPolicy struct {
@@ -156,7 +184,7 @@ func issueAccessToken(opts TokenOptions, policy TokenPolicy) (string, error) {
 		SignedString([]byte(AccessTokenSecret))
 	if err != nil {
 		slog.Error("Failed to sign access token", "error", err)
-		return "", InternalServerError("无法创建访问令牌")
+		return "", InternalError(err, "无法创建访问令牌")
 	}
 
 	return token, nil
@@ -179,7 +207,7 @@ func issueRefreshToken(opts TokenOptions, policy TokenPolicy) (string, error) {
 		SignedString([]byte(RefreshTokenSecret))
 	if err != nil {
 		slog.Error("Failed to sign refresh token", "error", err)
-		return "", InternalServerError("无法创建刷新令牌")
+		return "", InternalError(err, "无法创建刷新令牌")
 	}
 	return token, nil
 

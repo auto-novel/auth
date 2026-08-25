@@ -89,7 +89,10 @@ func TestMain(m *testing.M) {
 		adminService.Use(router)
 		router.Route("/strikes", adminStrikeService.Use)
 	})
-	router.Route("/v1/me", meService.Use)
+	router.Route("/v1/me", func(router chi.Router) {
+		router.Use(util.RequireAccessToken)
+		meService.Use(router)
+	})
 	server := httptest.NewServer(router)
 	Url = server.URL
 	Client = server.Client()

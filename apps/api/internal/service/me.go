@@ -38,40 +38,44 @@ func (s *meService) Use(router chi.Router) {
 }
 
 func (s *meService) GetStrikes(w http.ResponseWriter, r *http.Request) error {
-	username, err := util.VerifyAccessToken(r, false)
+	principal, err := util.AuthenticatedPrincipal(r)
 	if err != nil {
 		return err
 	}
-	user, err := s.userRepo.FindByUsername(username)
+	user, err := s.userRepo.FindByUsername(principal.Username)
 	if err != nil {
-		slog.Error("Current user lookup failed", "username", username, "error", err)
-		return util.InternalServerError("查询当前用户失败")
+		slog.Error("Current user lookup failed", "username", principal.Username, "error", err)
+		return util.InternalError(err, "查询当前用户失败")
 	}
 	if user == nil {
 		return util.Unauthorized("当前用户不存在")
 	}
 
 	query := r.URL.Query()
-	filter := repository.StrikeFilter{
-		UserID:        user.ID,
-		CreatedAfter:  util.GetQueryAsTime(query, "created_after", time.Time{}),
-		CreatedBefore: util.GetQueryAsTime(query, "created_before", time.Time{}),
-	}
-	limit, offset, err := util.ParsePagination(query, defaultPageSize, maxPageSize)
+	timeRange, err := util.ParseTimeRange(query)
 	if err != nil {
 		return err
 	}
-	return s.respondStrikes(w, filter, limit, offset)
+	filter := repository.StrikeFilter{
+		UserID:        user.ID,
+		CreatedAfter:  timeRange.After,
+		CreatedBefore: timeRange.Before,
+	}
+	pagination, err := util.ParsePagination(query, defaultPageSize, maxPageSize)
+	if err != nil {
+		return err
+	}
+	return s.respondStrikes(w, filter, pagination.Limit, pagination.Offset)
 }
 
 func (s *meService) respondStrikes(w http.ResponseWriter, filter repository.StrikeFilter, limit, offset int64) error {
 	total, err := s.strikeRepo.Count(filter)
 	if err != nil {
-		return util.InternalServerError("查询违规记录失败")
+		return util.InternalError(err, "查询违规记录失败")
 	}
 	records, err := s.strikeRepo.List(filter, limit, offset)
 	if err != nil {
-		return util.InternalServerError("查询违规记录失败")
+		return util.InternalError(err, "查询违规记录失败")
 	}
 	response := PageResponse[MeStrikeResponse]{
 		Total: total,

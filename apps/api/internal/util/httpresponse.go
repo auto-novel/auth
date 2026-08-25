@@ -4,16 +4,25 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 )
 
 type HttpError struct {
 	StatusCode int
 	Message    string
+	Cause      error
 }
 
 func (e *HttpError) Error() string {
+	if e.Cause != nil {
+		return fmt.Sprintf("[%d] %s: %v", e.StatusCode, e.Message, e.Cause)
+	}
 	return fmt.Sprintf("[%d] %s", e.StatusCode, e.Message)
+}
+
+func (e *HttpError) Unwrap() error {
+	return e.Cause
 }
 
 func NewHttpError(statusCode int, message string) *HttpError {
@@ -47,6 +56,14 @@ func InternalServerError(message string) *HttpError {
 	return NewHttpError(http.StatusInternalServerError, message)
 }
 
+func InternalError(cause error, message string) *HttpError {
+	return &HttpError{
+		StatusCode: http.StatusInternalServerError,
+		Message:    message,
+		Cause:      cause,
+	}
+}
+
 func EH(f func(http.ResponseWriter, *http.Request) error) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		err := f(w, r)
@@ -66,9 +83,13 @@ func RespondError(w http.ResponseWriter, err error) {
 	if errors.As(err, &httpErr) {
 		code = httpErr.StatusCode
 		message = httpErr.Message
+		if code >= http.StatusInternalServerError {
+			slog.Error("Request failed", "status", code, "error", err)
+		}
 	} else {
 		code = http.StatusInternalServerError
-		message = err.Error()
+		message = "服务器内部错误"
+		slog.Error("Unhandled request error", "status", code, "error", err)
 	}
 
 	h := w.Header()

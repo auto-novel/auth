@@ -116,7 +116,7 @@ func (s *adminService) GetOverview(w http.ResponseWriter, r *http.Request) error
 	location, err := time.LoadLocation(OverviewStatsTimezone)
 	if err != nil {
 		slog.Error("Failed to load overview statistics timezone", "timezone", OverviewStatsTimezone, "error", err)
-		return util.InternalServerError("无法加载统计时区")
+		return util.InternalError(err, "无法加载统计时区")
 	}
 	startDate, err := time.ParseInLocation(time.DateOnly, startDateValue, location)
 	if err != nil {
@@ -136,7 +136,7 @@ func (s *adminService) GetOverview(w http.ResponseWriter, r *http.Request) error
 	stats, err := s.eventRepo.DailyAuthStats(startDate, endDate, OverviewStatsTimezone)
 	if err != nil {
 		slog.Error("Failed to get daily authentication statistics", "error", err)
-		return err
+		return util.InternalError(err, "查询认证统计失败")
 	}
 
 	response := OverviewResponse{
@@ -154,13 +154,17 @@ func (s *adminService) GetOverview(w http.ResponseWriter, r *http.Request) error
 
 func (s *adminService) GetUser(w http.ResponseWriter, r *http.Request) error {
 	query := r.URL.Query()
+	timeRange, err := util.ParseTimeRange(query)
+	if err != nil {
+		return err
+	}
 	filter := repository.UserFilter{
 		Query:         query.Get("q"),
 		Role:          query.Get("role"),
-		CreatedAfter:  util.GetQueryAsTime(query, "created_after", time.Time{}),
-		CreatedBefore: util.GetQueryAsTime(query, "created_before", time.Time{}),
+		CreatedAfter:  timeRange.After,
+		CreatedBefore: timeRange.Before,
 	}
-	limit, offset, err := util.ParsePagination(query, defaultPageSize, maxPageSize)
+	pagination, err := util.ParsePagination(query, defaultPageSize, maxPageSize)
 	if err != nil {
 		return err
 	}
@@ -168,13 +172,13 @@ func (s *adminService) GetUser(w http.ResponseWriter, r *http.Request) error {
 	usersCount, err := s.userRepo.Count(filter)
 	if err != nil {
 		slog.Error("Failed to count users", "error", err)
-		return err
+		return util.InternalError(err, "查询用户失败")
 	}
 
-	users, err := s.userRepo.List(filter, limit, offset)
+	users, err := s.userRepo.List(filter, pagination.Limit, pagination.Offset)
 	if err != nil {
 		slog.Error("Failed to list users", "error", err)
-		return err
+		return util.InternalError(err, "查询用户失败")
 	}
 
 	userPage := PageResponse[UserResponse]{
@@ -196,7 +200,10 @@ func (s *adminService) GetUser(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (s *adminService) RestrictUser(w http.ResponseWriter, r *http.Request) error {
-	adminUsername := util.AuthenticatedUsername(r)
+	principal, err := util.AuthenticatedPrincipal(r)
+	if err != nil {
+		return err
+	}
 
 	req, err := util.Body[struct {
 		Username string `json:"username" validate:"required"`
@@ -221,7 +228,7 @@ func (s *adminService) RestrictUser(w http.ResponseWriter, r *http.Request) erro
 	err = s.userRepo.UpdateRole(user)
 	if err != nil {
 		slog.Error("Failed to update user role", "username", user.Username, "error", err)
-		return util.InternalServerError("更新用户角色失败")
+		return util.InternalError(err, "更新用户角色失败")
 	}
 
 	s.eventRepo.Save(
@@ -231,7 +238,7 @@ func (s *adminService) RestrictUser(w http.ResponseWriter, r *http.Request) erro
 			TargetUser string `json:"target_user"`
 			Reason     string `json:"reason"`
 		}{
-			ActorUser:  adminUsername,
+			ActorUser:  principal.Username,
 			TargetUser: user.Username,
 			Reason:     req.Reason,
 		},
@@ -241,7 +248,10 @@ func (s *adminService) RestrictUser(w http.ResponseWriter, r *http.Request) erro
 }
 
 func (s *adminService) BanUser(w http.ResponseWriter, r *http.Request) error {
-	adminUsername := util.AuthenticatedUsername(r)
+	principal, err := util.AuthenticatedPrincipal(r)
+	if err != nil {
+		return err
+	}
 
 	req, err := util.Body[struct {
 		Username string `json:"username" validate:"required"`
@@ -266,7 +276,7 @@ func (s *adminService) BanUser(w http.ResponseWriter, r *http.Request) error {
 	err = s.userRepo.UpdateRole(user)
 	if err != nil {
 		slog.Error("Failed to update user role", "username", user.Username, "error", err)
-		return util.InternalServerError("更新用户角色失败")
+		return util.InternalError(err, "更新用户角色失败")
 	}
 
 	s.eventRepo.Save(
@@ -276,7 +286,7 @@ func (s *adminService) BanUser(w http.ResponseWriter, r *http.Request) error {
 			TargetUser string `json:"target_user"`
 			Reason     string `json:"reason"`
 		}{
-			ActorUser:  adminUsername,
+			ActorUser:  principal.Username,
 			TargetUser: user.Username,
 			Reason:     req.Reason,
 		},
@@ -286,7 +296,10 @@ func (s *adminService) BanUser(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (s *adminService) UnrestrictUser(w http.ResponseWriter, r *http.Request) error {
-	adminUsername := util.AuthenticatedUsername(r)
+	principal, err := util.AuthenticatedPrincipal(r)
+	if err != nil {
+		return err
+	}
 
 	req, err := util.Body[struct {
 		Username string `json:"username" validate:"required"`
@@ -310,7 +323,7 @@ func (s *adminService) UnrestrictUser(w http.ResponseWriter, r *http.Request) er
 	user.Role = repository.RoleMember
 	if err := s.userRepo.UpdateRole(user); err != nil {
 		slog.Error("Failed to update user role", "username", user.Username, "error", err)
-		return util.InternalServerError("更新用户角色失败")
+		return util.InternalError(err, "更新用户角色失败")
 	}
 
 	s.eventRepo.Save(
@@ -320,7 +333,7 @@ func (s *adminService) UnrestrictUser(w http.ResponseWriter, r *http.Request) er
 			TargetUser string `json:"target_user"`
 			Reason     string `json:"reason"`
 		}{
-			ActorUser:  adminUsername,
+			ActorUser:  principal.Username,
 			TargetUser: user.Username,
 			Reason:     req.Reason,
 		},
@@ -330,7 +343,10 @@ func (s *adminService) UnrestrictUser(w http.ResponseWriter, r *http.Request) er
 }
 
 func (s *adminService) UnbanUser(w http.ResponseWriter, r *http.Request) error {
-	adminUsername := util.AuthenticatedUsername(r)
+	principal, err := util.AuthenticatedPrincipal(r)
+	if err != nil {
+		return err
+	}
 
 	req, err := util.Body[struct {
 		Username string `json:"username" validate:"required"`
@@ -354,7 +370,7 @@ func (s *adminService) UnbanUser(w http.ResponseWriter, r *http.Request) error {
 	user.Role = repository.RoleMember
 	if err := s.userRepo.UpdateRole(user); err != nil {
 		slog.Error("Failed to update user role", "username", user.Username, "error", err)
-		return util.InternalServerError("更新用户角色失败")
+		return util.InternalError(err, "更新用户角色失败")
 	}
 
 	s.eventRepo.Save(
@@ -364,7 +380,7 @@ func (s *adminService) UnbanUser(w http.ResponseWriter, r *http.Request) error {
 			TargetUser string `json:"target_user"`
 			Reason     string `json:"reason"`
 		}{
-			ActorUser:  adminUsername,
+			ActorUser:  principal.Username,
 			TargetUser: user.Username,
 			Reason:     req.Reason,
 		},
@@ -375,14 +391,18 @@ func (s *adminService) UnbanUser(w http.ResponseWriter, r *http.Request) error {
 
 func (s *adminService) GetEvent(w http.ResponseWriter, r *http.Request) error {
 	query := r.URL.Query()
+	timeRange, err := util.ParseTimeRange(query)
+	if err != nil {
+		return err
+	}
 	filter := repository.EventFilter{
 		ActorUser:     query.Get("actor_user"),
 		TargetUser:    query.Get("target_user"),
 		Action:        query.Get("action"),
-		CreatedAfter:  util.GetQueryAsTime(query, "created_after", time.Time{}),
-		CreatedBefore: util.GetQueryAsTime(query, "created_before", time.Time{}),
+		CreatedAfter:  timeRange.After,
+		CreatedBefore: timeRange.Before,
 	}
-	limit, offset, err := util.ParsePagination(query, defaultPageSize, maxPageSize)
+	pagination, err := util.ParsePagination(query, defaultPageSize, maxPageSize)
 	if err != nil {
 		return err
 	}
@@ -390,13 +410,13 @@ func (s *adminService) GetEvent(w http.ResponseWriter, r *http.Request) error {
 	eventsCount, err := s.eventRepo.Count(filter)
 	if err != nil {
 		slog.Error("Failed to count events", "error", err)
-		return err
+		return util.InternalError(err, "查询事件失败")
 	}
 
-	events, err := s.eventRepo.List(filter, limit, offset)
+	events, err := s.eventRepo.List(filter, pagination.Limit, pagination.Offset)
 	if err != nil {
 		slog.Error("Failed to list events", "error", err)
-		return err
+		return util.InternalError(err, "查询事件失败")
 	}
 
 	eventPage := PageResponse[EventResponse]{
@@ -420,7 +440,10 @@ func (s *adminService) GetSetting(w http.ResponseWriter, r *http.Request) error 
 }
 
 func (s *adminService) UpdateSetting(w http.ResponseWriter, r *http.Request) error {
-	adminUsername := util.AuthenticatedUsername(r)
+	principal, err := util.AuthenticatedPrincipal(r)
+	if err != nil {
+		return err
+	}
 
 	req, err := util.Body[struct {
 		RegisterEnabled      *bool `json:"registerEnabled" validate:"required"`
@@ -437,7 +460,7 @@ func (s *adminService) UpdateSetting(w http.ResponseWriter, r *http.Request) err
 	})
 	if err != nil {
 		slog.Error("Failed to update auth settings", "error", err)
-		return util.InternalServerError("更新认证设置失败")
+		return util.InternalError(err, "更新认证设置失败")
 	}
 
 	s.eventRepo.Save(
@@ -447,7 +470,7 @@ func (s *adminService) UpdateSetting(w http.ResponseWriter, r *http.Request) err
 			RegisterEnabled      bool   `json:"register_enabled"`
 			ResetPasswordEnabled bool   `json:"reset_password_enabled"`
 		}{
-			ActorUser:            adminUsername,
+			ActorUser:            principal.Username,
 			RegisterEnabled:      settings.RegisterEnabled,
 			ResetPasswordEnabled: settings.ResetPasswordEnabled,
 		},

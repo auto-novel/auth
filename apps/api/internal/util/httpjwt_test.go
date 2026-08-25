@@ -23,6 +23,7 @@ func TestRequireAdmin(t *testing.T) {
 		wantBody   string
 	}{
 		{name: "missing token", wantStatus: http.StatusUnauthorized, wantBody: "缺少访问令牌"},
+		{name: "missing subject", token: testAccessToken(t, "", repository.RoleAdmin), wantStatus: http.StatusUnauthorized, wantBody: "无效的访问令牌"},
 		{name: "member token", token: testAccessToken(t, "member", repository.RoleMember), wantStatus: http.StatusForbidden, wantBody: "权限不足"},
 		{name: "admin token", token: testAccessToken(t, "admin", repository.RoleAdmin), wantStatus: http.StatusOK, wantBody: "admin"},
 	}
@@ -30,7 +31,12 @@ func TestRequireAdmin(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			handler := RequireAdmin(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				_, _ = io.WriteString(w, AuthenticatedUsername(r))
+				principal, err := AuthenticatedPrincipal(r)
+				if err != nil {
+					RespondError(w, err)
+					return
+				}
+				_, _ = io.WriteString(w, principal.Username)
 			}))
 			req := httptest.NewRequest(http.MethodGet, "/admin", nil)
 			if tt.token != "" {
@@ -44,6 +50,37 @@ func TestRequireAdmin(t *testing.T) {
 				t.Fatalf("RequireAdmin returned (%d, %q), want (%d, %q)", response.Code, response.Body.String(), tt.wantStatus, tt.wantBody)
 			}
 		})
+	}
+}
+
+func TestRequireAccessTokenStoresPrincipal(t *testing.T) {
+	previousSecret := AccessTokenSecret
+	AccessTokenSecret = "access-middleware-test-secret"
+	t.Cleanup(func() { AccessTokenSecret = previousSecret })
+
+	handler := RequireAccessToken(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		principal, err := AuthenticatedPrincipal(r)
+		if err != nil {
+			t.Fatalf("AuthenticatedPrincipal returned error: %v", err)
+		}
+		_, _ = io.WriteString(w, principal.Username+":"+principal.Role)
+	}))
+	req := httptest.NewRequest(http.MethodGet, "/me", nil)
+	req.Header.Set("Authorization", "Bearer "+testAccessToken(t, "member", repository.RoleMember))
+	response := httptest.NewRecorder()
+
+	handler.ServeHTTP(response, req)
+
+	if response.Code != http.StatusOK || response.Body.String() != "member:member" {
+		t.Fatalf("RequireAccessToken returned (%d, %q)", response.Code, response.Body.String())
+	}
+}
+
+func TestAuthenticatedPrincipalRejectsMissingContext(t *testing.T) {
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	_, err := AuthenticatedPrincipal(req)
+	if err == nil {
+		t.Fatal("AuthenticatedPrincipal returned nil error")
 	}
 }
 

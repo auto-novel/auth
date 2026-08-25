@@ -87,25 +87,35 @@ func Body[T any](r *http.Request) (T, error) {
 	return result, nil
 }
 
-func ParsePagination(query url.Values, defaultPageSize, maxPageSize int64) (int64, int64, error) {
+type Pagination struct {
+	Limit  int64
+	Offset int64
+}
+
+type TimeRange struct {
+	After  time.Time
+	Before time.Time
+}
+
+func ParsePagination(query url.Values, defaultPageSize, maxPageSize int64) (Pagination, error) {
 	if defaultPageSize <= 0 || maxPageSize < defaultPageSize {
-		return 0, 0, InternalServerError("分页参数配置无效")
+		return Pagination{}, InternalServerError("分页参数配置无效")
 	}
 	page, err := getPositiveQueryInt(query, "page", 1)
 	if err != nil {
-		return 0, 0, err
+		return Pagination{}, err
 	}
 	pageSize, err := getPositiveQueryInt(query, "page_size", defaultPageSize)
 	if err != nil {
-		return 0, 0, err
+		return Pagination{}, err
 	}
 	if pageSize > maxPageSize {
-		return 0, 0, BadRequest(fmt.Sprintf("page_size 不能超过 %d", maxPageSize))
+		return Pagination{}, BadRequest(fmt.Sprintf("page_size 不能超过 %d", maxPageSize))
 	}
 	if page-1 > math.MaxInt64/pageSize {
-		return 0, 0, BadRequest("page 超出可支持的范围")
+		return Pagination{}, BadRequest("page 超出可支持的范围")
 	}
-	return pageSize, (page - 1) * pageSize, nil
+	return Pagination{Limit: pageSize, Offset: (page - 1) * pageSize}, nil
 }
 
 func getPositiveQueryInt(query url.Values, key string, defaultValue int64) (int64, error) {
@@ -120,11 +130,29 @@ func getPositiveQueryInt(query url.Values, key string, defaultValue int64) (int6
 	return parsed, nil
 }
 
-func GetQueryAsTime(query url.Values, key string, defaultValue time.Time) time.Time {
-	createAtStr := query.Get(key)
-	epochSeconds, err := strconv.ParseInt(createAtStr, 10, 64)
+func ParseTimeRange(query url.Values) (TimeRange, error) {
+	after, err := parseOptionalUnixTime(query, "created_after")
 	if err != nil {
-		return defaultValue
+		return TimeRange{}, err
 	}
-	return time.Unix(epochSeconds, 0)
+	before, err := parseOptionalUnixTime(query, "created_before")
+	if err != nil {
+		return TimeRange{}, err
+	}
+	if !after.IsZero() && !before.IsZero() && after.After(before) {
+		return TimeRange{}, BadRequest("created_after 不能晚于 created_before")
+	}
+	return TimeRange{After: after, Before: before}, nil
+}
+
+func parseOptionalUnixTime(query url.Values, key string) (time.Time, error) {
+	value := query.Get(key)
+	if value == "" {
+		return time.Time{}, nil
+	}
+	epochSeconds, err := strconv.ParseInt(value, 10, 64)
+	if err != nil {
+		return time.Time{}, BadRequest(fmt.Sprintf("%s 必须为 Unix 时间戳", key))
+	}
+	return time.Unix(epochSeconds, 0), nil
 }

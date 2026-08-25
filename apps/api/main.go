@@ -134,7 +134,10 @@ func main() {
 			adminService.Use(router)
 			router.Route("/strikes", adminStrikeService.Use)
 		})
-		router.Route("/me", meService.Use)
+		router.Route("/me", func(router chi.Router) {
+			router.Use(util.RequireAccessToken)
+			meService.Use(router)
+		})
 	})
 
 	// start server
