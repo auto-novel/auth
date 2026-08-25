@@ -5,6 +5,7 @@ import (
 	"auth/internal/util"
 	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 	_ "time/tzdata"
 
@@ -391,6 +392,12 @@ func (s *adminService) UnbanUser(w http.ResponseWriter, r *http.Request) error {
 
 func (s *adminService) GetEvent(w http.ResponseWriter, r *http.Request) error {
 	query := r.URL.Query()
+	actions := make([]string, 0, len(query["action"]))
+	for _, action := range query["action"] {
+		if action = strings.TrimSpace(action); action != "" {
+			actions = append(actions, action)
+		}
+	}
 	timeRange, err := util.ParseTimeRange(query)
 	if err != nil {
 		return err
@@ -398,7 +405,7 @@ func (s *adminService) GetEvent(w http.ResponseWriter, r *http.Request) error {
 	filter := repository.EventFilter{
 		ActorUser:     query.Get("actor_user"),
 		TargetUser:    query.Get("target_user"),
-		Action:        query.Get("action"),
+		Actions:       actions,
 		CreatedAfter:  timeRange.After,
 		CreatedBefore: timeRange.Before,
 	}

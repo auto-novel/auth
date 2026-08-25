@@ -22,7 +22,7 @@ type DailyAuthStat struct {
 type EventFilter struct {
 	ActorUser     string
 	TargetUser    string
-	Action        string
+	Actions       []string
 	CreatedAfter  time.Time
 	CreatedBefore time.Time
 }
@@ -54,8 +54,12 @@ func (filter EventFilter) exp() BoolExpression {
 		exps = append(exps, RawBool("detail ->> 'target_user' = $user",
 			map[string]interface{}{"$user": filter.TargetUser}))
 	}
-	if filter.Action != "" {
-		exps = append(exps, AuthEvent.Action.EQ(String(filter.Action)))
+	if len(filter.Actions) > 0 {
+		actions := make([]Expression, 0, len(filter.Actions))
+		for _, action := range filter.Actions {
+			actions = append(actions, String(action))
+		}
+		exps = append(exps, AuthEvent.Action.IN(actions...))
 	}
 	if !filter.CreatedAfter.IsZero() {
 		exps = append(exps, AuthEvent.CreatedAt.GT(TimestampzT(filter.CreatedAfter)))
