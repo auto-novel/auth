@@ -17,15 +17,17 @@ const pageSize = ref(50);
 const total = ref(0);
 const actorInput = ref('');
 const targetInput = ref('');
-const actionInput = ref<string | null>(null);
+const actionInput = ref<string[]>([]);
 const createdRangeInput = ref<[number, number] | null>(null);
 const actor = ref('');
 const target = ref('');
-const action = ref('');
+const actions = ref<string[]>([]);
 const createdRange = ref<[number, number] | null>(null);
 let requestId = 0;
 const hasFilters = computed(() =>
-  Boolean(actor.value || target.value || action.value || createdRange.value),
+  Boolean(
+    actor.value || target.value || actions.value.length || createdRange.value,
+  ),
 );
 
 function getCreatedBounds(range: [number, number] | null) {
@@ -53,7 +55,7 @@ async function loadEvents() {
       pageSize: pageSize.value,
       actorUser: actor.value,
       targetUser: target.value,
-      action: action.value,
+      actions: actions.value,
       ...getCreatedBounds(createdRange.value),
     });
 
@@ -73,7 +75,7 @@ async function loadEvents() {
 function search() {
   actor.value = actorInput.value.trim();
   target.value = targetInput.value.trim();
-  action.value = actionInput.value ?? '';
+  actions.value = [...actionInput.value];
   createdRange.value = createdRangeInput.value
     ? [...createdRangeInput.value]
     : null;
@@ -84,11 +86,11 @@ function search() {
 function resetFilters() {
   actorInput.value = '';
   targetInput.value = '';
-  actionInput.value = null;
+  actionInput.value = [];
   createdRangeInput.value = null;
   actor.value = '';
   target.value = '';
-  action.value = '';
+  actions.value = [];
   createdRange.value = null;
   page.value = 1;
   void loadEvents();

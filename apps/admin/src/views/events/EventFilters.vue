@@ -1,26 +1,42 @@
 <script setup lang="ts">
 import { SearchOutlined } from '@vicons/material';
-import {
-  NButton,
-  NDatePicker,
-  NIcon,
-  NInput,
-  NSelect,
-  type SelectOption,
-} from 'naive-ui';
+import { NIcon, NInput } from 'naive-ui';
+import { ref, watch } from 'vue';
 
-defineEmits<{
+import FilterChoiceGroup from '@/components/FilterChoiceGroup.vue';
+import FilterRow from '@/components/FilterRow.vue';
+import TimeRangeFilter from '@/components/TimeRangeFilter.vue';
+
+const emit = defineEmits<{
   search: [];
 }>();
 
 const actor = defineModel<string>('actor', { required: true });
 const target = defineModel<string>('target', { required: true });
-const action = defineModel<string | null>('action', { required: true });
+const actions = defineModel<string[]>('action', { required: true });
 const createdRange = defineModel<[number, number] | null>('createdRange', {
   required: true,
 });
 
-const actionOptions: SelectOption[] = [
+const authActions = ['login', 'register', 'logout', 'otp', 'reset_password'];
+const moderationActions = [
+  'restrict-user',
+  'unrestrict-user',
+  'ban-user',
+  'unban-user',
+  'strike-user',
+];
+const settingsActions = ['update-setting'];
+
+const actionGroups = [
+  { label: '全部', value: 'all' },
+  { label: '注册与登录', value: 'auth' },
+  { label: '限制与封禁', value: 'moderation' },
+  { label: '系统设置', value: 'settings' },
+  { label: '自定义', value: 'custom' },
+];
+
+const customActionOptions = [
   { label: '登录', value: 'login' },
   { label: '注册', value: 'register' },
   { label: '退出登录', value: 'logout' },
@@ -31,80 +47,121 @@ const actionOptions: SelectOption[] = [
   { label: '封禁用户', value: 'ban-user' },
   { label: '取消封禁', value: 'unban-user' },
   { label: '警告用户', value: 'strike-user' },
+  { label: '更新设置', value: 'update-setting' },
 ];
+
+type ActionGroup = 'all' | 'auth' | 'moderation' | 'settings' | 'custom';
+
+function sameActions(left: string[], right: string[]) {
+  return (
+    left.length === right.length && left.every((value) => right.includes(value))
+  );
+}
+
+function resolveActionGroup(value: string[]): ActionGroup {
+  if (value.length === 0) return 'all';
+  if (sameActions(value, authActions)) return 'auth';
+  if (sameActions(value, moderationActions)) return 'moderation';
+  if (sameActions(value, settingsActions)) return 'settings';
+  return 'custom';
+}
+
+const selectedActionGroup = ref<ActionGroup>(resolveActionGroup(actions.value));
+
+function changeActionGroup(value: string) {
+  const group = value as ActionGroup;
+  selectedActionGroup.value = group;
+  if (group === 'custom') return;
+
+  actions.value =
+    group === 'auth'
+      ? [...authActions]
+      : group === 'moderation'
+        ? [...moderationActions]
+        : group === 'settings'
+          ? [...settingsActions]
+          : [];
+  emit('search');
+}
+
+function changeCustomAction(value: string) {
+  actions.value = [value];
+  emit('search');
+}
+
+function changeCreatedRange(value: [number, number] | null) {
+  createdRange.value = value;
+  emit('search');
+}
+
+watch(actions, (value) => {
+  selectedActionGroup.value = resolveActionGroup(value);
+});
 </script>
 
 <template>
   <div class="filters">
-    <n-input
-      v-model:value="actor"
-      class="user-input"
-      clearable
-      placeholder="操作者用户名"
-      @keyup.enter="$emit('search')"
-    >
-      <template #prefix>
-        <n-icon :component="SearchOutlined" />
-      </template>
-    </n-input>
-    <n-input
-      v-model:value="target"
-      class="user-input"
-      clearable
-      placeholder="目标用户名"
-      @keyup.enter="$emit('search')"
-    />
-    <n-select
-      v-model:value="action"
-      class="action-select"
-      clearable
-      :options="actionOptions"
-      placeholder="全部事件"
-    />
-    <n-date-picker
-      v-model:value="createdRange"
-      class="created-range"
-      type="daterange"
-      clearable
-      start-placeholder="开始日期"
-      end-placeholder="结束日期"
-    />
-    <n-button class="search-button" type="primary" @click="$emit('search')">
-      查询
-    </n-button>
+    <FilterRow label="操作者">
+      <n-input
+        v-model:value="actor"
+        class="user-input"
+        clearable
+        placeholder="操作者用户名"
+        @change="$emit('search')"
+      >
+        <template #suffix>
+          <n-icon :component="SearchOutlined" />
+        </template>
+      </n-input>
+    </FilterRow>
+
+    <FilterRow label="目标用户">
+      <n-input
+        v-model:value="target"
+        class="user-input"
+        clearable
+        placeholder="目标用户名"
+        @change="$emit('search')"
+      />
+    </FilterRow>
+
+    <FilterRow label="事件">
+      <FilterChoiceGroup
+        :value="selectedActionGroup"
+        :options="actionGroups"
+        @update:value="changeActionGroup"
+      />
+      <div v-if="selectedActionGroup === 'custom'" class="custom-actions">
+        <FilterChoiceGroup
+          :value="actions.length === 1 ? actions[0] : null"
+          :options="customActionOptions"
+          @update:value="changeCustomAction"
+        />
+      </div>
+    </FilterRow>
+
+    <FilterRow label="时间">
+      <TimeRangeFilter
+        :model-value="createdRange"
+        @update:model-value="changeCreatedRange"
+      />
+    </FilterRow>
   </div>
 </template>
 
 <style scoped>
 .filters {
   display: grid;
-  grid-template-columns: minmax(150px, 1fr) minmax(150px, 1fr) 150px 280px auto;
-  gap: 12px;
-  align-items: center;
+  width: 100%;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
 }
 
-@media (max-width: 1050px) {
-  .filters {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) 150px auto;
-  }
-
-  .created-range {
-    width: 100%;
-    grid-column: 1 / 3;
-  }
+.user-input {
+  width: min(400px, 100%);
 }
 
-@media (max-width: 767px) {
-  .filters {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .user-input,
-  .action-select,
-  .created-range,
-  .search-button {
-    width: 100%;
-    grid-column: 1;
-  }
+.custom-actions {
+  margin-top: 12px;
 }
 </style>

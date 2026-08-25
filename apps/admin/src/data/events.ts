@@ -19,7 +19,7 @@ export interface EventListParams {
   pageSize: number;
   actorUser?: string;
   targetUser?: string;
-  action?: string;
+  actions?: string[];
   createdAfter?: number;
   createdBefore?: number;
 }
@@ -34,7 +34,7 @@ export async function getEvents(
   });
   if (params.actorUser) searchParams.set('actor_user', params.actorUser);
   if (params.targetUser) searchParams.set('target_user', params.targetUser);
-  if (params.action) searchParams.set('action', params.action);
+  params.actions?.forEach((action) => searchParams.append('action', action));
   if (params.createdAfter !== undefined) {
     searchParams.set('created_after', String(params.createdAfter));
   }
