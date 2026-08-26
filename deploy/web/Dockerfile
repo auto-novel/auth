@@ -8,7 +8,7 @@ COPY apps/admin/package.json ./apps/admin/package.json
 COPY apps/login/package.json ./apps/login/package.json
 COPY packages/admin-kit/package.json ./packages/admin-kit/package.json
 COPY packages/auth-api/package.json ./packages/auth-api/package.json
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --prod --frozen-lockfile
 
 FROM deps AS builder
 WORKDIR /app

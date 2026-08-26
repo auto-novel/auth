@@ -128,7 +128,7 @@ importers:
         version: 3.3.10(typescript@6.0.3)
 
   packages/auth-api:
-    devDependencies:
+    dependencies:
       typescript:
         specifier: ^6.0.0
         version: 6.0.3
