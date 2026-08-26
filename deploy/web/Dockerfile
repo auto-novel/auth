@@ -7,6 +7,7 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/admin/package.json ./apps/admin/package.json
 COPY apps/login/package.json ./apps/login/package.json
 COPY packages/admin-kit/package.json ./packages/admin-kit/package.json
+COPY packages/auth-api/package.json ./packages/auth-api/package.json
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --prod --frozen-lockfile
 
 FROM deps AS builder
@@ -16,6 +17,7 @@ ARG VITE_BUILD_TIME
 COPY apps/login/. ./apps/login/
 COPY apps/admin/. ./apps/admin/
 COPY packages/admin-kit/. ./packages/admin-kit/
+COPY packages/auth-api/. ./packages/auth-api/
 RUN VITE_COMMIT_SHA="${VITE_COMMIT_SHA}" \
     VITE_BUILD_TIME="${VITE_BUILD_TIME}" \
     pnpm run build
