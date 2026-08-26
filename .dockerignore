@@ -9,7 +9,7 @@
 
 # Login
 dist/
-node_modules/
+**/node_modules
 auto-imports.d.ts
 components.d.ts
 vite.config.ts.timestamp*
