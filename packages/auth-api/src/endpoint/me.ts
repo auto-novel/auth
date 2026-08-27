@@ -1,5 +1,5 @@
 import type { ApiClient } from './client';
-import type { CreatedRangeParams, Page, PaginationParams } from './types';
+import type { Page } from './types';
 
 export interface MyStrike {
   id: number;
@@ -10,8 +10,12 @@ export interface MyStrike {
   revokedAt?: string;
 }
 
-export interface MyStrikeListParams
-  extends PaginationParams, CreatedRangeParams {}
+export interface MyStrikeListParams {
+  page: number;
+  pageSize: number;
+  createdAfter?: number;
+  createdBefore?: number;
+}
 
 export function createMeEndpoints(client: ApiClient) {
   return {

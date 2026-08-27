@@ -1,5 +1,5 @@
 import type { ApiClient } from './client';
-import type { CreatedRangeParams, Page, PaginationParams } from './types';
+import type { Page } from './types';
 
 export interface User {
   id: number;
@@ -13,7 +13,11 @@ export interface User {
 
 export type UserPage = Page<User>;
 
-export interface UserListParams extends PaginationParams, CreatedRangeParams {
+export interface UserListParams {
+  page: number;
+  pageSize: number;
+  createdAfter?: number;
+  createdBefore?: number;
   query?: string;
   role?: string;
 }
@@ -44,7 +48,11 @@ export interface Event {
 
 export type EventPage = Page<Event>;
 
-export interface EventListParams extends PaginationParams, CreatedRangeParams {
+export interface EventListParams {
+  page: number;
+  pageSize: number;
+  createdAfter?: number;
+  createdBefore?: number;
   actorUser?: string;
   targetUser?: string;
   actions?: string[];
@@ -76,7 +84,11 @@ export interface Strike {
 
 export type StrikePage = Page<Strike>;
 
-export interface StrikeListParams extends PaginationParams, CreatedRangeParams {
+export interface StrikeListParams {
+  page: number;
+  pageSize: number;
+  createdAfter?: number;
+  createdBefore?: number;
   username?: string;
   operatorUsername?: string;
 }

@@ -22,8 +22,4 @@ export { ApiError } from './endpoint/client';
 export type { ApiRequestOptions } from './endpoint/client';
 export type { AuthStorageOptions, UserProfile } from './session';
 export type { MyStrike, MyStrikeListParams } from './endpoint/me';
-export type {
-  CreatedRangeParams,
-  Page,
-  PaginationParams,
-} from './endpoint/types';
+export type { Page } from './endpoint/types';
