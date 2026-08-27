@@ -4,7 +4,7 @@ import {
   createMeEndpoints,
 } from './endpoint';
 import { createApiClient } from './endpoint/client';
-import { createAuthSession, type UserProfile } from './session';
+import { createAuthSession, type AuthUser } from './session';
 
 export interface AuthApiOptions {
   timeout?: number;
@@ -48,7 +48,7 @@ export function createAuthApi(options: AuthApiOptions) {
     },
     admin: createAdminEndpoints(client),
     me: createMeEndpoints(client),
-    subscribeUserProfile(listener: (profile?: UserProfile) => void) {
+    subscribeUser(listener: (user?: AuthUser) => void) {
       return session.subscribe(listener);
     },
   };

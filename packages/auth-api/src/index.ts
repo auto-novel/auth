@@ -18,6 +18,6 @@ export type {
   UserPage,
 } from './endpoint/admin';
 export { ApiError } from './endpoint/client';
-export type { UserProfile } from './session';
+export type { AuthUser } from './session';
 export type { MyStrike, MyStrikeListParams } from './endpoint/me';
 export type { Page } from './endpoint/types';

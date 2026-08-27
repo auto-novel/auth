@@ -1,10 +1,13 @@
 import { ApiError, type AccessTokenProvider } from './endpoint/client';
 
-export interface UserProfile {
-  token: string;
+export interface AuthUser {
   username: string;
   role: string;
   createdAt: number;
+}
+
+interface AccessTokenProfile extends AuthUser {
+  token: string;
   issuedAt: number;
   expiredAt: number;
 }
@@ -31,7 +34,7 @@ interface AuthSessionOptions {
   requestRefresh(app: string): Promise<string>;
 }
 
-export function parseAccessToken(token: string): UserProfile {
+function parseAccessToken(token: string): AccessTokenProfile {
   const encodedPayload = token.split('.')[1];
   if (!encodedPayload) throw new Error('访问令牌格式无效');
 
@@ -100,9 +103,9 @@ function createAuthStorage(options?: AuthStorageOptions) {
     }
   }
 
-  function save(profile: UserProfile) {
+  function save(profile: AccessTokenProfile) {
     try {
-      target.setItem(key, JSON.stringify(profile));
+      target.setItem(key, JSON.stringify({ token: profile.token }));
     } catch {
       // A successful refresh remains usable even if persistence fails.
     }
@@ -113,13 +116,21 @@ function createAuthStorage(options?: AuthStorageOptions) {
 
 export function createAuthSession(options: AuthSessionOptions) {
   const storage = createAuthStorage(options.storage);
-  const listeners = new Set<(profile?: UserProfile) => void>();
+  const listeners = new Set<(user?: AuthUser) => void>();
   let profile = storage?.get();
   let refreshRequest: Promise<string> | undefined;
 
-  function notify(listener: (profile?: UserProfile) => void) {
+  function notify(listener: (user?: AuthUser) => void) {
     try {
-      listener(profile ? { ...profile } : undefined);
+      listener(
+        profile
+          ? {
+              username: profile.username,
+              role: profile.role,
+              createdAt: profile.createdAt,
+            }
+          : undefined,
+      );
     } catch {
       // Subscribers must not change the result of token operations.
     }
@@ -132,7 +143,7 @@ export function createAuthSession(options: AuthSessionOptions) {
     for (const listener of listeners) notify(listener);
   }
 
-  function subscribe(listener: (profile?: UserProfile) => void) {
+  function subscribe(listener: (user?: AuthUser) => void) {
     listeners.add(listener);
     notify(listener);
     return () => {

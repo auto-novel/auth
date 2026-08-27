@@ -22,7 +22,7 @@ const roleLabels: Record<string, string> = {
   banned: '已封禁用户',
 };
 
-const { session } = useAdminKit();
+const { api, profile, isSignedIn } = useAdminKit();
 const router = useRouter();
 
 const dropdownOptions = computed<MenuOption[]>(() => [
@@ -36,7 +36,7 @@ const dropdownOptions = computed<MenuOption[]>(() => [
           { style: { display: 'block' } },
           {
             default: () => {
-              const role = session.profile.value?.role;
+              const role = profile.value?.role;
               return role ? (roleLabels[role] ?? role) : '未知角色';
             },
           },
@@ -48,7 +48,7 @@ const dropdownOptions = computed<MenuOption[]>(() => [
             default: () => [
               '注册于 ',
               h(NTime, {
-                time: (session.profile.value?.createdAt ?? 0) * 1000,
+                time: (profile.value?.createdAt ?? 0) * 1000,
                 type: 'date',
               }),
             ],
@@ -66,7 +66,11 @@ const dropdownOptions = computed<MenuOption[]>(() => [
 
 async function handleSelect(key: string | number) {
   if (key !== 'logout') return;
-  await session.logout();
+  try {
+    await api.auth.logout();
+  } catch {
+    // Local logout succeeds even if the server session has expired.
+  }
   await router.replace({ name: ADMIN_LOGIN_ROUTE_NAME });
 }
 </script>
@@ -74,7 +78,7 @@ async function handleSelect(key: string | number) {
 <template>
   <div class="user-account-button">
     <n-dropdown
-      v-if="session.isSignedIn.value"
+      v-if="isSignedIn"
       trigger="hover"
       placement="bottom-end"
       :keyboard="false"
@@ -82,7 +86,7 @@ async function handleSelect(key: string | number) {
       @select="handleSelect"
     >
       <n-button quaternary :focusable="false">
-        @{{ session.profile.value?.username }}
+        @{{ profile?.username }}
       </n-button>
     </n-dropdown>
   </div>

@@ -1,12 +1,11 @@
-import type { App } from 'vue';
+import { computed, readonly, ref, type App } from 'vue';
 
-import { createAuthApi } from '@novelia/auth-api';
+import { createAuthApi, type AuthUser } from '@novelia/auth-api';
 
 import AdminLoginView from './components/AdminLoginView.vue';
 import AdminKitApp from './components/AdminKitApp.vue';
 import AdminKitLayout from './components/AdminKitLayout.vue';
 import { adminKitKey, useAdminKit, useAdminTheme } from './context';
-import { createAdminSession } from './session';
 import { createAdminTheme } from './theme';
 import type { AdminKit, AdminKitOptions } from './types';
 
@@ -31,12 +30,19 @@ export function createAdminKit(options: AdminKitOptions): AdminKit {
       target: localStorage,
     },
   });
-  const session = createAdminSession(api);
+  const profile = ref<AuthUser>();
+  api.subscribeUser((user) => {
+    profile.value = user;
+  });
+  const isSignedIn = computed(() => profile.value !== undefined);
+  const isAuthorized = computed(() => profile.value?.role === 'admin');
   const theme = createAdminTheme(`${normalizedOptions.auth.app}-admin-theme`);
   const kit: AdminKit = {
     options: normalizedOptions,
     api,
-    session,
+    profile: readonly(profile),
+    isSignedIn,
+    isAuthorized,
     theme,
     install(app: App) {
       app.provide(adminKitKey, kit);
@@ -53,4 +59,4 @@ export {
   useAdminKit,
   useAdminTheme,
 };
-export type { AdminKitOptions, AuthSession, UserProfile } from './types';
+export type { AdminKitOptions } from './types';

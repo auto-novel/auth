@@ -45,7 +45,7 @@ const viewportMode = ref<ViewportMode>(getViewportMode());
 const isMobile = computed(() => viewportMode.value === 'mobile');
 const collapsed = ref(viewportMode.value === 'tablet');
 const { isDark, toggleTheme } = useAdminTheme();
-const { options, session } = useAdminKit();
+const { options, isAuthorized } = useAdminKit();
 const route = useRoute();
 const router = useRouter();
 
@@ -122,7 +122,7 @@ watch(() => route.path, () => { mobileMenuOpen.value = false; });
         </div>
       </n-layout-header>
       <n-layout-content class="page-content" content-style="padding: var(--page-content-padding)">
-        <router-view v-if="session.isAuthorized.value" />
+        <router-view v-if="isAuthorized" />
         <n-result
           v-else
           status="403"

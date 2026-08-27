@@ -6,7 +6,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useAdminKit, useAdminTheme } from '../context';
 import { ADMIN_HOME_ROUTE } from '../router';
 
-const { options, session } = useAdminKit();
+const { options, api } = useAdminKit();
 const { isDark } = useAdminTheme();
 const route = useRoute();
 const router = useRouter();
@@ -46,7 +46,7 @@ async function handleMessage(event: MessageEvent) {
   completingLogin.value = true;
   loginError.value = undefined;
   try {
-    await session.refresh();
+    await api.auth.refresh();
     if (disposed) return;
 
     const redirect = route.query.redirect;
