@@ -1,4 +1,7 @@
-import type { AccessTokenProvider } from './session';
+export interface AccessTokenProvider {
+  get(): string | undefined;
+  refresh(): Promise<string | undefined>;
+}
 
 export interface ApiRequestOptions {
   baseUrl: string;

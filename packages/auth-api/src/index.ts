@@ -3,14 +3,11 @@ export type { CreateAuthApiOptions } from './api';
 export type {
   AuthSettings,
   CreateStrikeRequest,
-  CreatedRangeParams,
   DailyAuthStat,
   Event,
   EventListParams,
   EventPage,
   Overview,
-  Page,
-  PaginationParams,
   Strike,
   StrikeListParams,
   StrikePage,
@@ -20,16 +17,17 @@ export type {
   UserActionRequest,
   UserListParams,
   UserPage,
-} from './admin';
+} from './api/admin';
 export type {
   LoginRequest,
   OtpType,
   RegisterRequest,
   RequestOtpRequest,
   ResetPasswordRequest,
-} from './auth';
+} from './api/auth';
 export { ApiError, SessionExpiredError } from './client';
 export type { ApiRequestOptions } from './client';
-export type { MyStrike, MyStrikeListParams } from './me';
 export { parseAccessToken } from './session';
 export type { AuthStorageOptions, UserProfile } from './session';
+export type { MyStrike, MyStrikeListParams } from './api/me';
+export type { CreatedRangeParams, Page, PaginationParams } from './api/types';

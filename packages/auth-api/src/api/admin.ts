@@ -1,19 +1,6 @@
-import type { ApiClient } from './client';
-
-export interface Page<T> {
-  total: number;
-  items: T[];
-}
-
-export interface PaginationParams {
-  page: number;
-  pageSize: number;
-}
-
-export interface CreatedRangeParams {
-  createdAfter?: number;
-  createdBefore?: number;
-}
+import type { ApiClient } from '../client';
+import { createPagination, setCreatedRange } from './query';
+import type { CreatedRangeParams, Page, PaginationParams } from './types';
 
 export interface User {
   id: number;
@@ -100,25 +87,6 @@ export interface CreateStrikeRequest {
   reason: string;
   evidence: string;
   point: number;
-}
-
-function setCreatedRange(
-  searchParams: URLSearchParams,
-  params: CreatedRangeParams,
-) {
-  if (params.createdAfter !== undefined) {
-    searchParams.set('created_after', String(params.createdAfter));
-  }
-  if (params.createdBefore !== undefined) {
-    searchParams.set('created_before', String(params.createdBefore));
-  }
-}
-
-function createPagination(params: PaginationParams) {
-  return new URLSearchParams({
-    page: String(params.page),
-    page_size: String(params.pageSize),
-  });
 }
 
 export function createAdminEndpoints(client: ApiClient) {

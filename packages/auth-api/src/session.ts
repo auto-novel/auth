@@ -1,8 +1,3 @@
-export interface AccessTokenProvider {
-  get(): string | undefined;
-  refresh(): Promise<string | undefined>;
-}
-
 export interface AuthStorageOptions {
   key: string;
   target: Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;

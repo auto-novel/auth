@@ -1,4 +1,4 @@
-import type { ApiClient } from './client';
+import type { ApiClient } from '../client';
 
 export interface RegisterRequest {
   app: string;
