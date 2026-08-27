@@ -1,18 +1,20 @@
-import { createAdminEndpoints } from './admin';
-import { createAuthEndpoints } from './auth';
+import {
+  createAdminEndpoints,
+  createAuthEndpoints,
+  createMeEndpoints,
+} from './endpoint';
 import {
   ApiError,
   createApiClient,
   type AccessTokenProvider,
   type ApiRequestOptions,
-} from '../client';
+} from './endpoint/client';
 import {
   createAuthStorage,
   parseAccessToken,
   type AuthStorageOptions,
   type UserProfile,
-} from '../session';
-import { createMeEndpoints } from './me';
+} from './session';
 
 const ACCESS_TOKEN_REFRESH_INTERVAL = 15 * 60 * 1000;
 const ACCESS_TOKEN_REFRESH_AGE = 60 * 60 * 1000;

@@ -17,17 +17,21 @@ export type {
   UserActionRequest,
   UserListParams,
   UserPage,
-} from './api/admin';
+} from './endpoint/admin';
 export type {
   LoginRequest,
   OtpType,
   RegisterRequest,
   RequestOtpRequest,
   ResetPasswordRequest,
-} from './api/auth';
-export { ApiError, SessionExpiredError } from './client';
-export type { ApiRequestOptions } from './client';
+} from './endpoint/auth';
+export { ApiError, SessionExpiredError } from './endpoint/client';
+export type { ApiRequestOptions } from './endpoint/client';
 export { parseAccessToken } from './session';
 export type { AuthStorageOptions, UserProfile } from './session';
-export type { MyStrike, MyStrikeListParams } from './api/me';
-export type { CreatedRangeParams, Page, PaginationParams } from './api/types';
+export type { MyStrike, MyStrikeListParams } from './endpoint/me';
+export type {
+  CreatedRangeParams,
+  Page,
+  PaginationParams,
+} from './endpoint/types';

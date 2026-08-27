@@ -1,4 +1,4 @@
-import type { ApiClient } from '../client';
+import type { ApiClient } from './client';
 import type { CreatedRangeParams, Page, PaginationParams } from './types';
 
 export interface MyStrike {
