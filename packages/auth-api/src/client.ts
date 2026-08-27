@@ -1,12 +1,9 @@
+import type { AccessTokenProvider } from './session';
+
 export interface ApiRequestOptions {
   baseUrl: string;
   timeout?: number;
   fetch?: typeof globalThis.fetch;
-}
-
-export interface AccessTokenSession {
-  getAccessToken(): string | undefined;
-  refreshAccessToken(): Promise<string | undefined>;
 }
 
 interface ApiCallOptions extends RequestInit {
@@ -64,13 +61,13 @@ async function fetchWithTimeout(
 }
 
 async function fetchWithToken(
-  session: AccessTokenSession,
+  accessToken: AccessTokenProvider,
   fetcher: typeof globalThis.fetch,
   input: RequestInfo | URL,
   init: RequestInit,
   timeout?: number,
 ) {
-  let token = session.getAccessToken();
+  let token = accessToken.get();
   if (!token) throw new SessionExpiredError();
 
   const request = (accessToken: string) => {
@@ -83,7 +80,7 @@ async function fetchWithToken(
   if (response.status !== 401) return response;
 
   try {
-    token = await session.refreshAccessToken();
+    token = await accessToken.refresh();
   } catch {
     throw new SessionExpiredError();
   }
@@ -92,7 +89,7 @@ async function fetchWithToken(
 }
 
 export function createApiClient(
-  options: ApiRequestOptions & { session?: AccessTokenSession },
+  options: ApiRequestOptions & { accessToken?: AccessTokenProvider },
 ) {
   if (!options.baseUrl.trim()) throw new Error('必须配置 baseUrl');
 
@@ -102,8 +99,8 @@ export function createApiClient(
     const { timeout = options.timeout, ...init } = callOptions;
     const url = resolveUrl(path, options.baseUrl);
 
-    const response = options.session
-      ? await fetchWithToken(options.session, fetcher, url, init, timeout)
+    const response = options.accessToken
+      ? await fetchWithToken(options.accessToken, fetcher, url, init, timeout)
       : await fetchWithTimeout(fetcher, url, init, timeout);
 
     if (!response.ok) {

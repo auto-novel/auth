@@ -21,15 +21,15 @@ export type {
   UserListParams,
   UserPage,
 } from './admin';
-export { parseAccessToken } from './auth';
 export type {
   LoginRequest,
   OtpType,
   RegisterRequest,
   RequestOtpRequest,
   ResetPasswordRequest,
-  UserProfile,
 } from './auth';
 export { ApiError, SessionExpiredError } from './client';
 export type { ApiRequestOptions } from './client';
 export type { MyStrike, MyStrikeListParams } from './me';
+export { parseAccessToken } from './session';
+export type { AuthStorageOptions, UserProfile } from './session';

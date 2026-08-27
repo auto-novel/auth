@@ -21,5 +21,4 @@ const page = await api.me.getStrikes({ page: 1, pageSize: 50 });
 分组；配置 `app` 后，客户端会管理访问令牌，在受保护请求首次收到 401 后刷新并重试
 一次，同时定时刷新已签发满一小时的令牌。认证接口与业务接口地址不同时可另外配置
 `authBaseUrl`。配置 `storage` 后用户信息会持久化到指定存储；可通过
-`api.subscribeUserProfile()` 获取用户状态。不再使用客户端时可调用
-`api.dispose()`。
+`api.subscribeUserProfile()` 获取用户状态。
