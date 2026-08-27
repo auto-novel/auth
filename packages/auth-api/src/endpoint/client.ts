@@ -3,7 +3,7 @@ export interface AccessTokenProvider {
   refresh(): Promise<string | undefined>;
 }
 
-export interface ApiRequestOptions {
+interface ApiRequestOptions {
   baseUrl: string;
   timeout?: number;
   fetch?: typeof globalThis.fetch;

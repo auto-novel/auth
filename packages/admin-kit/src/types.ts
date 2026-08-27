@@ -1,8 +1,4 @@
-import type {
-  ApiRequestOptions,
-  AuthApi,
-  UserProfile,
-} from '@novelia/auth-api';
+import type { AuthApi, UserProfile } from '@novelia/auth-api';
 import type { ComputedRef, DeepReadonly, Plugin, Ref } from 'vue';
 
 export interface AuthSession {
@@ -15,7 +11,6 @@ export interface AuthSession {
 }
 
 export interface AdminKitOptions {
-  api: ApiRequestOptions;
   auth: {
     app: string;
     url: string;

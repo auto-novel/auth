@@ -3,20 +3,21 @@ import {
   createAuthEndpoints,
   createMeEndpoints,
 } from './endpoint';
-import { createApiClient, type ApiRequestOptions } from './endpoint/client';
-import {
-  createAuthSession,
-  type AuthStorageOptions,
-  type UserProfile,
-} from './session';
+import { createApiClient } from './endpoint/client';
+import { createAuthSession, type UserProfile } from './session';
 
-export interface CreateAuthApiOptions extends ApiRequestOptions {
+export interface AuthApiOptions {
+  timeout?: number;
+  fetch?: typeof globalThis.fetch;
   app?: string;
-  authBaseUrl?: string;
-  storage?: AuthStorageOptions;
+  baseUrl: string;
+  storage?: {
+    key: string;
+    target: Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
+  };
 }
 
-export function createAuthApi(options: CreateAuthApiOptions) {
+export function createAuthApi(options: AuthApiOptions) {
   const requestOptions = {
     baseUrl: options.baseUrl,
     timeout: options.timeout,
@@ -24,7 +25,6 @@ export function createAuthApi(options: CreateAuthApiOptions) {
   };
   const authClient = createApiClient({
     ...requestOptions,
-    baseUrl: options.authBaseUrl ?? options.baseUrl,
     timeout: options.timeout ?? 5000,
   });
   const authEndpoints = createAuthEndpoints(authClient);

@@ -21,9 +21,8 @@ export { createAdminAuthGuard } from './router';
 export function createAdminKit(options: AdminKitOptions): AdminKit {
   const authUrl = new URL(options.auth.url, window.location.origin).toString();
   const api = createAuthApi({
-    ...options.api,
     app: options.auth.app,
-    authBaseUrl: new URL('api/v1/', authUrl).toString(),
+    baseUrl: new URL('api/v1/', authUrl).toString(),
     storage: {
       key: `${options.auth.app}-admin-session`,
       target: localStorage,

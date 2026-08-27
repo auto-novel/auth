@@ -20,7 +20,7 @@ interface AccessTokenClaims {
 const ACCESS_TOKEN_REFRESH_INTERVAL = 15 * 60 * 1000;
 const ACCESS_TOKEN_REFRESH_AGE = 60 * 60 * 1000;
 
-export interface AuthStorageOptions {
+interface AuthStorageOptions {
   key: string;
   target: Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
 }
