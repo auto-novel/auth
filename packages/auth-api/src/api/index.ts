@@ -109,9 +109,9 @@ export function createAuthApi(options: CreateAuthApiOptions) {
     auth: {
       ...authEndpoints,
       refresh: refreshAccessToken,
-      async logout() {
+      logout() {
         setAccessToken();
-        await authEndpoints.logout();
+        return authEndpoints.logout();
       },
     },
     admin: createAdminEndpoints(client),

@@ -129,9 +129,12 @@ export function createAdminEndpoints(client: ApiClient) {
         })
         .json<EventPage>();
     },
-    getAuthSettings: () => client.get('admin/setting').json<AuthSettings>(),
-    updateAuthSettings: (settings: UpdateAuthSettingsRequest) =>
-      client.post('admin/setting', settings).json<AuthSettings>(),
+    getAuthSettings() {
+      return client.get('admin/setting').json<AuthSettings>();
+    },
+    updateAuthSettings(settings: UpdateAuthSettingsRequest) {
+      return client.post('admin/setting', settings).json<AuthSettings>();
+    },
     getStrikes(params: StrikeListParams) {
       return client
         .get('admin/strikes', {
@@ -146,9 +149,11 @@ export function createAdminEndpoints(client: ApiClient) {
         })
         .json<StrikePage>();
     },
-    createStrike: (request: CreateStrikeRequest) =>
-      client.post('admin/strikes', request).json<Strike>(),
-    revokeStrike: (strikeId: number) =>
-      client.post(`admin/strikes/${strikeId}/revoke`).json<Strike>(),
+    createStrike(request: CreateStrikeRequest) {
+      return client.post('admin/strikes', request).json<Strike>();
+    },
+    revokeStrike(strikeId: number) {
+      return client.post(`admin/strikes/${strikeId}/revoke`).json<Strike>();
+    },
   };
 }

@@ -29,22 +29,28 @@ export interface ResetPasswordRequest {
 
 export function createAuthEndpoints(client: ApiClient) {
   return {
-    register: (request: RegisterRequest) =>
-      client.post('auth/register', request).text(),
-    login: (request: LoginRequest) => client.post('auth/login', request).text(),
-    requestOtp: (request: RequestOtpRequest) =>
-      client.post('auth/otp/request', request).text(),
-    resetPassword: (request: ResetPasswordRequest) =>
-      client.post('auth/password/reset', request).text(),
-    refresh: (app: string) =>
-      client
+    register(request: RegisterRequest) {
+      return client.post('auth/register', request).text();
+    },
+    login(request: LoginRequest) {
+      return client.post('auth/login', request).text();
+    },
+    requestOtp(request: RequestOtpRequest) {
+      return client.post('auth/otp/request', request).text();
+    },
+    resetPassword(request: ResetPasswordRequest) {
+      return client.post('auth/password/reset', request).text();
+    },
+    refresh(app: string) {
+      return client
         .post('auth/refresh', undefined, {
           credentials: 'include',
           searchParams: { app },
         })
-        .text(),
-    async logout() {
-      await client
+        .text();
+    },
+    logout() {
+      return client
         .post('auth/logout', undefined, {
           credentials: 'include',
         })
