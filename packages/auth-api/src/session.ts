@@ -1,7 +1,4 @@
-export interface AuthStorageOptions {
-  key: string;
-  target: Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
-}
+import { ApiError, type AccessTokenProvider } from './endpoint/client';
 
 export interface UserProfile {
   token: string;
@@ -18,6 +15,20 @@ interface AccessTokenClaims {
   crat: number;
   iat: number;
   exp: number;
+}
+
+const ACCESS_TOKEN_REFRESH_INTERVAL = 15 * 60 * 1000;
+const ACCESS_TOKEN_REFRESH_AGE = 60 * 60 * 1000;
+
+export interface AuthStorageOptions {
+  key: string;
+  target: Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
+}
+
+interface AuthSessionOptions {
+  app?: string;
+  storage?: AuthStorageOptions;
+  requestRefresh(app: string): Promise<string>;
 }
 
 export function parseAccessToken(token: string): UserProfile {
@@ -53,21 +64,22 @@ export function parseAccessToken(token: string): UserProfile {
   };
 }
 
-export function createAuthStorage(options?: AuthStorageOptions) {
+function createAuthStorage(options?: AuthStorageOptions) {
+  if (!options) return;
+
+  const { key, target } = options;
+
   function clear() {
-    if (!options) return;
     try {
-      options.target.removeItem(options.key);
+      target.removeItem(key);
     } catch {
       // Storage may be unavailable or blocked by the browser.
     }
   }
 
-  function getUserProfile() {
-    if (!options) return;
-
+  function get() {
     try {
-      const stored = options.target.getItem(options.key);
+      const stored = target.getItem(key);
       if (!stored) return;
 
       const storedProfile = JSON.parse(stored) as { token?: unknown };
@@ -88,14 +100,94 @@ export function createAuthStorage(options?: AuthStorageOptions) {
     }
   }
 
-  function setUserProfile(profile: UserProfile) {
-    if (!options) return;
+  function save(profile: UserProfile) {
     try {
-      options.target.setItem(options.key, JSON.stringify(profile));
+      target.setItem(key, JSON.stringify(profile));
     } catch {
       // A successful refresh remains usable even if persistence fails.
     }
   }
 
-  return { getUserProfile, setUserProfile, clear };
+  return { get, save, clear };
+}
+
+export function createAuthSession(options: AuthSessionOptions) {
+  const storage = createAuthStorage(options.storage);
+  const listeners = new Set<(profile?: UserProfile) => void>();
+  let profile = storage?.get();
+  let refreshRequest: Promise<string> | undefined;
+
+  function notify(listener: (profile?: UserProfile) => void) {
+    try {
+      listener(profile ? { ...profile } : undefined);
+    } catch {
+      // Subscribers must not change the result of token operations.
+    }
+  }
+
+  function setAccessToken(token?: string) {
+    profile = token ? parseAccessToken(token) : undefined;
+    if (profile) storage?.save(profile);
+    else storage?.clear();
+    for (const listener of listeners) notify(listener);
+  }
+
+  function subscribe(listener: (profile?: UserProfile) => void) {
+    listeners.add(listener);
+    notify(listener);
+    return () => {
+      listeners.delete(listener);
+    };
+  }
+
+  function refreshAccessToken(): Promise<string> {
+    if (refreshRequest) return refreshRequest;
+    const app = options.app;
+    if (!app) {
+      return Promise.reject(new Error('刷新访问令牌前必须配置 app'));
+    }
+
+    const request = (async () => {
+      try {
+        const token = await options.requestRefresh(app);
+        setAccessToken(token);
+        return token;
+      } catch (error) {
+        if (error instanceof ApiError && error.status === 401) {
+          setAccessToken();
+        }
+        throw error;
+      } finally {
+        refreshRequest = undefined;
+      }
+    })();
+    refreshRequest = request;
+    return request;
+  }
+
+  const accessToken = {
+    get() {
+      return profile?.token;
+    },
+    refresh: refreshAccessToken,
+  } satisfies AccessTokenProvider;
+
+  if (options.app) {
+    globalThis.setInterval(() => {
+      if (
+        profile &&
+        Date.now() - profile.issuedAt * 1000 >= ACCESS_TOKEN_REFRESH_AGE
+      ) {
+        void refreshAccessToken().catch(() => undefined);
+      }
+    }, ACCESS_TOKEN_REFRESH_INTERVAL);
+  }
+
+  return {
+    accessToken,
+    clear() {
+      setAccessToken();
+    },
+    subscribe,
+  };
 }

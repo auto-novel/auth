@@ -48,7 +48,8 @@ function resolveUrl(
   if (!params) return url;
 
   const searchParams = new URLSearchParams();
-  for (const [key, value] of Object.entries(params)) {
+  for (const key of Object.keys(params)) {
+    const value = params[key];
     if (value === undefined) continue;
 
     const values = Array.isArray(value) ? value : [value];
