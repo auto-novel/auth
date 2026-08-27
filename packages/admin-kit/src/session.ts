@@ -89,16 +89,6 @@ export function createAuthSession(options: AdminKitOptions): AuthSession {
     return profile.value.role === 'admin';
   });
 
-  window.setInterval(
-    () => {
-      const issuedAt = profile.value?.issuedAt;
-      if (issuedAt && Date.now() - issuedAt * 1000 >= 60 * 60 * 1000) {
-        void refresh().catch(() => undefined);
-      }
-    },
-    15 * 60 * 1000,
-  );
-
   return {
     profile: readonly(profile),
     isSignedIn,

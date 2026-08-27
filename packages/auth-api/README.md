@@ -22,4 +22,5 @@ const page = await api.me.getStrikes({ page: 1, pageSize: 50 });
 
 必须通过 `createAuthApi` 显式配置 `baseUrl`。接口按 `auth`、`admin`、`me`
 分组；访问带权限的接口时还必须配置 `AccessTokenSession`，客户端会在首次收到
-401 后刷新令牌、重试一次。
+401 后刷新令牌、重试一次，并定时刷新已签发满一小时的访问令牌。不再使用客户端时
+可调用 `api.dispose()` 清理定时器。
