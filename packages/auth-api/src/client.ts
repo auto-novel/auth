@@ -11,9 +11,12 @@ export interface ApiRequestOptions {
 
 interface ApiCallOptions extends RequestInit {
   timeout?: number;
+  searchParams?: Record<string, SearchParamValue>;
 }
 
 type ApiMethodOptions = Omit<ApiCallOptions, 'body' | 'method'>;
+type SearchParam = string | number;
+type SearchParamValue = SearchParam | readonly SearchParam[] | undefined;
 
 export class ApiError extends Error {
   readonly status: number;
@@ -36,8 +39,24 @@ export class SessionExpiredError extends ApiError {
   }
 }
 
-function resolveUrl(path: string, baseUrl: string) {
-  return `${baseUrl.replace(/\/+$/, '')}/${path.replace(/^\/+/, '')}`;
+function resolveUrl(
+  path: string,
+  baseUrl: string,
+  params?: Record<string, SearchParamValue>,
+) {
+  const url = `${baseUrl.replace(/\/+$/, '')}/${path.replace(/^\/+/, '')}`;
+  if (!params) return url;
+
+  const searchParams = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value === undefined) continue;
+
+    const values = Array.isArray(value) ? value : [value];
+    for (const item of values) searchParams.append(key, String(item));
+  }
+
+  const query = searchParams.toString();
+  return query ? `${url}${url.includes('?') ? '&' : '?'}${query}` : url;
 }
 
 async function fetchWithTimeout(
@@ -99,8 +118,8 @@ export function createApiClient(
   const fetcher = options.fetch ?? globalThis.fetch;
 
   async function execute(path: string, callOptions: ApiCallOptions = {}) {
-    const { timeout = options.timeout, ...init } = callOptions;
-    const url = resolveUrl(path, options.baseUrl);
+    const { timeout = options.timeout, searchParams, ...init } = callOptions;
+    const url = resolveUrl(path, options.baseUrl, searchParams);
 
     const response = options.accessToken
       ? await fetchWithToken(options.accessToken, fetcher, url, init, timeout)

@@ -36,14 +36,13 @@ export function createAuthEndpoints(client: ApiClient) {
       client.post('auth/otp/request', request).text(),
     resetPassword: (request: ResetPasswordRequest) =>
       client.post('auth/password/reset', request).text(),
-    refresh: (app: string) => {
-      const searchParams = new URLSearchParams({ app });
-      return client
-        .post(`auth/refresh?${searchParams}`, undefined, {
+    refresh: (app: string) =>
+      client
+        .post('auth/refresh', undefined, {
           credentials: 'include',
+          searchParams: { app },
         })
-        .text();
-    },
+        .text(),
     async logout() {
       await client
         .post('auth/logout', undefined, {

@@ -1,5 +1,4 @@
 import type { ApiClient } from '../client';
-import { createPagination, setCreatedRange } from './query';
 import type { CreatedRangeParams, Page, PaginationParams } from './types';
 
 export interface User {
@@ -92,43 +91,60 @@ export interface CreateStrikeRequest {
 export function createAdminEndpoints(client: ApiClient) {
   return {
     getUsers(params: UserListParams) {
-      const searchParams = createPagination(params);
-      if (params.query) searchParams.set('q', `%${params.query}%`);
-      if (params.role) searchParams.set('role', params.role);
-      setCreatedRange(searchParams, params);
-      return client.get(`admin/user?${searchParams}`).json<UserPage>();
+      return client
+        .get('admin/user', {
+          searchParams: {
+            page: params.page,
+            page_size: params.pageSize,
+            q: params.query ? `%${params.query}%` : undefined,
+            role: params.role || undefined,
+            created_after: params.createdAfter,
+            created_before: params.createdBefore,
+          },
+        })
+        .json<UserPage>();
     },
     updateUserRole(action: UserAction, request: UserActionRequest) {
       return client.post(`admin/user/${action}`, request).void();
     },
     getOverview(startDate: string, endDate: string) {
-      const searchParams = new URLSearchParams({
-        start_date: startDate,
-        end_date: endDate,
-      });
-      return client.get(`admin/overview?${searchParams}`).json<Overview>();
+      return client
+        .get('admin/overview', {
+          searchParams: { start_date: startDate, end_date: endDate },
+        })
+        .json<Overview>();
     },
     getEvents(params: EventListParams) {
-      const searchParams = createPagination(params);
-      if (params.actorUser) searchParams.set('actor_user', params.actorUser);
-      if (params.targetUser) searchParams.set('target_user', params.targetUser);
-      params.actions?.forEach((action) =>
-        searchParams.append('action', action),
-      );
-      setCreatedRange(searchParams, params);
-      return client.get(`admin/event?${searchParams}`).json<EventPage>();
+      return client
+        .get('admin/event', {
+          searchParams: {
+            page: params.page,
+            page_size: params.pageSize,
+            actor_user: params.actorUser || undefined,
+            target_user: params.targetUser || undefined,
+            action: params.actions,
+            created_after: params.createdAfter,
+            created_before: params.createdBefore,
+          },
+        })
+        .json<EventPage>();
     },
     getAuthSettings: () => client.get('admin/setting').json<AuthSettings>(),
     updateAuthSettings: (settings: UpdateAuthSettingsRequest) =>
       client.post('admin/setting', settings).json<AuthSettings>(),
     getStrikes(params: StrikeListParams) {
-      const searchParams = createPagination(params);
-      if (params.username) searchParams.set('username', params.username);
-      if (params.operatorUsername) {
-        searchParams.set('operator_username', params.operatorUsername);
-      }
-      setCreatedRange(searchParams, params);
-      return client.get(`admin/strikes?${searchParams}`).json<StrikePage>();
+      return client
+        .get('admin/strikes', {
+          searchParams: {
+            page: params.page,
+            page_size: params.pageSize,
+            username: params.username || undefined,
+            operator_username: params.operatorUsername || undefined,
+            created_after: params.createdAfter,
+            created_before: params.createdBefore,
+          },
+        })
+        .json<StrikePage>();
     },
     createStrike: (request: CreateStrikeRequest) =>
       client.post('admin/strikes', request).json<Strike>(),
