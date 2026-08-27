@@ -1,81 +1,28 @@
 import { computed, readonly, ref } from 'vue';
 
-import { createAuthApi, parseAccessToken } from '@novelia/auth-api';
+import type { AuthApi } from '@novelia/auth-api';
 
-import type { AdminKitOptions, AuthSession, UserProfile } from './types';
+import type { AuthSession, UserProfile } from './types';
 
-export function createAuthSession(options: AdminKitOptions): AuthSession {
-  const storageKey = `${options.auth.app}-admin-session`;
-  const authUrl = new URL(options.auth.url, window.location.origin).toString();
-  const apiUrl = new URL('api/v1/', authUrl);
-  const api = createAuthApi({ baseUrl: apiUrl.toString() });
+export function createAuthSession(api: AuthApi): AuthSession {
   const profile = ref<UserProfile>();
-  let initialized = false;
-  let refreshRequest: Promise<void> | undefined;
   let initializeRequest: Promise<void> | undefined;
 
-  function saveProfile(nextProfile?: UserProfile) {
+  api.subscribeUserProfile((nextProfile) => {
     profile.value = nextProfile;
-    if (nextProfile) {
-      localStorage.setItem(storageKey, JSON.stringify(nextProfile));
-    } else {
-      localStorage.removeItem(storageKey);
-    }
-  }
-
-  try {
-    const stored = localStorage.getItem(storageKey);
-    if (stored) {
-      const storedProfile = JSON.parse(stored) as UserProfile;
-      const restored = parseAccessToken(storedProfile.token);
-      if (Date.now() < restored.expiredAt * 1000) profile.value = restored;
-      else localStorage.removeItem(storageKey);
-    }
-  } catch {
-    localStorage.removeItem(storageKey);
-  }
+  });
 
   async function refresh() {
-    if (refreshRequest) return refreshRequest;
-
-    refreshRequest = api.auth
-      .refresh(options.auth.app)
-      .then((token) => {
-        saveProfile(parseAccessToken(token));
-      })
-      .catch((error) => {
-        if (
-          error instanceof Error &&
-          'status' in error &&
-          error.status === 401
-        ) {
-          saveProfile();
-        }
-        throw error;
-      })
-      .finally(() => {
-        refreshRequest = undefined;
-      });
-    return refreshRequest;
+    await api.auth.refresh();
   }
 
   function initialize() {
-    if (initialized) return;
-    if (initializeRequest) return initializeRequest;
-
-    initializeRequest = refresh()
-      .catch(() => {
-        // Anonymous visits are expected; the login route remains available.
-      })
-      .finally(() => {
-        initialized = true;
-        initializeRequest = undefined;
-      });
-    return initializeRequest;
+    return (initializeRequest ??= refresh().catch(() => {
+      // Anonymous visits are expected; the login route remains available.
+    }));
   }
 
   async function logout() {
-    saveProfile();
     try {
       await api.auth.logout();
     } catch {
@@ -84,10 +31,7 @@ export function createAuthSession(options: AdminKitOptions): AuthSession {
   }
 
   const isSignedIn = computed(() => profile.value !== undefined);
-  const isAuthorized = computed(() => {
-    if (!profile.value) return false;
-    return profile.value.role === 'admin';
-  });
+  const isAuthorized = computed(() => profile.value?.role === 'admin');
 
   return {
     profile: readonly(profile),
@@ -96,10 +40,5 @@ export function createAuthSession(options: AdminKitOptions): AuthSession {
     initialize,
     refresh,
     logout,
-    getAccessToken: () => profile.value?.token,
-    async refreshAccessToken() {
-      await refresh();
-      return profile.value?.token;
-    },
   };
 }

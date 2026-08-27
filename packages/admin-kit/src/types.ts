@@ -1,12 +1,11 @@
 import type {
-  AccessTokenSession,
   ApiRequestOptions,
   AuthApi,
   UserProfile,
 } from '@novelia/auth-api';
 import type { ComputedRef, DeepReadonly, Plugin, Ref } from 'vue';
 
-export interface AuthSession extends AccessTokenSession {
+export interface AuthSession {
   profile: DeepReadonly<Ref<UserProfile | undefined>>;
   isSignedIn: ComputedRef<boolean>;
   isAuthorized: ComputedRef<boolean>;

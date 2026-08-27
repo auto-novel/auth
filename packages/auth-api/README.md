@@ -4,23 +4,22 @@ Auth API 的浏览器端 TypeScript 接口包，不依赖具体 UI 框架。登�
 `@novelia/admin-kit` 共用这里的请求、类型与错误处理。
 
 ```ts
-import { createAuthApi, type AccessTokenSession } from '@novelia/auth-api';
-
-const session: AccessTokenSession = {
-  getAccessToken: () => accessToken,
-  refreshAccessToken: refreshToken,
-};
+import { createAuthApi } from '@novelia/auth-api';
 
 const api = createAuthApi({
   baseUrl: 'https://auth.example.com/v1',
-  session,
+  app: 'example',
+  storage: { key: 'example-session', target: localStorage },
 });
 
 await api.auth.login({ app: 'example', username, password });
+await api.auth.refresh();
 const page = await api.me.getStrikes({ page: 1, pageSize: 50 });
 ```
 
 必须通过 `createAuthApi` 显式配置 `baseUrl`。接口按 `auth`、`admin`、`me`
-分组；访问带权限的接口时还必须配置 `AccessTokenSession`，客户端会在首次收到
-401 后刷新令牌、重试一次，并定时刷新已签发满一小时的访问令牌。不再使用客户端时
-可调用 `api.dispose()` 清理定时器。
+分组；配置 `app` 后，客户端会管理访问令牌，在受保护请求首次收到 401 后刷新并重试
+一次，同时定时刷新已签发满一小时的令牌。认证接口与业务接口地址不同时可另外配置
+`authBaseUrl`。配置 `storage` 后用户信息会持久化到指定存储；可通过
+`api.subscribeUserProfile()` 获取用户状态。不再使用客户端时可调用
+`api.dispose()`。

@@ -19,10 +19,20 @@ import type { AdminKit, AdminKitOptions } from './types';
 export { createAdminAuthGuard } from './router';
 
 export function createAdminKit(options: AdminKitOptions): AdminKit {
-  const session = createAuthSession(options);
+  const authUrl = new URL(options.auth.url, window.location.origin).toString();
+  const api = createAuthApi({
+    ...options.api,
+    app: options.auth.app,
+    authBaseUrl: new URL('api/v1/', authUrl).toString(),
+    storage: {
+      key: `${options.auth.app}-admin-session`,
+      target: localStorage,
+    },
+  });
+  const session = createAuthSession(api);
   const context = {
     options,
-    api: createAuthApi({ ...options.api, session }),
+    api,
     session,
   };
   const kit = {
