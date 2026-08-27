@@ -99,11 +99,9 @@ export function createAuthApi(options: CreateAuthApiOptions) {
   const authClient = createApiClient({
     ...requestOptions,
     baseUrl: options.authBaseUrl ?? options.baseUrl,
+    timeout: options.timeout ?? 5000,
   });
-  const authEndpoints = createAuthEndpoints(
-    authClient,
-    options.timeout ?? 5000,
-  );
+  const authEndpoints = createAuthEndpoints(authClient);
 
   function setAccessToken(token?: string) {
     const nextProfile = token ? parseAccessToken(token) : undefined;

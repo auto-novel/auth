@@ -26,9 +26,7 @@ export function createMeEndpoints(client: ApiClient) {
       if (params.createdBefore !== undefined) {
         searchParams.set('created_before', String(params.createdBefore));
       }
-      return client.json<Page<MyStrike>>(`me/strikes?${searchParams}`, {
-        authenticated: true,
-      });
+      return client.get(`me/strikes?${searchParams}`).json<Page<MyStrike>>();
     },
   };
 }

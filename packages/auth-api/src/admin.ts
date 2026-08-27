@@ -1,4 +1,4 @@
-import { jsonRequest, type ApiClient } from './client';
+import type { ApiClient } from './client';
 
 export interface Page<T> {
   total: number;
@@ -122,39 +122,23 @@ function createPagination(params: PaginationParams) {
 }
 
 export function createAdminEndpoints(client: ApiClient) {
-  const get = <T>(path: string) =>
-    client.json<T>(path, { authenticated: true });
-  const post = async (path: string, body?: unknown) => {
-    await client.request(path, {
-      authenticated: true,
-      method: 'POST',
-      ...(body === undefined ? {} : jsonRequest(body)),
-    });
-  };
-  const postJson = <T>(path: string, body: unknown) =>
-    client.json<T>(path, {
-      authenticated: true,
-      method: 'POST',
-      ...jsonRequest(body),
-    });
-
   return {
     getUsers(params: UserListParams) {
       const searchParams = createPagination(params);
       if (params.query) searchParams.set('q', `%${params.query}%`);
       if (params.role) searchParams.set('role', params.role);
       setCreatedRange(searchParams, params);
-      return get<UserPage>(`admin/user?${searchParams}`);
+      return client.get(`admin/user?${searchParams}`).json<UserPage>();
     },
     updateUserRole(action: UserAction, request: UserActionRequest) {
-      return post(`admin/user/${action}`, request);
+      return client.post(`admin/user/${action}`, request).void();
     },
     getOverview(startDate: string, endDate: string) {
       const searchParams = new URLSearchParams({
         start_date: startDate,
         end_date: endDate,
       });
-      return get<Overview>(`admin/overview?${searchParams}`);
+      return client.get(`admin/overview?${searchParams}`).json<Overview>();
     },
     getEvents(params: EventListParams) {
       const searchParams = createPagination(params);
@@ -164,11 +148,11 @@ export function createAdminEndpoints(client: ApiClient) {
         searchParams.append('action', action),
       );
       setCreatedRange(searchParams, params);
-      return get<EventPage>(`admin/event?${searchParams}`);
+      return client.get(`admin/event?${searchParams}`).json<EventPage>();
     },
-    getAuthSettings: () => get<AuthSettings>('admin/setting'),
+    getAuthSettings: () => client.get('admin/setting').json<AuthSettings>(),
     updateAuthSettings: (settings: UpdateAuthSettingsRequest) =>
-      postJson<AuthSettings>('admin/setting', settings),
+      client.post('admin/setting', settings).json<AuthSettings>(),
     getStrikes(params: StrikeListParams) {
       const searchParams = createPagination(params);
       if (params.username) searchParams.set('username', params.username);
@@ -176,14 +160,11 @@ export function createAdminEndpoints(client: ApiClient) {
         searchParams.set('operator_username', params.operatorUsername);
       }
       setCreatedRange(searchParams, params);
-      return get<StrikePage>(`admin/strikes?${searchParams}`);
+      return client.get(`admin/strikes?${searchParams}`).json<StrikePage>();
     },
     createStrike: (request: CreateStrikeRequest) =>
-      postJson<Strike>('admin/strikes', request),
+      client.post('admin/strikes', request).json<Strike>(),
     revokeStrike: (strikeId: number) =>
-      client.json<Strike>(`admin/strikes/${strikeId}/revoke`, {
-        authenticated: true,
-        method: 'POST',
-      }),
+      client.post(`admin/strikes/${strikeId}/revoke`).json<Strike>(),
   };
 }

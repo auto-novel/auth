@@ -1,4 +1,4 @@
-import { jsonRequest, type ApiClient } from './client';
+import type { ApiClient } from './client';
 
 export interface UserProfile {
   token: string;
@@ -77,35 +77,29 @@ export function parseAccessToken(token: string): UserProfile {
   };
 }
 
-export function createAuthEndpoints(client: ApiClient, timeout: number) {
-  const post = <T>(path: string, request: T) =>
-    client.text(path, {
-      timeout,
-      method: 'POST',
-      ...jsonRequest(request),
-    });
-
+export function createAuthEndpoints(client: ApiClient) {
   return {
-    register: (request: RegisterRequest) => post('auth/register', request),
-    login: (request: LoginRequest) => post('auth/login', request),
+    register: (request: RegisterRequest) =>
+      client.post('auth/register', request).text(),
+    login: (request: LoginRequest) => client.post('auth/login', request).text(),
     requestOtp: (request: RequestOtpRequest) =>
-      post('auth/otp/request', request),
+      client.post('auth/otp/request', request).text(),
     resetPassword: (request: ResetPasswordRequest) =>
-      post('auth/password/reset', request),
+      client.post('auth/password/reset', request).text(),
     refresh: (app: string) => {
       const searchParams = new URLSearchParams({ app });
-      return client.text(`auth/refresh?${searchParams}`, {
-        timeout,
-        method: 'POST',
-        credentials: 'include',
-      });
+      return client
+        .post(`auth/refresh?${searchParams}`, undefined, {
+          credentials: 'include',
+        })
+        .text();
     },
     async logout() {
-      await client.request('auth/logout', {
-        timeout,
-        method: 'POST',
-        credentials: 'include',
-      });
+      await client
+        .post('auth/logout', undefined, {
+          credentials: 'include',
+        })
+        .void();
     },
   };
 }

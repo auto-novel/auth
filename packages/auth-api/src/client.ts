@@ -9,14 +9,11 @@ export interface AccessTokenSession {
   refreshAccessToken(): Promise<string | undefined>;
 }
 
-export interface ApiClientOptions extends ApiRequestOptions {
-  session?: AccessTokenSession;
-}
-
 interface ApiCallOptions extends RequestInit {
-  authenticated?: boolean;
   timeout?: number;
 }
+
+type ApiMethodOptions = Omit<ApiCallOptions, 'body' | 'method'>;
 
 export class ApiError extends Error {
   readonly status: number;
@@ -94,34 +91,20 @@ async function fetchWithToken(
   return request(token);
 }
 
-export function createApiClient(options: ApiClientOptions) {
+export function createApiClient(
+  options: ApiRequestOptions & { session?: AccessTokenSession },
+) {
   if (!options.baseUrl.trim()) throw new Error('必须配置 baseUrl');
 
   const fetcher = options.fetch ?? globalThis.fetch;
 
-  async function request(path: string, callOptions: ApiCallOptions = {}) {
-    const {
-      authenticated = false,
-      timeout = options.timeout,
-      ...init
-    } = callOptions;
+  async function execute(path: string, callOptions: ApiCallOptions = {}) {
+    const { timeout = options.timeout, ...init } = callOptions;
     const url = resolveUrl(path, options.baseUrl);
 
-    let response: Response;
-    if (authenticated) {
-      if (!options.session) {
-        throw new Error('调用受保护接口前必须配置 session');
-      }
-      response = await fetchWithToken(
-        options.session,
-        fetcher,
-        url,
-        init,
-        timeout,
-      );
-    } else {
-      response = await fetchWithTimeout(fetcher, url, init, timeout);
-    }
+    const response = options.session
+      ? await fetchWithToken(options.session, fetcher, url, init, timeout)
+      : await fetchWithTimeout(fetcher, url, init, timeout);
 
     if (!response.ok) {
       const message = await response.text();
@@ -134,24 +117,41 @@ export function createApiClient(options: ApiClientOptions) {
     return response;
   }
 
-  async function text(path: string, callOptions?: ApiCallOptions) {
-    return (await request(path, callOptions)).text();
+  function result(response: Promise<Response>) {
+    return {
+      async text() {
+        return (await response).text();
+      },
+      async json<T>() {
+        return (await response).json() as Promise<T>;
+      },
+      async void() {
+        await response;
+      },
+    };
   }
 
-  async function json<T>(path: string, callOptions?: ApiCallOptions) {
-    return (await request(path, callOptions)).json() as Promise<T>;
+  function request(path: string, callOptions?: ApiCallOptions) {
+    return result(execute(path, callOptions));
   }
 
-  return { request, text, json };
+  function get(path: string, callOptions?: ApiMethodOptions) {
+    return request(path, { ...callOptions, method: 'GET' });
+  }
+
+  function post(path: string, body?: unknown, callOptions?: ApiMethodOptions) {
+    const headers = new Headers(callOptions?.headers);
+    if (body !== undefined) headers.set('Content-Type', 'application/json');
+
+    return request(path, {
+      ...callOptions,
+      method: 'POST',
+      headers,
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
+  }
+
+  return { get, post, request };
 }
 
 export type ApiClient = ReturnType<typeof createApiClient>;
-
-export function jsonRequest(
-  body: unknown,
-): Pick<RequestInit, 'body' | 'headers'> {
-  return {
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  };
-}
