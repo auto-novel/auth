@@ -32,13 +32,6 @@ export class ApiError extends Error {
   }
 }
 
-export class SessionExpiredError extends ApiError {
-  constructor() {
-    super('登录状态已失效，请重新登录', 401);
-    this.name = 'SessionExpiredError';
-  }
-}
-
 function resolveUrl(
   path: string,
   baseUrl: string,
@@ -90,8 +83,9 @@ async function fetchWithToken(
   init: RequestInit,
   timeout?: number,
 ) {
+  const sessionExpiredMessage = '登录状态已失效，请重新登录';
   let token = accessToken.get();
-  if (!token) throw new SessionExpiredError();
+  if (!token) throw new ApiError(sessionExpiredMessage, 401);
 
   const request = (accessToken: string) => {
     const headers = new Headers(init.headers);
@@ -105,9 +99,9 @@ async function fetchWithToken(
   try {
     token = await accessToken.refresh();
   } catch {
-    throw new SessionExpiredError();
+    throw new ApiError(sessionExpiredMessage, 401);
   }
-  if (!token) throw new SessionExpiredError();
+  if (!token) throw new ApiError(sessionExpiredMessage, 401);
   return request(token);
 }
 

@@ -18,9 +18,8 @@ export type {
   UserListParams,
   UserPage,
 } from './endpoint/admin';
-export { ApiError, SessionExpiredError } from './endpoint/client';
+export { ApiError } from './endpoint/client';
 export type { ApiRequestOptions } from './endpoint/client';
-export { parseAccessToken } from './session';
 export type { AuthStorageOptions, UserProfile } from './session';
 export type { MyStrike, MyStrikeListParams } from './endpoint/me';
 export type {
