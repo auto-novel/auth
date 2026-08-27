@@ -40,7 +40,6 @@ export function createAuthApi(options: CreateAuthApiOptions) {
 
   return {
     auth: {
-      ...authEndpoints,
       refresh: session.accessToken.refresh,
       logout() {
         session.clear();

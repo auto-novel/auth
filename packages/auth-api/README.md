@@ -1,6 +1,6 @@
 # @novelia/auth-api
 
-Auth API 的浏览器端 TypeScript 接口包，不依赖具体 UI 框架。登录页、管理端和
+Auth API 的浏览器端 TypeScript 接口包，不依赖具体 UI 框架。管理端和
 `@novelia/admin-kit` 共用这里的请求、类型与错误处理。
 
 ```ts
@@ -12,7 +12,6 @@ const api = createAuthApi({
   storage: { key: 'example-session', target: localStorage },
 });
 
-await api.auth.login({ app: 'example', username, password });
 await api.auth.refresh();
 const page = await api.me.getStrikes({ page: 1, pageSize: 50 });
 ```

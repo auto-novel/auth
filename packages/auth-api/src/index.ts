@@ -18,13 +18,6 @@ export type {
   UserListParams,
   UserPage,
 } from './endpoint/admin';
-export type {
-  LoginRequest,
-  OtpType,
-  RegisterRequest,
-  RequestOtpRequest,
-  ResetPasswordRequest,
-} from './endpoint/auth';
 export { ApiError, SessionExpiredError } from './endpoint/client';
 export type { ApiRequestOptions } from './endpoint/client';
 export { parseAccessToken } from './session';
