@@ -1,11 +1,12 @@
 import { computed, readonly, ref } from 'vue';
 
-import type { AuthApi } from '@novelia/auth-api';
+import { ApiError, type AuthApi } from '@novelia/auth-api';
 
 import type { AuthSession, UserProfile } from './types';
 
-export function createAuthSession(api: AuthApi): AuthSession {
+export function createAdminSession(api: AuthApi): AuthSession {
   const profile = ref<UserProfile>();
+  let initialized = false;
   let initializeRequest: Promise<void> | undefined;
 
   api.subscribeUserProfile((nextProfile) => {
@@ -17,9 +18,24 @@ export function createAuthSession(api: AuthApi): AuthSession {
   }
 
   function initialize() {
-    return (initializeRequest ??= refresh().catch(() => {
-      // Anonymous visits are expected; the login route remains available.
-    }));
+    if (initialized) return Promise.resolve();
+    if (initializeRequest) return initializeRequest;
+
+    initializeRequest = refresh()
+      .then(() => {
+        initialized = true;
+      })
+      .catch((error: unknown) => {
+        // Anonymous visits are initialized too; transient failures are retried
+        // on the next navigation.
+        if (error instanceof ApiError && error.status === 401) {
+          initialized = true;
+        }
+      })
+      .finally(() => {
+        initializeRequest = undefined;
+      });
+    return initializeRequest;
   }
 
   async function logout() {

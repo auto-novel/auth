@@ -5,46 +5,44 @@ import { createAuthApi } from '@novelia/auth-api';
 import AdminLoginView from './components/AdminLoginView.vue';
 import AdminKitApp from './components/AdminKitApp.vue';
 import AdminKitLayout from './components/AdminKitLayout.vue';
-import {
-  adminKitKey,
-  adminThemeKey,
-  registerAdminKitContext,
-  useAdminKit,
-  useAdminTheme,
-} from './context';
-import { createAuthSession } from './session';
+import { adminKitKey, useAdminKit, useAdminTheme } from './context';
+import { createAdminSession } from './session';
 import { createAdminTheme } from './theme';
 import type { AdminKit, AdminKitOptions } from './types';
 
 export { createAdminAuthGuard } from './router';
 
 export function createAdminKit(options: AdminKitOptions): AdminKit {
-  const authUrl = new URL(options.auth.url, window.location.origin).toString();
+  const normalizedOptions = Object.freeze({
+    auth: Object.freeze({
+      ...options.auth,
+      url: new URL(options.auth.url, window.location.origin).toString(),
+    }),
+    brand: options.brand,
+    repository: options.repository
+      ? Object.freeze({ ...options.repository })
+      : undefined,
+  });
   const api = createAuthApi({
-    app: options.auth.app,
-    baseUrl: new URL('api/v1/', authUrl).toString(),
+    app: normalizedOptions.auth.app,
+    baseUrl: new URL('api/v1/', normalizedOptions.auth.url).toString(),
     storage: {
-      key: `${options.auth.app}-admin-session`,
+      key: `${normalizedOptions.auth.app}-admin-session`,
       target: localStorage,
     },
   });
-  const session = createAuthSession(api);
-  const context = {
-    options,
+  const session = createAdminSession(api);
+  const theme = createAdminTheme(`${normalizedOptions.auth.app}-admin-theme`);
+  const kit: AdminKit = {
+    options: normalizedOptions,
     api,
     session,
-  };
-  const kit = {
+    theme,
     install(app: App) {
-      app.provide(adminKitKey, context);
-      app.provide(
-        adminThemeKey,
-        createAdminTheme(`${options.auth.app}-admin-theme`),
-      );
+      app.provide(adminKitKey, kit);
     },
-  } satisfies AdminKit;
+  };
 
-  registerAdminKitContext(kit, context);
   return kit;
 }
 

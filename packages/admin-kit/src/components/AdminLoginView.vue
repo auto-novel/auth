@@ -4,6 +4,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 import { useAdminKit, useAdminTheme } from '../context';
+import { ADMIN_HOME_ROUTE } from '../router';
 
 const { options, session } = useAdminKit();
 const { isDark } = useAdminTheme();
@@ -12,7 +13,7 @@ const router = useRouter();
 const iframe = ref<HTMLIFrameElement>();
 const completingLogin = ref(false);
 const loginError = ref<string>();
-const authUrl = new URL(options.auth.url, window.location.origin).toString();
+const authUrl = options.auth.url;
 const authOrigin = new URL(authUrl).origin;
 let disposed = false;
 
@@ -54,7 +55,7 @@ async function handleMessage(event: MessageEvent) {
         redirect.startsWith('/') &&
         !redirect.startsWith('//')
         ? redirect
-        : '/',
+        : ADMIN_HOME_ROUTE,
     );
   } catch {
     if (!disposed) loginError.value = '登录状态同步失败，请重试';

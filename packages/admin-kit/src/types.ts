@@ -1,11 +1,13 @@
 import type { AuthApi, UserProfile } from '@novelia/auth-api';
-import type { ComputedRef, DeepReadonly, Plugin, Ref } from 'vue';
+import type { App, ComputedRef, DeepReadonly, Ref } from 'vue';
+
+import type { AdminTheme } from './theme';
 
 export interface AuthSession {
-  profile: DeepReadonly<Ref<UserProfile | undefined>>;
+  profile: Readonly<Ref<UserProfile | undefined>>;
   isSignedIn: ComputedRef<boolean>;
   isAuthorized: ComputedRef<boolean>;
-  initialize(): Promise<void> | void;
+  initialize(): Promise<void>;
   refresh(): Promise<void>;
   logout(): Promise<void>;
 }
@@ -24,11 +26,14 @@ export interface AdminKitOptions {
 }
 
 export interface AdminKitContext {
-  options: Readonly<AdminKitOptions>;
+  options: DeepReadonly<AdminKitOptions>;
   api: AuthApi;
   session: AuthSession;
+  theme: AdminTheme;
 }
 
-export type AdminKit = Plugin;
+export interface AdminKit extends AdminKitContext {
+  install(app: App): void;
+}
 
 export type { UserProfile } from '@novelia/auth-api';

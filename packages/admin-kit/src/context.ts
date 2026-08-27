@@ -1,24 +1,8 @@
 import { inject, type InjectionKey } from 'vue';
 
-import type { AdminKit, AdminKitContext } from './types';
-import type { AdminTheme } from './theme';
+import type { AdminKit } from './types';
 
-export const adminKitKey: InjectionKey<AdminKitContext> = Symbol('admin-kit');
-export const adminThemeKey: InjectionKey<AdminTheme> = Symbol('admin-theme');
-const adminKitContexts = new WeakMap<AdminKit, AdminKitContext>();
-
-export function registerAdminKitContext(
-  kit: AdminKit,
-  context: AdminKitContext,
-) {
-  adminKitContexts.set(kit, context);
-}
-
-export function getAdminKitContext(kit: AdminKit) {
-  const context = adminKitContexts.get(kit);
-  if (!context) throw new Error('Invalid admin kit instance.');
-  return context;
-}
+export const adminKitKey: InjectionKey<AdminKit> = Symbol('admin-kit');
 
 export function useAdminKit() {
   const kit = inject(adminKitKey);
@@ -29,9 +13,5 @@ export function useAdminKit() {
 }
 
 export function useAdminTheme() {
-  const theme = inject(adminThemeKey);
-  if (!theme) {
-    throw new Error('Admin kit is not installed. Call app.use(adminKit).');
-  }
-  return theme;
+  return useAdminKit().theme;
 }
