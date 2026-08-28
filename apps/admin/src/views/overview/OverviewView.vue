@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { useAdminKit } from '@novelia/admin-kit';
-import type { DailyAuthStat } from '@novelia/auth-api';
+import type { AuthSettings, DailyAuthStat } from '@novelia/auth-api';
 import { NAlert, NButton, NSpin, NTag, NText } from 'naive-ui';
 import { onMounted, ref } from 'vue';
 
 import OverviewMetrics from './OverviewMetrics.vue';
+import OverviewSystemStatus from './OverviewSystemStatus.vue';
 import OverviewTrend from './OverviewTrend.vue';
 
 const DAYS = 7;
@@ -12,6 +13,7 @@ const TIME_ZONE = 'Asia/Shanghai';
 
 const { api } = useAdminKit();
 const authActivity = ref<DailyAuthStat[]>([]);
+const settings = ref<AuthSettings | null>(null);
 const loading = ref(true);
 const errorMessage = ref('');
 
@@ -42,13 +44,15 @@ async function loadOverview() {
   errorMessage.value = '';
 
   try {
-    const data = await api.admin.getOverview(
-      dateRange.startDate,
-      dateRange.endDate,
-    );
-    authActivity.value = data.authActivity;
+    const [overview, authSettings] = await Promise.all([
+      api.admin.getOverview(dateRange.startDate, dateRange.endDate),
+      api.admin.getAuthSettings(),
+    ]);
+    authActivity.value = overview.authActivity;
+    settings.value = authSettings;
   } catch (error) {
     authActivity.value = [];
+    settings.value = null;
     errorMessage.value = error instanceof Error ? error.message : String(error);
   } finally {
     loading.value = false;
@@ -72,7 +76,7 @@ onMounted(loadOverview);
       </n-tag>
     </section>
 
-    <n-alert v-if="errorMessage" type="error" title="统计数据加载失败">
+    <n-alert v-if="errorMessage" type="error" title="概览数据加载失败">
       <div class="error-content">
         <n-text>{{ errorMessage }}</n-text>
         <n-button size="small" @click="loadOverview">重新加载</n-button>
@@ -83,6 +87,11 @@ onMounted(loadOverview);
       <div class="overview-grid">
         <OverviewMetrics class="metrics-panel" :activity="authActivity" />
         <OverviewTrend class="trend-panel" :activity="authActivity" />
+        <OverviewSystemStatus
+          v-if="settings"
+          class="status-panel"
+          :settings="settings"
+        />
       </div>
     </n-spin>
   </main>
@@ -129,6 +138,9 @@ onMounted(loadOverview);
 }
 .trend-panel {
   grid-area: trend;
+}
+.status-panel {
+  grid-column: 1 / -1;
 }
 
 @media (max-width: 767px) {
