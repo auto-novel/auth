@@ -6,7 +6,7 @@ import type {
   DailyAuthStat,
   OverviewUserSummary as UserSummary,
 } from '@novelia/auth-api';
-import { NAlert, NButton, NSpin, NTag, NText } from 'naive-ui';
+import { NAlert, NButton, NSpin, NText } from 'naive-ui';
 import { onMounted, ref } from 'vue';
 
 import OverviewMetrics from './OverviewMetrics.vue';
@@ -120,18 +120,6 @@ onMounted(() => {
 
 <template>
   <main class="overview-page">
-    <section class="intro" aria-labelledby="overview-title">
-      <div>
-        <n-text id="overview-title" tag="h1" class="intro-title">
-          登录与注册统计
-        </n-text>
-        <n-text depth="3">展示最近 7 天的认证活动和当前系统状态。</n-text>
-      </div>
-      <n-tag :bordered="false" round>
-        {{ dateRange.startDate }} 至 {{ dateRange.endDate }}
-      </n-tag>
-    </section>
-
     <n-alert v-if="activityError" type="error" title="认证活动加载失败">
       <div class="error-content">
         <n-text>{{ activityError }}</n-text>
@@ -146,7 +134,12 @@ onMounted(() => {
           :summary="activitySummary"
           :previous-summary="previousActivitySummary"
         />
-        <OverviewTrend class="trend-panel" :activity="authActivity" />
+        <OverviewTrend
+          class="trend-panel"
+          :activity="authActivity"
+          :start-date="dateRange.startDate"
+          :end-date="dateRange.endDate"
+        />
       </div>
     </n-spin>
 
@@ -184,20 +177,6 @@ onMounted(() => {
   flex-direction: column;
   gap: 20px;
 }
-.intro {
-  min-height: 52px;
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 20px;
-}
-.intro-title {
-  display: block;
-  margin: 0 0 5px;
-  font-size: 22px;
-  line-height: 1.35;
-  font-weight: 650;
-}
 .error-content {
   display: flex;
   align-items: center;
@@ -233,18 +212,6 @@ onMounted(() => {
 @media (max-width: 599px) {
   .overview-page {
     gap: 16px;
-  }
-  .intro {
-    min-height: auto;
-    gap: 10px;
-  }
-  .intro-title {
-    white-space: nowrap;
-  }
-  .intro > .n-tag {
-    flex-shrink: 0;
-    white-space: nowrap;
-    font-size: 11px;
   }
 }
 </style>

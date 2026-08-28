@@ -1,10 +1,14 @@
 <script setup lang="ts">
-import { NCard } from 'naive-ui';
+import { NCard, NTag } from 'naive-ui';
 import { computed } from 'vue';
 
 import type { DailyAuthStat } from '@novelia/auth-api';
 
-const props = defineProps<{ activity: DailyAuthStat[] }>();
+const props = defineProps<{
+  activity: DailyAuthStat[];
+  startDate: string;
+  endDate: string;
+}>();
 
 const SERIES = [
   { field: 'loginCount', label: '登录', className: 'login' },
@@ -65,7 +69,15 @@ function formatCount(value: number) {
 </script>
 
 <template>
-  <n-card class="chart-card" title="每周趋势">
+  <n-card class="chart-card">
+    <template #header>
+      <div class="chart-title">
+        <span>每周趋势</span>
+        <n-tag :bordered="false" size="small" round>
+          {{ startDate }} 至 {{ endDate }}
+        </n-tag>
+      </div>
+    </template>
     <template #header-extra>
       <div class="legend" aria-label="图例">
         <span v-for="series in SERIES" :key="series.field">
@@ -137,6 +149,12 @@ function formatCount(value: number) {
 }
 .chart-card :deep(.n-card__content) {
   padding: 18px 20px 20px;
+}
+.chart-title {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
 }
 .legend {
   display: flex;
