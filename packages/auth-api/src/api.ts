@@ -43,6 +43,7 @@ export function createAuthApi(options: AuthApiOptions) {
     },
     admin: createAdminEndpoints(client),
     me: createMeEndpoints(client),
+    dispose: session.dispose,
     subscribeUser(listener: (user?: AuthUser) => void) {
       return session.subscribe(listener);
     },

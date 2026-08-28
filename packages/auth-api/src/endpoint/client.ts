@@ -59,20 +59,30 @@ async function fetchWithTimeout(
   init: RequestInit,
 ) {
   const controller = new AbortController();
-  const timeoutId = globalThis.setTimeout(
-    () => controller.abort(),
-    REQUEST_TIMEOUT,
-  );
+  const callerSignal = init.signal;
+  let timedOut = false;
+  const timeoutId = globalThis.setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, REQUEST_TIMEOUT);
+  const abortFromCaller = () => {
+    globalThis.clearTimeout(timeoutId);
+    controller.abort(callerSignal?.reason);
+  };
+
+  if (callerSignal?.aborted) abortFromCaller();
+  else callerSignal?.addEventListener('abort', abortFromCaller, { once: true });
 
   try {
     return await fetcher(input, { ...init, signal: controller.signal });
   } catch (error) {
-    if (error instanceof Error && error.name === 'AbortError') {
+    if (timedOut && error instanceof Error && error.name === 'AbortError') {
       throw new ApiError('请求超时，请稍后再试', 408);
     }
     throw error;
   } finally {
     globalThis.clearTimeout(timeoutId);
+    callerSignal?.removeEventListener('abort', abortFromCaller);
   }
 }
 
@@ -95,11 +105,7 @@ async function fetchWithToken(
   let response = await request(token);
   if (response.status !== 401) return response;
 
-  try {
-    token = await accessToken.refresh();
-  } catch {
-    throw new ApiError(sessionExpiredMessage, 401);
-  }
+  token = await accessToken.refresh();
   if (!token) throw new ApiError(sessionExpiredMessage, 401);
   return request(token);
 }

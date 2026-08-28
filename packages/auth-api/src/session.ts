@@ -180,7 +180,7 @@ export function createAuthSession(options: AuthSessionOptions) {
     refresh: refreshAccessToken,
   } satisfies AccessTokenProvider;
 
-  globalThis.setInterval(() => {
+  const refreshTimer = globalThis.setInterval(() => {
     if (
       profile &&
       Date.now() - profile.issuedAt * 1000 >= ACCESS_TOKEN_REFRESH_AGE
@@ -193,6 +193,10 @@ export function createAuthSession(options: AuthSessionOptions) {
     accessToken,
     clear() {
       setAccessToken();
+    },
+    dispose() {
+      globalThis.clearInterval(refreshTimer);
+      listeners.clear();
     },
     subscribe,
   };

@@ -46,6 +46,7 @@ export function createAdminKit(options: AdminKitOptions): AdminKit {
     theme,
     install(app: App) {
       app.provide(adminKitKey, kit);
+      app.onUnmount(api.dispose);
     },
   };
 
