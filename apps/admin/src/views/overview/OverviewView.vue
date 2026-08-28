@@ -1,21 +1,40 @@
 <script setup lang="ts">
 import { useAdminKit } from '@novelia/admin-kit';
-import type { AuthSettings, DailyAuthStat } from '@novelia/auth-api';
+import type {
+  AuthActivitySummary,
+  AuthSettings,
+  DailyAuthStat,
+  OverviewUserSummary as UserSummary,
+} from '@novelia/auth-api';
 import { NAlert, NButton, NSpin, NTag, NText } from 'naive-ui';
 import { onMounted, ref } from 'vue';
 
 import OverviewMetrics from './OverviewMetrics.vue';
 import OverviewSystemStatus from './OverviewSystemStatus.vue';
 import OverviewTrend from './OverviewTrend.vue';
+import OverviewUserSummary from './OverviewUserSummary.vue';
 
 const DAYS = 7;
 const TIME_ZONE = 'Asia/Shanghai';
 
 const { api } = useAdminKit();
 const authActivity = ref<DailyAuthStat[]>([]);
+const activitySummary = ref<AuthActivitySummary>({
+  loginCount: 0,
+  newUsers: 0,
+});
+const previousActivitySummary = ref<AuthActivitySummary>({
+  loginCount: 0,
+  newUsers: 0,
+});
+const userSummary = ref<UserSummary | null>(null);
 const settings = ref<AuthSettings | null>(null);
-const loading = ref(true);
-const errorMessage = ref('');
+const activityLoading = ref(true);
+const userSummaryLoading = ref(true);
+const settingsLoading = ref(true);
+const activityError = ref('');
+const userSummaryError = ref('');
+const settingsError = ref('');
 
 function formatDate(date: Date) {
   const parts = new Intl.DateTimeFormat('zh-CN', {
@@ -39,27 +58,64 @@ function getDateRange() {
 
 const dateRange = getDateRange();
 
-async function loadOverview() {
-  loading.value = true;
-  errorMessage.value = '';
+async function loadActivity() {
+  activityLoading.value = true;
+  activityError.value = '';
 
   try {
-    const [overview, authSettings] = await Promise.all([
-      api.admin.getOverview(dateRange.startDate, dateRange.endDate),
-      api.admin.getAuthSettings(),
-    ]);
-    authActivity.value = overview.authActivity;
-    settings.value = authSettings;
+    const activity = await api.admin.getOverviewActivity(
+      dateRange.startDate,
+      dateRange.endDate,
+    );
+    authActivity.value = activity.authActivity;
+    activitySummary.value = activity.summary;
+    previousActivitySummary.value = activity.previousSummary;
   } catch (error) {
     authActivity.value = [];
-    settings.value = null;
-    errorMessage.value = error instanceof Error ? error.message : String(error);
+    activitySummary.value = { loginCount: 0, newUsers: 0 };
+    previousActivitySummary.value = { loginCount: 0, newUsers: 0 };
+    activityError.value =
+      error instanceof Error ? error.message : String(error);
   } finally {
-    loading.value = false;
+    activityLoading.value = false;
   }
 }
 
-onMounted(loadOverview);
+async function loadUserSummary() {
+  userSummaryLoading.value = true;
+  userSummaryError.value = '';
+
+  try {
+    userSummary.value = await api.admin.getOverviewUserSummary();
+  } catch (error) {
+    userSummary.value = null;
+    userSummaryError.value =
+      error instanceof Error ? error.message : String(error);
+  } finally {
+    userSummaryLoading.value = false;
+  }
+}
+
+async function loadSettings() {
+  settingsLoading.value = true;
+  settingsError.value = '';
+
+  try {
+    settings.value = await api.admin.getAuthSettings();
+  } catch (error) {
+    settings.value = null;
+    settingsError.value =
+      error instanceof Error ? error.message : String(error);
+  } finally {
+    settingsLoading.value = false;
+  }
+}
+
+onMounted(() => {
+  void loadActivity();
+  void loadUserSummary();
+  void loadSettings();
+});
 </script>
 
 <template>
@@ -69,31 +125,52 @@ onMounted(loadOverview);
         <n-text id="overview-title" tag="h1" class="intro-title">
           登录与注册统计
         </n-text>
-        <n-text depth="3">展示最近 7 天的认证活动。</n-text>
+        <n-text depth="3">展示最近 7 天的认证活动和当前系统状态。</n-text>
       </div>
       <n-tag :bordered="false" round>
         {{ dateRange.startDate }} 至 {{ dateRange.endDate }}
       </n-tag>
     </section>
 
-    <n-alert v-if="errorMessage" type="error" title="概览数据加载失败">
+    <n-alert v-if="activityError" type="error" title="认证活动加载失败">
       <div class="error-content">
-        <n-text>{{ errorMessage }}</n-text>
-        <n-button size="small" @click="loadOverview">重新加载</n-button>
+        <n-text>{{ activityError }}</n-text>
+        <n-button size="small" @click="loadActivity">重新加载</n-button>
       </div>
     </n-alert>
 
-    <n-spin v-else :show="loading">
+    <n-spin v-else :show="activityLoading">
       <div class="overview-grid">
-        <OverviewMetrics class="metrics-panel" :activity="authActivity" />
-        <OverviewTrend class="trend-panel" :activity="authActivity" />
-        <OverviewSystemStatus
-          v-if="settings"
-          class="status-panel"
-          :settings="settings"
+        <OverviewMetrics
+          class="metrics-panel"
+          :summary="activitySummary"
+          :previous-summary="previousActivitySummary"
         />
+        <OverviewTrend class="trend-panel" :activity="authActivity" />
       </div>
     </n-spin>
+
+    <div class="snapshot-grid">
+      <n-alert v-if="userSummaryError" type="error" title="用户概况加载失败">
+        <div class="error-content">
+          <n-text>{{ userSummaryError }}</n-text>
+          <n-button size="small" @click="loadUserSummary">重新加载</n-button>
+        </div>
+      </n-alert>
+      <n-spin v-else :show="userSummaryLoading" class="snapshot-content">
+        <OverviewUserSummary v-if="userSummary" :summary="userSummary" />
+      </n-spin>
+
+      <n-alert v-if="settingsError" type="error" title="系统状态加载失败">
+        <div class="error-content">
+          <n-text>{{ settingsError }}</n-text>
+          <n-button size="small" @click="loadSettings">重新加载</n-button>
+        </div>
+      </n-alert>
+      <n-spin v-else :show="settingsLoading" class="snapshot-content">
+        <OverviewSystemStatus v-if="settings" :settings="settings" />
+      </n-spin>
+    </div>
   </main>
 </template>
 
@@ -139,8 +216,12 @@ onMounted(loadOverview);
 .trend-panel {
   grid-area: trend;
 }
-.status-panel {
-  grid-column: 1 / -1;
+.snapshot-content {
+  min-height: 120px;
+}
+.snapshot-grid {
+  display: grid;
+  gap: 16px;
 }
 
 @media (max-width: 767px) {

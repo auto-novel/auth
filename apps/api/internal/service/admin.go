@@ -28,7 +28,8 @@ const (
 
 type AdminService interface {
 	Use(chi.Router)
-	GetOverview(http.ResponseWriter, *http.Request) error
+	GetOverviewActivity(http.ResponseWriter, *http.Request) error
+	GetOverviewUserSummary(http.ResponseWriter, *http.Request) error
 	GetUser(http.ResponseWriter, *http.Request) error
 	RestrictUser(http.ResponseWriter, *http.Request) error
 	UnrestrictUser(http.ResponseWriter, *http.Request) error
@@ -59,7 +60,9 @@ func NewAdminService(
 }
 
 func (s *adminService) Use(router chi.Router) {
-	router.Get("/overview", util.EH(s.GetOverview))
+	router.Get("/overview", util.EH(s.GetOverviewActivity))
+	router.Get("/overview/activity", util.EH(s.GetOverviewActivity))
+	router.Get("/overview/user-summary", util.EH(s.GetOverviewUserSummary))
 	router.Get("/user", util.EH(s.GetUser))
 	router.Post("/user/restrict", util.EH(s.RestrictUser))
 	router.Post("/user/unrestrict", util.EH(s.UnrestrictUser))
@@ -111,11 +114,32 @@ type DailyAuthStatResponse struct {
 	RegisterCount int64  `json:"registerCount"`
 }
 
-type OverviewResponse struct {
-	AuthActivity []DailyAuthStatResponse `json:"authActivity"`
+type AuthActivitySummaryResponse struct {
+	LoginCount int64 `json:"loginCount"`
+	NewUsers   int64 `json:"newUsers"`
 }
 
-func (s *adminService) GetOverview(w http.ResponseWriter, r *http.Request) error {
+type OverviewActivityResponse struct {
+	AuthActivity    []DailyAuthStatResponse     `json:"authActivity"`
+	Summary         AuthActivitySummaryResponse `json:"summary"`
+	PreviousSummary AuthActivitySummaryResponse `json:"previousSummary"`
+}
+
+type OverviewUserSummaryResponse struct {
+	TotalUsers      int64 `json:"totalUsers"`
+	RestrictedUsers int64 `json:"restrictedUsers"`
+	BannedUsers     int64 `json:"bannedUsers"`
+}
+
+func authActivitySummary(stats []repository.DailyAuthStat) AuthActivitySummaryResponse {
+	var summary AuthActivitySummaryResponse
+	for _, stat := range stats {
+		summary.LoginCount += stat.LoginCount
+	}
+	return summary
+}
+
+func (s *adminService) GetOverviewActivity(w http.ResponseWriter, r *http.Request) error {
 	query := r.URL.Query()
 	startDateValue := query.Get("start_date")
 	endDateValue := query.Get("end_date")
@@ -148,9 +172,46 @@ func (s *adminService) GetOverview(w http.ResponseWriter, r *http.Request) error
 		slog.Error("Failed to get daily authentication statistics", "error", err)
 		return util.InternalError(err, "查询认证统计失败")
 	}
+	days := 1
+	for day := startDate; day.Before(endDate); day = day.AddDate(0, 0, 1) {
+		days++
+	}
+	previousEndDate := startDate.AddDate(0, 0, -1)
+	previousStartDate := startDate.AddDate(0, 0, -days)
+	previousStats, err := s.eventRepo.DailyAuthStats(
+		previousStartDate,
+		previousEndDate,
+		OverviewStatsTimezone,
+	)
+	if err != nil {
+		slog.Error("Failed to get previous authentication statistics", "error", err)
+		return util.InternalError(err, "查询上一周期认证统计失败")
+	}
+	newUsers, err := s.userRepo.CountCreated(
+		startDate,
+		endDate.AddDate(0, 0, 1),
+	)
+	if err != nil {
+		slog.Error("Failed to count new users", "error", err)
+		return util.InternalError(err, "查询新增用户统计失败")
+	}
+	previousNewUsers, err := s.userRepo.CountCreated(
+		previousStartDate,
+		previousEndDate.AddDate(0, 0, 1),
+	)
+	if err != nil {
+		slog.Error("Failed to count previous new users", "error", err)
+		return util.InternalError(err, "查询上一周期新增用户统计失败")
+	}
 
-	response := OverviewResponse{
-		AuthActivity: make([]DailyAuthStatResponse, len(stats)),
+	summary := authActivitySummary(stats)
+	summary.NewUsers = newUsers
+	previousSummary := authActivitySummary(previousStats)
+	previousSummary.NewUsers = previousNewUsers
+	response := OverviewActivityResponse{
+		AuthActivity:    make([]DailyAuthStatResponse, len(stats)),
+		Summary:         summary,
+		PreviousSummary: previousSummary,
 	}
 	for i, stat := range stats {
 		response.AuthActivity[i] = DailyAuthStatResponse{
@@ -160,6 +221,19 @@ func (s *adminService) GetOverview(w http.ResponseWriter, r *http.Request) error
 		}
 	}
 	return util.RespondJson(w, response)
+}
+
+func (s *adminService) GetOverviewUserSummary(w http.ResponseWriter, _ *http.Request) error {
+	summary, err := s.userRepo.Summary()
+	if err != nil {
+		slog.Error("Failed to get overview user summary", "error", err)
+		return util.InternalError(err, "查询用户概览失败")
+	}
+	return util.RespondJson(w, OverviewUserSummaryResponse{
+		TotalUsers:      summary.TotalUsers,
+		RestrictedUsers: summary.RestrictedUsers,
+		BannedUsers:     summary.BannedUsers,
+	})
 }
 
 func (s *adminService) GetUser(w http.ResponseWriter, r *http.Request) error {

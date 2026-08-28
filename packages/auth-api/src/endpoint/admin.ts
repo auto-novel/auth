@@ -35,8 +35,21 @@ export interface DailyAuthStat {
   registerCount: number;
 }
 
-export interface Overview {
+export interface AuthActivitySummary {
+  loginCount: number;
+  newUsers: number;
+}
+
+export interface OverviewActivity {
   authActivity: DailyAuthStat[];
+  summary: AuthActivitySummary;
+  previousSummary: AuthActivitySummary;
+}
+
+export interface OverviewUserSummary {
+  totalUsers: number;
+  restrictedUsers: number;
+  bannedUsers: number;
 }
 
 export interface Event {
@@ -119,12 +132,17 @@ export function createAdminEndpoints(client: ApiClient) {
     updateUserRole(action: UserAction, request: UserActionRequest) {
       return client.post(`admin/user/${action}`, request).void();
     },
-    getOverview(startDate: string, endDate: string) {
+    getOverviewActivity(startDate: string, endDate: string) {
       return client
-        .get('admin/overview', {
+        .get('admin/overview/activity', {
           searchParams: { start_date: startDate, end_date: endDate },
         })
-        .json<Overview>();
+        .json<OverviewActivity>();
+    },
+    getOverviewUserSummary() {
+      return client
+        .get('admin/overview/user-summary')
+        .json<OverviewUserSummary>();
     },
     getEvents(params: EventListParams) {
       return client

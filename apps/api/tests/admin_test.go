@@ -19,6 +19,20 @@ type overviewResponse struct {
 		LoginCount    int64  `json:"loginCount"`
 		RegisterCount int64  `json:"registerCount"`
 	} `json:"authActivity"`
+	Summary struct {
+		LoginCount int64 `json:"loginCount"`
+		NewUsers   int64 `json:"newUsers"`
+	} `json:"summary"`
+	PreviousSummary struct {
+		LoginCount int64 `json:"loginCount"`
+		NewUsers   int64 `json:"newUsers"`
+	} `json:"previousSummary"`
+}
+
+type overviewUserSummaryResponse struct {
+	TotalUsers      int64 `json:"totalUsers"`
+	RestrictedUsers int64 `json:"restrictedUsers"`
+	BannedUsers     int64 `json:"bannedUsers"`
 }
 
 func TestAdminOverview(t *testing.T) {
@@ -36,6 +50,17 @@ func TestAdminOverview(t *testing.T) {
 	`)
 	if err != nil {
 		t.Fatalf("insert authentication events: %v", err)
+	}
+	_, err = testDB.Exec(`
+		INSERT INTO auth_user (username, email, role, password, created_at)
+		VALUES
+			('previous-user', 'previous@example.com', 'member', 'unused', '2026-07-31 12:00:00+08'),
+			('first-user', 'first@example.com', 'member', 'unused', '2026-08-01 00:00:00+08'),
+			('second-user', 'second@example.com', 'member', 'unused', '2026-08-03 23:59:59+08'),
+			('future-user', 'future@example.com', 'member', 'unused', '2026-08-04 00:00:00+08')
+	`)
+	if err != nil {
+		t.Fatalf("insert overview activity users: %v", err)
 	}
 
 	response := getAdminOverview(t, "2026-08-01", "2026-08-03")
@@ -59,6 +84,56 @@ func TestAdminOverview(t *testing.T) {
 			item.RegisterCount != want.registerCount {
 			t.Fatalf("unexpected activity item %d: %#v", i, item)
 		}
+	}
+	if response.Summary.LoginCount != 2 || response.Summary.NewUsers != 2 {
+		t.Fatalf("unexpected activity summary: %#v", response.Summary)
+	}
+	if response.PreviousSummary.LoginCount != 1 || response.PreviousSummary.NewUsers != 1 {
+		t.Fatalf("unexpected previous activity summary: %#v", response.PreviousSummary)
+	}
+}
+
+func TestAdminOverviewUserSummary(t *testing.T) {
+	resetDatabase(t)
+
+	_, err := testDB.Exec(`
+		INSERT INTO auth_user (username, email, role, password)
+		VALUES
+			('member-user', 'member@example.com', 'member', 'unused'),
+			('restricted-user', 'restricted@example.com', 'restricted', 'unused'),
+			('banned-user', 'banned@example.com', 'banned', 'unused'),
+			('admin-user', 'admin@example.com', 'admin', 'unused')
+	`)
+	if err != nil {
+		t.Fatalf("insert overview users: %v", err)
+	}
+
+	req, err := http.NewRequest(
+		http.MethodGet,
+		Url+"/v1/admin/overview/user-summary",
+		nil,
+	)
+	if err != nil {
+		t.Fatalf("create overview user summary request: %v", err)
+	}
+	req.Header.Set("Authorization", "Bearer "+adminAccessToken(t))
+
+	resp, err := Client.Do(req)
+	if err != nil {
+		t.Fatalf("send overview user summary request: %v", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		t.Fatalf("expected status 200, got %d: %s", resp.StatusCode, body)
+	}
+
+	var response overviewUserSummaryResponse
+	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+		t.Fatalf("decode overview user summary response: %v", err)
+	}
+	if response.TotalUsers != 4 || response.RestrictedUsers != 1 || response.BannedUsers != 1 {
+		t.Fatalf("unexpected overview user summary: %#v", response)
 	}
 }
 
@@ -91,7 +166,7 @@ func TestAdminOverviewUsesShanghaiTimezoneRules(t *testing.T) {
 func TestAdminOverviewRejectsMoreThanThirtyDays(t *testing.T) {
 	req, err := http.NewRequest(
 		http.MethodGet,
-		Url+"/v1/admin/overview?start_date=2026-08-01&end_date=2026-08-31",
+		Url+"/v1/admin/overview/activity?start_date=2026-08-01&end_date=2026-08-31",
 		nil,
 	)
 	if err != nil {
@@ -114,7 +189,7 @@ func getAdminOverview(t *testing.T, startDate, endDate string) overviewResponse 
 	t.Helper()
 	req, err := http.NewRequest(
 		http.MethodGet,
-		Url+"/v1/admin/overview?start_date="+startDate+"&end_date="+endDate,
+		Url+"/v1/admin/overview/activity?start_date="+startDate+"&end_date="+endDate,
 		nil,
 	)
 	if err != nil {

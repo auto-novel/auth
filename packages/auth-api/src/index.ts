@@ -1,12 +1,14 @@
 export { createAuthApi, type AuthApi, type AuthApiOptions } from './api';
 export type {
   AuthSettings,
+  AuthActivitySummary,
   CreateStrikeRequest,
   DailyAuthStat,
   Event,
   EventListParams,
   EventPage,
-  Overview,
+  OverviewActivity,
+  OverviewUserSummary,
   Strike,
   StrikeListParams,
   StrikePage,

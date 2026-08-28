@@ -1,21 +1,26 @@
 <script setup lang="ts">
 import { LockOpenOutlined, PersonAddAltOutlined } from '@vicons/material';
+import type { AuthActivitySummary } from '@novelia/auth-api';
 import { NCard, NIcon, NText } from 'naive-ui';
-import { computed } from 'vue';
 
-import type { DailyAuthStat } from '@novelia/auth-api';
+const props = defineProps<{
+  summary: AuthActivitySummary;
+  previousSummary: AuthActivitySummary;
+}>();
 
-const props = defineProps<{ activity: DailyAuthStat[] }>();
+function comparisonLabel(current: number, previous: number) {
+  if (current === previous) return '与上期持平';
+  if (previous === 0) return '上期为 0';
 
-const totals = computed(() =>
-  props.activity.reduce(
-    (result, item) => ({
-      login: result.login + item.loginCount,
-      register: result.register + item.registerCount,
-    }),
-    { login: 0, register: 0 },
-  ),
-);
+  const change = ((current - previous) / previous) * 100;
+  const prefix = change > 0 ? '+' : '';
+  return `${prefix}${change.toFixed(1)}% 较上期`;
+}
+
+function comparisonType(current: number, previous: number) {
+  if (current === previous) return 'default';
+  return current > previous ? 'success' : 'warning';
+}
 </script>
 
 <template>
@@ -25,7 +30,17 @@ const totals = computed(() =>
         <div>
           <n-text depth="3">登录次数</n-text>
           <n-text class="metric-value">
-            {{ totals.login.toLocaleString() }}
+            {{ summary.loginCount.toLocaleString() }}
+          </n-text>
+          <n-text
+            class="metric-change"
+            :type="
+              comparisonType(summary.loginCount, previousSummary.loginCount)
+            "
+          >
+            {{
+              comparisonLabel(summary.loginCount, previousSummary.loginCount)
+            }}
           </n-text>
         </div>
         <span class="metric-icon login">
@@ -37,9 +52,15 @@ const totals = computed(() =>
     <n-card class="metric-card">
       <div class="metric-content">
         <div>
-          <n-text depth="3">注册次数</n-text>
+          <n-text depth="3">新增用户</n-text>
           <n-text class="metric-value">
-            {{ totals.register.toLocaleString() }}
+            {{ summary.newUsers.toLocaleString() }}
+          </n-text>
+          <n-text
+            class="metric-change"
+            :type="comparisonType(summary.newUsers, previousSummary.newUsers)"
+          >
+            {{ comparisonLabel(summary.newUsers, previousSummary.newUsers) }}
           </n-text>
         </div>
         <span class="metric-icon register">
@@ -78,6 +99,10 @@ const totals = computed(() =>
   font-size: 28px;
   line-height: 1.15;
   font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+.metric-change {
+  font-size: 12px;
   font-variant-numeric: tabular-nums;
 }
 .metric-icon {
