@@ -106,7 +106,7 @@ func TestAuthRegisterSuccess(t *testing.T) {
 	resetDatabase(t)
 
 	req := reqRegister{
-		App:      "integration-test",
+		App:      util.AppAuth,
 		Username: "new-user",
 		Password: "Password123!",
 		Email:    "new-user@example.com",
@@ -233,7 +233,7 @@ func TestAuthRegisterRejectsInvalidOtp(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			resetDatabase(t)
 			req := reqRegister{
-				App:      "integration-test",
+				App:      util.AppAuth,
 				Username: "otp-user",
 				Password: "Password123!",
 				Email:    "otp-user@example.com",
@@ -262,7 +262,7 @@ func TestAuthRegisterConflicts(t *testing.T) {
 	resetDatabase(t)
 
 	first := reqRegister{
-		App:      "integration-test",
+		App:      util.AppAuth,
 		Username: "existing-user",
 		Password: "Password123!",
 		Email:    "existing@example.com",

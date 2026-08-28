@@ -106,6 +106,9 @@ func (s *authService) Register(w http.ResponseWriter, r *http.Request) error {
 		slog.Error("Invalid password", "error", err)
 		return err
 	}
+	if _, err := util.TokenPolicyForApp(req.App); err != nil {
+		return err
+	}
 	hashedPassword, err := util.GenerateHash(req.Password)
 	if err != nil {
 		slog.Error("Password hash error", "error", err)
@@ -181,6 +184,9 @@ func (s *authService) Login(w http.ResponseWriter, r *http.Request) error {
 		slog.Error("Login request body parse error", "error", err)
 		return err
 	}
+	if _, err := util.TokenPolicyForApp(req.App); err != nil {
+		return err
+	}
 
 	var user *repository.User
 	if strings.Contains(req.Username, "@") {
@@ -248,6 +254,11 @@ func (s *authService) Login(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (s *authService) Refresh(w http.ResponseWriter, r *http.Request) error {
+	app := r.URL.Query().Get("app")
+	if _, err := util.TokenPolicyForApp(app); err != nil {
+		return err
+	}
+
 	username, err := util.VerifyRefreshToken(r)
 	if err != nil {
 		return err
@@ -271,7 +282,7 @@ func (s *authService) Refresh(w http.ResponseWriter, r *http.Request) error {
 	s.userRepo.UpdateLastLogin(user)
 
 	return util.RespondAuthTokens(w, util.TokenOptions{
-		App:              r.URL.Query().Get("app"),
+		App:              app,
 		Username:         user.Username,
 		Role:             user.Role,
 		CreatedAt:        user.CreatedAt,

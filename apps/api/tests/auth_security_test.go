@@ -22,7 +22,7 @@ func TestAuthLoginRejectsBannedUser(t *testing.T) {
 		http.MethodPost,
 		"/v1/auth/login",
 		map[string]string{
-			"app":      "integration-test",
+			"app":      util.AppAuth,
 			"username": "banned-user",
 			"password": "Password123!",
 		},
@@ -35,7 +35,7 @@ func TestAuthRefreshRejectsNewlyBannedUser(t *testing.T) {
 	resetDatabase(t)
 	user := createUser(t, "refresh-user", "refresh@example.com", "Password123!", repository.RoleMember)
 	resp, _ := sendJSON(t, http.MethodPost, "/v1/auth/login", map[string]string{
-		"app":      "integration-test",
+		"app":      util.AppAuth,
 		"username": user.Username,
 		"password": "Password123!",
 	}, "192.0.2.20", nil)
@@ -55,7 +55,7 @@ func TestAuthRefreshRejectsNewlyBannedUser(t *testing.T) {
 	refreshResp, body := sendJSON(
 		t,
 		http.MethodPost,
-		"/v1/auth/refresh?app=integration-test",
+		"/v1/auth/refresh?app="+util.AppAuth,
 		nil,
 		"192.0.2.20",
 		refreshCookie,
@@ -69,7 +69,7 @@ func TestAuthRestrictedUserCanLoginAndRefresh(t *testing.T) {
 	resetDatabase(t)
 	user := createUser(t, "restricted-user", "restricted@example.com", "Password123!", repository.RoleRestricted)
 	resp, body := sendJSON(t, http.MethodPost, "/v1/auth/login", map[string]string{
-		"app":      "integration-test",
+		"app":      util.AppAuth,
 		"username": user.Username,
 		"password": "Password123!",
 	}, "192.0.2.21", nil)
@@ -84,7 +84,7 @@ func TestAuthRestrictedUserCanLoginAndRefresh(t *testing.T) {
 	refreshResp, body := sendJSON(
 		t,
 		http.MethodPost,
-		"/v1/auth/refresh?app=integration-test",
+		"/v1/auth/refresh?app="+util.AppAuth,
 		nil,
 		"192.0.2.21",
 		refreshCookie,

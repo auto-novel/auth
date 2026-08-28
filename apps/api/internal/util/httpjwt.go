@@ -18,6 +18,10 @@ var (
 
 const (
 	RefreshTokenCookieName = "refresh-token"
+	AppAuth                = "auth"
+	AppN                   = "n"
+	AppF                   = "f"
+	AppLegado              = "legado"
 )
 
 type refreshClaim struct {
@@ -116,22 +120,31 @@ type TokenPolicy struct {
 	AccessTokenLifetime  time.Duration
 }
 
-var defaultTokenPolicy = TokenPolicy{
-	RefreshTokenLifetime: time.Hour * 24 * 100,
-	AccessTokenLifetime:  time.Hour * 24 * 7,
-}
-var thirdPartyTokenPolicy = TokenPolicy{
-	RefreshTokenLifetime: 0,
-	AccessTokenLifetime:  time.Hour * 24 * 100,
+var tokenPolicies = map[string]TokenPolicy{
+	AppAuth: {
+		RefreshTokenLifetime: time.Hour * 24 * 100,
+		AccessTokenLifetime:  time.Hour * 24 * 7,
+	},
+	AppN: {
+		RefreshTokenLifetime: time.Hour * 24 * 100,
+		AccessTokenLifetime:  time.Hour * 24 * 7,
+	},
+	AppF: {
+		RefreshTokenLifetime: time.Hour * 24 * 100,
+		AccessTokenLifetime:  time.Hour * 24 * 7,
+	},
+	AppLegado: {
+		RefreshTokenLifetime: 0,
+		AccessTokenLifetime:  time.Hour * 24 * 100,
+	},
 }
 
-func getTokenPolicy(app string) TokenPolicy {
-	switch app {
-	case "legado":
-		return thirdPartyTokenPolicy
-	default:
-		return defaultTokenPolicy
+func TokenPolicyForApp(app string) (TokenPolicy, error) {
+	policy, ok := tokenPolicies[app]
+	if !ok {
+		return TokenPolicy{}, BadRequest("未知的应用")
 	}
+	return policy, nil
 }
 
 type TokenOptions struct {
@@ -143,7 +156,10 @@ type TokenOptions struct {
 }
 
 func RespondAuthTokens(w http.ResponseWriter, opts TokenOptions) error {
-	policy := getTokenPolicy(opts.App)
+	policy, err := TokenPolicyForApp(opts.App)
+	if err != nil {
+		return err
+	}
 
 	if opts.WithRefreshToken && policy.RefreshTokenLifetime > 0 {
 		refreshToken, err := issueRefreshToken(opts, policy)

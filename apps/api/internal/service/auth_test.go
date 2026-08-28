@@ -87,3 +87,65 @@ func TestAuthFeaturesCanBeDisabled(t *testing.T) {
 		})
 	}
 }
+
+func TestAuthRejectsUnknownApp(t *testing.T) {
+	service := &authService{
+		settingRepo: settingRepositoryStub{settings: repository.AuthSettings{
+			RegisterEnabled: true,
+		}},
+	}
+	tests := []struct {
+		name    string
+		path    string
+		body    string
+		handler func(http.ResponseWriter, *http.Request) error
+	}{
+		{
+			name:    "register",
+			path:    "/register",
+			body:    `{"app":"unknown","username":"user","password":"Password123!","email":"user@example.com","otp":"123456"}`,
+			handler: service.Register,
+		},
+		{
+			name:    "login",
+			path:    "/login",
+			body:    `{"app":"unknown","username":"user","password":"Password123!"}`,
+			handler: service.Login,
+		},
+		{
+			name:    "refresh",
+			path:    "/refresh?app=unknown",
+			body:    `{}`,
+			handler: service.Refresh,
+		},
+		{
+			name:    "refresh without app",
+			path:    "/refresh",
+			body:    `{}`,
+			handler: service.Refresh,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			request := httptest.NewRequest(http.MethodPost, test.path, bytes.NewBufferString(test.body))
+			request.Header.Set("Content-Type", "application/json")
+			response := httptest.NewRecorder()
+
+			util.EH(test.handler).ServeHTTP(response, request)
+
+			result := response.Result()
+			defer result.Body.Close()
+			body, err := io.ReadAll(result.Body)
+			if err != nil {
+				t.Fatalf("read response: %v", err)
+			}
+			if result.StatusCode != http.StatusBadRequest {
+				t.Fatalf("expected status %d, got %d", http.StatusBadRequest, result.StatusCode)
+			}
+			if string(body) != "未知的应用" {
+				t.Fatalf("expected unknown app message, got %q", string(body))
+			}
+		})
+	}
+}
