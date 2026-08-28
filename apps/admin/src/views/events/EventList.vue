@@ -72,7 +72,7 @@ function changePageSize(value: string | number | null) {
       />
     </div>
 
-    <n-card content-style="padding: 0;">
+    <n-card class="list-card" content-style="padding: 0;">
       <div v-if="loading && !events.length" class="skeleton-list">
         <div v-for="index in 6" :key="index" class="skeleton-row">
           <n-skeleton text :repeat="2" />
@@ -130,6 +130,11 @@ function changePageSize(value: string | number | null) {
 .page-size-select {
   width: 112px;
   flex: none;
+}
+
+.list-card {
+  border-right: 0;
+  border-left: 0;
 }
 
 .skeleton-list {
