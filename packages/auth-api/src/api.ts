@@ -7,9 +7,8 @@ import { createApiClient } from './endpoint/client';
 import { createAuthSession, type AuthUser } from './session';
 
 export interface AuthApiOptions {
-  timeout?: number;
   fetch?: typeof globalThis.fetch;
-  app?: string;
+  app: string;
   baseUrl: string;
   storage?: {
     key: string;
@@ -20,13 +19,9 @@ export interface AuthApiOptions {
 export function createAuthApi(options: AuthApiOptions) {
   const requestOptions = {
     baseUrl: options.baseUrl,
-    timeout: options.timeout,
     fetch: options.fetch,
   };
-  const authClient = createApiClient({
-    ...requestOptions,
-    timeout: options.timeout ?? 5000,
-  });
+  const authClient = createApiClient(requestOptions);
   const authEndpoints = createAuthEndpoints(authClient);
   const session = createAuthSession({
     app: options.app,

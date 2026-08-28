@@ -29,7 +29,7 @@ interface AuthStorageOptions {
 }
 
 interface AuthSessionOptions {
-  app?: string;
+  app: string;
   storage?: AuthStorageOptions;
   requestRefresh(app: string): Promise<string>;
 }
@@ -154,9 +154,6 @@ export function createAuthSession(options: AuthSessionOptions) {
   function refreshAccessToken(): Promise<string> {
     if (refreshRequest) return refreshRequest;
     const app = options.app;
-    if (!app) {
-      return Promise.reject(new Error('刷新访问令牌前必须配置 app'));
-    }
 
     const request = (async () => {
       try {
@@ -183,16 +180,14 @@ export function createAuthSession(options: AuthSessionOptions) {
     refresh: refreshAccessToken,
   } satisfies AccessTokenProvider;
 
-  if (options.app) {
-    globalThis.setInterval(() => {
-      if (
-        profile &&
-        Date.now() - profile.issuedAt * 1000 >= ACCESS_TOKEN_REFRESH_AGE
-      ) {
-        void refreshAccessToken().catch(() => undefined);
-      }
-    }, ACCESS_TOKEN_REFRESH_INTERVAL);
-  }
+  globalThis.setInterval(() => {
+    if (
+      profile &&
+      Date.now() - profile.issuedAt * 1000 >= ACCESS_TOKEN_REFRESH_AGE
+    ) {
+      void refreshAccessToken().catch(() => undefined);
+    }
+  }, ACCESS_TOKEN_REFRESH_INTERVAL);
 
   return {
     accessToken,

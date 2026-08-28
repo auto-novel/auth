@@ -3,14 +3,14 @@ export interface AccessTokenProvider {
   refresh(): Promise<string | undefined>;
 }
 
+const REQUEST_TIMEOUT = 5000;
+
 interface ApiRequestOptions {
   baseUrl: string;
-  timeout?: number;
   fetch?: typeof globalThis.fetch;
 }
 
 interface ApiCallOptions extends RequestInit {
-  timeout?: number;
   searchParams?: Record<string, SearchParamValue>;
 }
 
@@ -57,12 +57,12 @@ async function fetchWithTimeout(
   fetcher: typeof globalThis.fetch,
   input: RequestInfo | URL,
   init: RequestInit,
-  timeout?: number,
 ) {
-  if (timeout === undefined) return fetcher(input, init);
-
   const controller = new AbortController();
-  const timeoutId = globalThis.setTimeout(() => controller.abort(), timeout);
+  const timeoutId = globalThis.setTimeout(
+    () => controller.abort(),
+    REQUEST_TIMEOUT,
+  );
 
   try {
     return await fetcher(input, { ...init, signal: controller.signal });
@@ -81,7 +81,6 @@ async function fetchWithToken(
   fetcher: typeof globalThis.fetch,
   input: RequestInfo | URL,
   init: RequestInit,
-  timeout?: number,
 ) {
   const sessionExpiredMessage = '登录状态已失效，请重新登录';
   let token = accessToken.get();
@@ -90,7 +89,7 @@ async function fetchWithToken(
   const request = (accessToken: string) => {
     const headers = new Headers(init.headers);
     headers.set('Authorization', `Bearer ${accessToken}`);
-    return fetchWithTimeout(fetcher, input, { ...init, headers }, timeout);
+    return fetchWithTimeout(fetcher, input, { ...init, headers });
   };
 
   let response = await request(token);
@@ -113,12 +112,12 @@ export function createApiClient(
   const fetcher = options.fetch ?? globalThis.fetch;
 
   async function execute(path: string, callOptions: ApiCallOptions = {}) {
-    const { timeout = options.timeout, searchParams, ...init } = callOptions;
+    const { searchParams, ...init } = callOptions;
     const url = resolveUrl(path, options.baseUrl, searchParams);
 
     const response = options.accessToken
-      ? await fetchWithToken(options.accessToken, fetcher, url, init, timeout)
-      : await fetchWithTimeout(fetcher, url, init, timeout);
+      ? await fetchWithToken(options.accessToken, fetcher, url, init)
+      : await fetchWithTimeout(fetcher, url, init);
 
     if (!response.ok) {
       const message = await response.text();
