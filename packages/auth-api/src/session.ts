@@ -1,6 +1,7 @@
 import { ApiError, type AccessTokenProvider } from './endpoint/client';
 
 export interface AuthUser {
+  id: number;
   username: string;
   role: string;
   createdAt: number;
@@ -13,6 +14,7 @@ interface AccessTokenProfile extends AuthUser {
 }
 
 interface AccessTokenClaims {
+  uid: number;
   sub: string;
   role: string;
   crat: number;
@@ -48,6 +50,8 @@ function parseAccessToken(token: string): AccessTokenProfile {
   ) as AccessTokenClaims;
 
   if (
+    !Number.isSafeInteger(claims.uid) ||
+    claims.uid <= 0 ||
     !claims.sub ||
     !claims.role ||
     !Number.isFinite(claims.crat) ||
@@ -59,6 +63,7 @@ function parseAccessToken(token: string): AccessTokenProfile {
 
   return {
     token,
+    id: claims.uid,
     username: claims.sub,
     role: claims.role,
     createdAt: claims.crat,
@@ -125,6 +130,7 @@ export function createAuthSession(options: AuthSessionOptions) {
       listener(
         profile
           ? {
+              id: profile.id,
               username: profile.username,
               role: profile.role,
               createdAt: profile.createdAt,
