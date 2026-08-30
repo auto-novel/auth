@@ -1,6 +1,7 @@
 package main
 
 import (
+	"auth/internal/httpx"
 	"auth/internal/infra"
 	"auth/internal/repository"
 	"auth/internal/service"
@@ -137,7 +138,7 @@ func main() {
 		w.Write([]byte("OK\n"))
 	})
 	router.Route("/v1", func(router chi.Router) {
-		router.Use(util.RequestLogger())
+		router.Use(httpx.RequestLogger())
 		router.Route("/auth", authService.Use)
 		router.Route("/admin", func(router chi.Router) {
 			router.Use(util.RequireAdmin)

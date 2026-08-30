@@ -1,6 +1,7 @@
 package util
 
 import (
+	"auth/internal/httpx"
 	"auth/internal/repository"
 	"context"
 	"log/slog"
@@ -47,12 +48,12 @@ func VerifyRefreshToken(r *http.Request) (string, error) {
 	cookie, err := r.Cookie(RefreshTokenCookieName)
 
 	if err != nil {
-		return "", Unauthorized("缺少刷新令牌")
+		return "", httpx.Unauthorized("缺少刷新令牌")
 	}
 
 	claims, err := parseClaims(cookie.Value, RefreshTokenSecret, &refreshClaim{})
 	if err != nil {
-		return "", Unauthorized("无效的刷新令牌")
+		return "", httpx.Unauthorized("无效的刷新令牌")
 	}
 
 	return claims.Subject, nil
@@ -62,15 +63,15 @@ func verifyAccessToken(r *http.Request) (Principal, error) {
 	tokenString := r.Header.Get("Authorization")
 
 	if (tokenString == "") || !strings.HasPrefix(tokenString, "Bearer ") {
-		return Principal{}, Unauthorized("缺少访问令牌")
+		return Principal{}, httpx.Unauthorized("缺少访问令牌")
 	}
 
 	claims, err := parseClaims(tokenString[len("Bearer "):], AccessTokenSecret, &accessClaim{})
 	if err != nil {
-		return Principal{}, Unauthorized("无效的访问令牌")
+		return Principal{}, httpx.Unauthorized("无效的访问令牌")
 	}
 	if claims.Subject == "" {
-		return Principal{}, Unauthorized("无效的访问令牌")
+		return Principal{}, httpx.Unauthorized("无效的访问令牌")
 	}
 
 	return Principal{UserID: claims.UserID, Username: claims.Subject, Role: claims.Role}, nil
@@ -80,7 +81,7 @@ func RequireAccessToken(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		principal, err := verifyAccessToken(r)
 		if err != nil {
-			RespondError(w, err)
+			httpx.RespondError(w, err)
 			return
 		}
 		ctx := context.WithValue(r.Context(), principalContextKey{}, principal)
@@ -93,11 +94,11 @@ func RequireRole(role string) func(http.Handler) http.Handler {
 		return RequireAccessToken(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			principal, err := AuthenticatedPrincipal(r)
 			if err != nil {
-				RespondError(w, err)
+				httpx.RespondError(w, err)
 				return
 			}
 			if principal.Role != role {
-				RespondError(w, Forbidden("权限不足"))
+				httpx.RespondError(w, httpx.Forbidden("权限不足"))
 				return
 			}
 			next.ServeHTTP(w, r)
@@ -112,7 +113,7 @@ func RequireAdmin(next http.Handler) http.Handler {
 func AuthenticatedPrincipal(r *http.Request) (Principal, error) {
 	principal, ok := r.Context().Value(principalContextKey{}).(Principal)
 	if !ok || principal.Username == "" {
-		return Principal{}, Unauthorized("缺少认证上下文")
+		return Principal{}, httpx.Unauthorized("缺少认证上下文")
 	}
 	return principal, nil
 }
@@ -144,7 +145,7 @@ var tokenPolicies = map[string]TokenPolicy{
 func TokenPolicyForApp(app string) (TokenPolicy, error) {
 	policy, ok := tokenPolicies[app]
 	if !ok {
-		return TokenPolicy{}, BadRequest("未知的应用")
+		return TokenPolicy{}, httpx.BadRequest("未知的应用")
 	}
 	return policy, nil
 }
@@ -175,12 +176,12 @@ func RespondAuthTokens(w http.ResponseWriter, opts TokenOptions) error {
 	if err != nil {
 		return err
 	}
-	return RespondText(w, accessToken)
+	return httpx.RespondText(w, accessToken)
 }
 
 func RespondLogout(w http.ResponseWriter) error {
 	attachRefreshToken(w, "", 0)
-	return RespondText(w, "")
+	return httpx.RespondText(w, "")
 }
 
 func issueAccessToken(opts TokenOptions, policy TokenPolicy) (string, error) {
@@ -204,7 +205,7 @@ func issueAccessToken(opts TokenOptions, policy TokenPolicy) (string, error) {
 		SignedString([]byte(AccessTokenSecret))
 	if err != nil {
 		slog.Error("Failed to sign access token", "error", err)
-		return "", InternalError(err, "无法创建访问令牌")
+		return "", httpx.InternalError(err, "无法创建访问令牌")
 	}
 
 	return token, nil
@@ -227,7 +228,7 @@ func issueRefreshToken(opts TokenOptions, policy TokenPolicy) (string, error) {
 		SignedString([]byte(RefreshTokenSecret))
 	if err != nil {
 		slog.Error("Failed to sign refresh token", "error", err)
-		return "", InternalError(err, "无法创建刷新令牌")
+		return "", httpx.InternalError(err, "无法创建刷新令牌")
 	}
 	return token, nil
 

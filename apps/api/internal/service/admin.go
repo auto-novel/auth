@@ -1,6 +1,7 @@
 package service
 
 import (
+	"auth/internal/httpx"
 	"auth/internal/repository"
 	"auth/internal/util"
 	"encoding/json"
@@ -60,17 +61,17 @@ func NewAdminService(
 }
 
 func (s *adminService) Use(router chi.Router) {
-	router.Get("/overview", util.EH(s.GetOverviewActivity))
-	router.Get("/overview/activity", util.EH(s.GetOverviewActivity))
-	router.Get("/overview/user-summary", util.EH(s.GetOverviewUserSummary))
-	router.Get("/user", util.EH(s.GetUser))
-	router.Post("/user/restrict", util.EH(s.RestrictUser))
-	router.Post("/user/unrestrict", util.EH(s.UnrestrictUser))
-	router.Post("/user/ban", util.EH(s.BanUser))
-	router.Post("/user/unban", util.EH(s.UnbanUser))
-	router.Get("/event", util.EH(s.GetEvent))
-	router.Get("/setting", util.EH(s.GetSetting))
-	router.Post("/setting", util.EH(s.UpdateSetting))
+	router.Get("/overview", httpx.EH(s.GetOverviewActivity))
+	router.Get("/overview/activity", httpx.EH(s.GetOverviewActivity))
+	router.Get("/overview/user-summary", httpx.EH(s.GetOverviewUserSummary))
+	router.Get("/user", httpx.EH(s.GetUser))
+	router.Post("/user/restrict", httpx.EH(s.RestrictUser))
+	router.Post("/user/unrestrict", httpx.EH(s.UnrestrictUser))
+	router.Post("/user/ban", httpx.EH(s.BanUser))
+	router.Post("/user/unban", httpx.EH(s.UnbanUser))
+	router.Get("/event", httpx.EH(s.GetEvent))
+	router.Get("/setting", httpx.EH(s.GetSetting))
+	router.Post("/setting", httpx.EH(s.UpdateSetting))
 }
 
 type PageResponse[T any] struct {
@@ -144,33 +145,33 @@ func (s *adminService) GetOverviewActivity(w http.ResponseWriter, r *http.Reques
 	startDateValue := query.Get("start_date")
 	endDateValue := query.Get("end_date")
 	if startDateValue == "" || endDateValue == "" {
-		return util.BadRequest("必须提供 start_date 和 end_date")
+		return httpx.BadRequest("必须提供 start_date 和 end_date")
 	}
 
 	location, err := time.LoadLocation(OverviewStatsTimezone)
 	if err != nil {
 		slog.Error("Failed to load overview statistics timezone", "timezone", OverviewStatsTimezone, "error", err)
-		return util.InternalError(err, "无法加载统计时区")
+		return httpx.InternalError(err, "无法加载统计时区")
 	}
 	startDate, err := time.ParseInLocation(time.DateOnly, startDateValue, location)
 	if err != nil {
-		return util.BadRequest("start_date 必须使用 YYYY-MM-DD 格式")
+		return httpx.BadRequest("start_date 必须使用 YYYY-MM-DD 格式")
 	}
 	endDate, err := time.ParseInLocation(time.DateOnly, endDateValue, location)
 	if err != nil {
-		return util.BadRequest("end_date 必须使用 YYYY-MM-DD 格式")
+		return httpx.BadRequest("end_date 必须使用 YYYY-MM-DD 格式")
 	}
 	if endDate.Before(startDate) {
-		return util.BadRequest("end_date 不能早于 start_date")
+		return httpx.BadRequest("end_date 不能早于 start_date")
 	}
 	if endDate.After(startDate.AddDate(0, 0, OverviewStatsMaxDays-1)) {
-		return util.BadRequest("时间范围不能超过 30 天")
+		return httpx.BadRequest("时间范围不能超过 30 天")
 	}
 
 	stats, err := s.eventRepo.DailyAuthStats(startDate, endDate, OverviewStatsTimezone)
 	if err != nil {
 		slog.Error("Failed to get daily authentication statistics", "error", err)
-		return util.InternalError(err, "查询认证统计失败")
+		return httpx.InternalError(err, "查询认证统计失败")
 	}
 	days := 1
 	for day := startDate; day.Before(endDate); day = day.AddDate(0, 0, 1) {
@@ -185,7 +186,7 @@ func (s *adminService) GetOverviewActivity(w http.ResponseWriter, r *http.Reques
 	)
 	if err != nil {
 		slog.Error("Failed to get previous authentication statistics", "error", err)
-		return util.InternalError(err, "查询上一周期认证统计失败")
+		return httpx.InternalError(err, "查询上一周期认证统计失败")
 	}
 	newUsers, err := s.userRepo.CountCreated(
 		startDate,
@@ -193,7 +194,7 @@ func (s *adminService) GetOverviewActivity(w http.ResponseWriter, r *http.Reques
 	)
 	if err != nil {
 		slog.Error("Failed to count new users", "error", err)
-		return util.InternalError(err, "查询新增用户统计失败")
+		return httpx.InternalError(err, "查询新增用户统计失败")
 	}
 	previousNewUsers, err := s.userRepo.CountCreated(
 		previousStartDate,
@@ -201,7 +202,7 @@ func (s *adminService) GetOverviewActivity(w http.ResponseWriter, r *http.Reques
 	)
 	if err != nil {
 		slog.Error("Failed to count previous new users", "error", err)
-		return util.InternalError(err, "查询上一周期新增用户统计失败")
+		return httpx.InternalError(err, "查询上一周期新增用户统计失败")
 	}
 
 	summary := authActivitySummary(stats)
@@ -220,16 +221,16 @@ func (s *adminService) GetOverviewActivity(w http.ResponseWriter, r *http.Reques
 			RegisterCount: stat.RegisterCount,
 		}
 	}
-	return util.RespondJson(w, response)
+	return httpx.RespondJson(w, response)
 }
 
 func (s *adminService) GetOverviewUserSummary(w http.ResponseWriter, _ *http.Request) error {
 	summary, err := s.userRepo.Summary()
 	if err != nil {
 		slog.Error("Failed to get overview user summary", "error", err)
-		return util.InternalError(err, "查询用户概览失败")
+		return httpx.InternalError(err, "查询用户概览失败")
 	}
-	return util.RespondJson(w, OverviewUserSummaryResponse{
+	return httpx.RespondJson(w, OverviewUserSummaryResponse{
 		TotalUsers:      summary.TotalUsers,
 		RestrictedUsers: summary.RestrictedUsers,
 		BannedUsers:     summary.BannedUsers,
@@ -238,7 +239,7 @@ func (s *adminService) GetOverviewUserSummary(w http.ResponseWriter, _ *http.Req
 
 func (s *adminService) GetUser(w http.ResponseWriter, r *http.Request) error {
 	query := r.URL.Query()
-	timeRange, err := util.ParseTimeRange(query)
+	timeRange, err := httpx.ParseTimeRange(query)
 	if err != nil {
 		return err
 	}
@@ -248,7 +249,7 @@ func (s *adminService) GetUser(w http.ResponseWriter, r *http.Request) error {
 		CreatedAfter:  timeRange.After,
 		CreatedBefore: timeRange.Before,
 	}
-	pagination, err := util.ParsePagination(query, defaultPageSize, maxPageSize)
+	pagination, err := httpx.ParsePagination(query, defaultPageSize, maxPageSize)
 	if err != nil {
 		return err
 	}
@@ -256,13 +257,13 @@ func (s *adminService) GetUser(w http.ResponseWriter, r *http.Request) error {
 	usersCount, err := s.userRepo.Count(filter)
 	if err != nil {
 		slog.Error("Failed to count users", "error", err)
-		return util.InternalError(err, "查询用户失败")
+		return httpx.InternalError(err, "查询用户失败")
 	}
 
 	users, err := s.userRepo.List(filter, pagination.Limit, pagination.Offset)
 	if err != nil {
 		slog.Error("Failed to list users", "error", err)
-		return util.InternalError(err, "查询用户失败")
+		return httpx.InternalError(err, "查询用户失败")
 	}
 
 	userPage := PageResponse[UserResponse]{
@@ -280,7 +281,7 @@ func (s *adminService) GetUser(w http.ResponseWriter, r *http.Request) error {
 			Attr:      jsonObject(user.Attr),
 		}
 	}
-	return util.RespondJson(w, userPage)
+	return httpx.RespondJson(w, userPage)
 }
 
 func (s *adminService) RestrictUser(w http.ResponseWriter, r *http.Request) error {
@@ -289,7 +290,7 @@ func (s *adminService) RestrictUser(w http.ResponseWriter, r *http.Request) erro
 		return err
 	}
 
-	req, err := util.Body[struct {
+	req, err := httpx.Body[struct {
 		Username string `json:"username" validate:"required"`
 		Reason   string `json:"reason" validate:"required"`
 	}](r)
@@ -301,18 +302,18 @@ func (s *adminService) RestrictUser(w http.ResponseWriter, r *http.Request) erro
 	user, err := s.userRepo.FindByUsername(req.Username)
 	if err != nil {
 		slog.Error("User lookup failed", "username", req.Username, "error", err)
-		return util.NotFound("用户不存在")
+		return httpx.NotFound("用户不存在")
 	}
 	if user.Role != repository.RoleMember {
 		slog.Error("Unauthorized role change attempt", "username", req.Username, "current_role", user.Role)
-		return util.Unauthorized("没有权限对非普通用户进行操作")
+		return httpx.Unauthorized("没有权限对非普通用户进行操作")
 	}
 
 	user.Role = repository.RoleRestricted
 	err = s.userRepo.UpdateRole(user)
 	if err != nil {
 		slog.Error("Failed to update user role", "username", user.Username, "error", err)
-		return util.InternalError(err, "更新用户角色失败")
+		return httpx.InternalError(err, "更新用户角色失败")
 	}
 
 	s.eventRepo.Save(
@@ -337,7 +338,7 @@ func (s *adminService) BanUser(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	req, err := util.Body[struct {
+	req, err := httpx.Body[struct {
 		Username string `json:"username" validate:"required"`
 		Reason   string `json:"reason" validate:"required"`
 	}](r)
@@ -349,18 +350,18 @@ func (s *adminService) BanUser(w http.ResponseWriter, r *http.Request) error {
 	user, err := s.userRepo.FindByUsername(req.Username)
 	if err != nil {
 		slog.Error("User lookup failed", "username", req.Username, "error", err)
-		return util.NotFound("用户不存在")
+		return httpx.NotFound("用户不存在")
 	}
 	if user.Role != repository.RoleMember {
 		slog.Error("Unauthorized role change attempt", "username", req.Username, "current_role", user.Role)
-		return util.Unauthorized("没有权限对非普通用户进行操作")
+		return httpx.Unauthorized("没有权限对非普通用户进行操作")
 	}
 
 	user.Role = repository.RoleBanned
 	err = s.userRepo.UpdateRole(user)
 	if err != nil {
 		slog.Error("Failed to update user role", "username", user.Username, "error", err)
-		return util.InternalError(err, "更新用户角色失败")
+		return httpx.InternalError(err, "更新用户角色失败")
 	}
 
 	s.eventRepo.Save(
@@ -385,7 +386,7 @@ func (s *adminService) UnrestrictUser(w http.ResponseWriter, r *http.Request) er
 		return err
 	}
 
-	req, err := util.Body[struct {
+	req, err := httpx.Body[struct {
 		Username string `json:"username" validate:"required"`
 		Reason   string `json:"reason" validate:"required"`
 	}](r)
@@ -397,17 +398,17 @@ func (s *adminService) UnrestrictUser(w http.ResponseWriter, r *http.Request) er
 	user, err := s.userRepo.FindByUsername(req.Username)
 	if err != nil {
 		slog.Error("User lookup failed", "username", req.Username, "error", err)
-		return util.NotFound("用户不存在")
+		return httpx.NotFound("用户不存在")
 	}
 	if user.Role != repository.RoleRestricted {
 		slog.Error("Unauthorized role change attempt", "username", req.Username, "current_role", user.Role)
-		return util.Unauthorized("只能取消受限用户的限制")
+		return httpx.Unauthorized("只能取消受限用户的限制")
 	}
 
 	user.Role = repository.RoleMember
 	if err := s.userRepo.UpdateRole(user); err != nil {
 		slog.Error("Failed to update user role", "username", user.Username, "error", err)
-		return util.InternalError(err, "更新用户角色失败")
+		return httpx.InternalError(err, "更新用户角色失败")
 	}
 
 	s.eventRepo.Save(
@@ -432,7 +433,7 @@ func (s *adminService) UnbanUser(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	req, err := util.Body[struct {
+	req, err := httpx.Body[struct {
 		Username string `json:"username" validate:"required"`
 		Reason   string `json:"reason" validate:"required"`
 	}](r)
@@ -444,17 +445,17 @@ func (s *adminService) UnbanUser(w http.ResponseWriter, r *http.Request) error {
 	user, err := s.userRepo.FindByUsername(req.Username)
 	if err != nil {
 		slog.Error("User lookup failed", "username", req.Username, "error", err)
-		return util.NotFound("用户不存在")
+		return httpx.NotFound("用户不存在")
 	}
 	if user.Role != repository.RoleBanned {
 		slog.Error("Unauthorized role change attempt", "username", req.Username, "current_role", user.Role)
-		return util.Unauthorized("只能取消已封禁用户的封禁")
+		return httpx.Unauthorized("只能取消已封禁用户的封禁")
 	}
 
 	user.Role = repository.RoleMember
 	if err := s.userRepo.UpdateRole(user); err != nil {
 		slog.Error("Failed to update user role", "username", user.Username, "error", err)
-		return util.InternalError(err, "更新用户角色失败")
+		return httpx.InternalError(err, "更新用户角色失败")
 	}
 
 	s.eventRepo.Save(
@@ -481,7 +482,7 @@ func (s *adminService) GetEvent(w http.ResponseWriter, r *http.Request) error {
 			actions = append(actions, action)
 		}
 	}
-	timeRange, err := util.ParseTimeRange(query)
+	timeRange, err := httpx.ParseTimeRange(query)
 	if err != nil {
 		return err
 	}
@@ -492,7 +493,7 @@ func (s *adminService) GetEvent(w http.ResponseWriter, r *http.Request) error {
 		CreatedAfter:  timeRange.After,
 		CreatedBefore: timeRange.Before,
 	}
-	pagination, err := util.ParsePagination(query, defaultPageSize, maxPageSize)
+	pagination, err := httpx.ParsePagination(query, defaultPageSize, maxPageSize)
 	if err != nil {
 		return err
 	}
@@ -500,13 +501,13 @@ func (s *adminService) GetEvent(w http.ResponseWriter, r *http.Request) error {
 	eventsCount, err := s.eventRepo.Count(filter)
 	if err != nil {
 		slog.Error("Failed to count events", "error", err)
-		return util.InternalError(err, "查询事件失败")
+		return httpx.InternalError(err, "查询事件失败")
 	}
 
 	events, err := s.eventRepo.List(filter, pagination.Limit, pagination.Offset)
 	if err != nil {
 		slog.Error("Failed to list events", "error", err)
-		return util.InternalError(err, "查询事件失败")
+		return httpx.InternalError(err, "查询事件失败")
 	}
 
 	eventPage := PageResponse[EventResponse]{
@@ -521,12 +522,12 @@ func (s *adminService) GetEvent(w http.ResponseWriter, r *http.Request) error {
 			CreatedAt: event.CreatedAt,
 		}
 	}
-	return util.RespondJson(w, eventPage)
+	return httpx.RespondJson(w, eventPage)
 }
 
 func (s *adminService) GetSetting(w http.ResponseWriter, r *http.Request) error {
 	settings := s.settingRepo.Get()
-	return util.RespondJson(w, settings)
+	return httpx.RespondJson(w, settings)
 }
 
 func (s *adminService) UpdateSetting(w http.ResponseWriter, r *http.Request) error {
@@ -535,7 +536,7 @@ func (s *adminService) UpdateSetting(w http.ResponseWriter, r *http.Request) err
 		return err
 	}
 
-	req, err := util.Body[struct {
+	req, err := httpx.Body[struct {
 		RegisterEnabled      *bool `json:"registerEnabled" validate:"required"`
 		ResetPasswordEnabled *bool `json:"resetPasswordEnabled" validate:"required"`
 	}](r)
@@ -550,7 +551,7 @@ func (s *adminService) UpdateSetting(w http.ResponseWriter, r *http.Request) err
 	})
 	if err != nil {
 		slog.Error("Failed to update auth settings", "error", err)
-		return util.InternalError(err, "更新认证设置失败")
+		return httpx.InternalError(err, "更新认证设置失败")
 	}
 
 	s.eventRepo.Save(
@@ -566,5 +567,5 @@ func (s *adminService) UpdateSetting(w http.ResponseWriter, r *http.Request) err
 		},
 	)
 
-	return util.RespondJson(w, settings)
+	return httpx.RespondJson(w, settings)
 }

@@ -1,6 +1,7 @@
 package service
 
 import (
+	"auth/internal/httpx"
 	"auth/internal/repository"
 	"auth/internal/util"
 	"encoding/json"
@@ -53,9 +54,9 @@ type StrikeResponse struct {
 }
 
 func (s *adminStrikeService) Use(router chi.Router) {
-	router.Get("/", util.EH(s.GetStrikes))
-	router.Post("/", util.EH(s.CreateStrike))
-	router.Post("/{strikeID}/revoke", util.EH(s.RevokeStrike))
+	router.Get("/", httpx.EH(s.GetStrikes))
+	router.Post("/", httpx.EH(s.CreateStrike))
+	router.Post("/{strikeID}/revoke", httpx.EH(s.RevokeStrike))
 }
 
 func strikeResponse(record repository.StrikeDetails) StrikeResponse {
@@ -77,15 +78,15 @@ func strikePage(records []repository.StrikeDetails, total int64) PageResponse[St
 
 func (s *adminStrikeService) findStrikeTarget(username string) (*repository.User, error) {
 	if username == "" {
-		return nil, util.BadRequest("无效的用户名")
+		return nil, httpx.BadRequest("无效的用户名")
 	}
 	user, err := s.userRepo.FindByUsername(username)
 	if err != nil {
 		slog.Error("Target user lookup failed", "username", username, "error", err)
-		return nil, util.InternalError(err, "查询用户失败")
+		return nil, httpx.InternalError(err, "查询用户失败")
 	}
 	if user == nil {
-		return nil, util.NotFound("用户不存在")
+		return nil, httpx.NotFound("用户不存在")
 	}
 	return user, nil
 }
@@ -98,14 +99,14 @@ func (s *adminStrikeService) createStrike(
 	point int16,
 ) (repository.StrikeRecord, error) {
 	if target.Role != repository.RoleMember {
-		return repository.StrikeRecord{}, util.Unauthorized("没有权限对非普通用户进行操作")
+		return repository.StrikeRecord{}, httpx.Unauthorized("没有权限对非普通用户进行操作")
 	}
 	operator, err := s.userRepo.FindByUsername(adminUsername)
 	if err != nil {
-		return repository.StrikeRecord{}, util.InternalError(err, "查询操作用户失败")
+		return repository.StrikeRecord{}, httpx.InternalError(err, "查询操作用户失败")
 	}
 	if operator == nil {
-		return repository.StrikeRecord{}, util.Unauthorized("操作用户不存在")
+		return repository.StrikeRecord{}, httpx.Unauthorized("操作用户不存在")
 	}
 	if point <= 0 {
 		point = 1
@@ -121,7 +122,7 @@ func (s *adminStrikeService) createStrike(
 	)
 	if err != nil {
 		slog.Error("Failed to save strike record", "username", target.Username, "error", err)
-		return repository.StrikeRecord{}, util.InternalError(err, "保存违规记录失败")
+		return repository.StrikeRecord{}, httpx.InternalError(err, "保存违规记录失败")
 	}
 	if restricted {
 		if err := s.eventRepo.Save(EventRestrictUser, &struct {
@@ -137,7 +138,7 @@ func (s *adminStrikeService) createStrike(
 
 func (s *adminStrikeService) GetStrikes(w http.ResponseWriter, r *http.Request) error {
 	query := r.URL.Query()
-	timeRange, err := util.ParseTimeRange(query)
+	timeRange, err := httpx.ParseTimeRange(query)
 	if err != nil {
 		return err
 	}
@@ -159,19 +160,19 @@ func (s *adminStrikeService) GetStrikes(w http.ResponseWriter, r *http.Request) 
 		}
 		filter.OperatorID = &operator.ID
 	}
-	pagination, err := util.ParsePagination(query, defaultPageSize, maxPageSize)
+	pagination, err := httpx.ParsePagination(query, defaultPageSize, maxPageSize)
 	if err != nil {
 		return err
 	}
 	total, err := s.strikeRepo.Count(filter)
 	if err != nil {
-		return util.InternalError(err, "查询违规记录失败")
+		return httpx.InternalError(err, "查询违规记录失败")
 	}
 	records, err := s.strikeRepo.ListDetails(filter, pagination.Limit, pagination.Offset)
 	if err != nil {
-		return util.InternalError(err, "查询违规记录失败")
+		return httpx.InternalError(err, "查询违规记录失败")
 	}
-	return util.RespondJson(w, strikePage(records, total))
+	return httpx.RespondJson(w, strikePage(records, total))
 }
 
 func (s *adminStrikeService) CreateStrike(w http.ResponseWriter, r *http.Request) error {
@@ -179,7 +180,7 @@ func (s *adminStrikeService) CreateStrike(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		return err
 	}
-	req, err := util.Body[struct {
+	req, err := httpx.Body[struct {
 		Username string `json:"username" validate:"required"`
 		Reason   string `json:"reason" validate:"required"`
 		Evidence string `json:"evidence" validate:"required"`
@@ -198,7 +199,7 @@ func (s *adminStrikeService) CreateStrike(w http.ResponseWriter, r *http.Request
 	}
 	operatorUsername := principal.Username
 	targetUsername := target.Username
-	return util.RespondJson(w, strikeResponse(repository.StrikeDetails{
+	return httpx.RespondJson(w, strikeResponse(repository.StrikeDetails{
 		AuthStrikeRecord: record,
 		Username:         &targetUsername,
 		OperatorUsername: &operatorUsername,
@@ -212,31 +213,31 @@ func (s *adminStrikeService) RevokeStrike(w http.ResponseWriter, r *http.Request
 	}
 	strikeID, err := strconv.ParseInt(chi.URLParam(r, "strikeID"), 10, 64)
 	if err != nil || strikeID <= 0 {
-		return util.BadRequest("无效的违规记录 ID")
+		return httpx.BadRequest("无效的违规记录 ID")
 	}
 	record, err := s.strikeRepo.FindDetailsByID(strikeID)
 	if err != nil {
-		return util.InternalError(err, "查询违规记录失败")
+		return httpx.InternalError(err, "查询违规记录失败")
 	}
 	if record == nil {
-		return util.NotFound("违规记录不存在")
+		return httpx.NotFound("违规记录不存在")
 	}
 	operator, err := s.userRepo.FindByUsername(principal.Username)
 	if err != nil {
-		return util.InternalError(err, "查询操作用户失败")
+		return httpx.InternalError(err, "查询操作用户失败")
 	}
 	if operator == nil {
-		return util.Unauthorized("操作用户不存在")
+		return httpx.Unauthorized("操作用户不存在")
 	}
 	revoked, err := s.strikeRepo.Revoke(record.ID, operator.ID, time.Now())
 	if err != nil {
-		return util.InternalError(err, "撤销违规记录失败")
+		return httpx.InternalError(err, "撤销违规记录失败")
 	}
 	if revoked == nil {
-		return util.Conflict("违规记录已撤销")
+		return httpx.Conflict("违规记录已撤销")
 	}
 	revokedByUsername := principal.Username
-	return util.RespondJson(w, strikeResponse(repository.StrikeDetails{
+	return httpx.RespondJson(w, strikeResponse(repository.StrikeDetails{
 		AuthStrikeRecord:  *revoked,
 		Username:          record.Username,
 		OperatorUsername:  record.OperatorUsername,

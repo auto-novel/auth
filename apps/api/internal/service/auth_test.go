@@ -1,8 +1,8 @@
 package service
 
 import (
+	"auth/internal/httpx"
 	"auth/internal/repository"
-	"auth/internal/util"
 	"bytes"
 	"io"
 	"net/http"
@@ -70,7 +70,7 @@ func TestAuthFeaturesCanBeDisabled(t *testing.T) {
 			request.Header.Set("Content-Type", "application/json")
 			response := httptest.NewRecorder()
 
-			util.EH(test.handler).ServeHTTP(response, request)
+			httpx.EH(test.handler).ServeHTTP(response, request)
 
 			result := response.Result()
 			defer result.Body.Close()
@@ -132,7 +132,7 @@ func TestAuthRejectsUnknownApp(t *testing.T) {
 			request.Header.Set("Content-Type", "application/json")
 			response := httptest.NewRecorder()
 
-			util.EH(test.handler).ServeHTTP(response, request)
+			httpx.EH(test.handler).ServeHTTP(response, request)
 
 			result := response.Result()
 			defer result.Body.Close()

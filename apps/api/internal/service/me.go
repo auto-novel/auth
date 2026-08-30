@@ -1,6 +1,7 @@
 package service
 
 import (
+	"auth/internal/httpx"
 	"auth/internal/repository"
 	"auth/internal/util"
 	"log/slog"
@@ -34,7 +35,7 @@ func NewMeService(userRepo repository.UserRepository, strikeRepo repository.Stri
 }
 
 func (s *meService) Use(router chi.Router) {
-	router.Get("/strikes", util.EH(s.GetStrikes))
+	router.Get("/strikes", httpx.EH(s.GetStrikes))
 }
 
 func (s *meService) GetStrikes(w http.ResponseWriter, r *http.Request) error {
@@ -45,14 +46,14 @@ func (s *meService) GetStrikes(w http.ResponseWriter, r *http.Request) error {
 	user, err := s.userRepo.FindByUsername(principal.Username)
 	if err != nil {
 		slog.Error("Current user lookup failed", "username", principal.Username, "error", err)
-		return util.InternalError(err, "查询当前用户失败")
+		return httpx.InternalError(err, "查询当前用户失败")
 	}
 	if user == nil {
-		return util.Unauthorized("当前用户不存在")
+		return httpx.Unauthorized("当前用户不存在")
 	}
 
 	query := r.URL.Query()
-	timeRange, err := util.ParseTimeRange(query)
+	timeRange, err := httpx.ParseTimeRange(query)
 	if err != nil {
 		return err
 	}
@@ -61,7 +62,7 @@ func (s *meService) GetStrikes(w http.ResponseWriter, r *http.Request) error {
 		CreatedAfter:  timeRange.After,
 		CreatedBefore: timeRange.Before,
 	}
-	pagination, err := util.ParsePagination(query, defaultPageSize, maxPageSize)
+	pagination, err := httpx.ParsePagination(query, defaultPageSize, maxPageSize)
 	if err != nil {
 		return err
 	}
@@ -71,11 +72,11 @@ func (s *meService) GetStrikes(w http.ResponseWriter, r *http.Request) error {
 func (s *meService) respondStrikes(w http.ResponseWriter, filter repository.StrikeFilter, limit, offset int64) error {
 	total, err := s.strikeRepo.Count(filter)
 	if err != nil {
-		return util.InternalError(err, "查询违规记录失败")
+		return httpx.InternalError(err, "查询违规记录失败")
 	}
 	records, err := s.strikeRepo.List(filter, limit, offset)
 	if err != nil {
-		return util.InternalError(err, "查询违规记录失败")
+		return httpx.InternalError(err, "查询违规记录失败")
 	}
 	response := PageResponse[MeStrikeResponse]{
 		Total: total,
@@ -91,5 +92,5 @@ func (s *meService) respondStrikes(w http.ResponseWriter, filter repository.Stri
 			RevokedAt: record.RevokedAt,
 		}
 	}
-	return util.RespondJson(w, response)
+	return httpx.RespondJson(w, response)
 }

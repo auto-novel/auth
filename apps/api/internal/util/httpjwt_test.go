@@ -1,6 +1,7 @@
 package util
 
 import (
+	"auth/internal/httpx"
 	"auth/internal/repository"
 	"io"
 	"net/http"
@@ -33,7 +34,7 @@ func TestRequireAdmin(t *testing.T) {
 			handler := RequireAdmin(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				principal, err := AuthenticatedPrincipal(r)
 				if err != nil {
-					RespondError(w, err)
+					httpx.RespondError(w, err)
 					return
 				}
 				_, _ = io.WriteString(w, principal.Username)

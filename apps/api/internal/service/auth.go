@@ -1,6 +1,7 @@
 package service
 
 import (
+	"auth/internal/httpx"
 	"auth/internal/infra"
 	"auth/internal/repository"
 	"auth/internal/util"
@@ -59,24 +60,24 @@ func NewAuthService(
 
 func (s *authService) Use(router chi.Router) {
 	router.Group(func(router chi.Router) {
-		router.Use(util.RateLimiter(100))
-		router.Post("/register", util.EH(s.Register))
+		router.Use(httpx.RateLimiter(100))
+		router.Post("/register", httpx.EH(s.Register))
 	})
 	router.Group(func(router chi.Router) {
-		router.Use(util.RateLimiter(100))
-		router.Post("/otp/request", util.EH(s.RequestOtp))
+		router.Use(httpx.RateLimiter(100))
+		router.Post("/otp/request", httpx.EH(s.RequestOtp))
 	})
 
-	router.Post("/login", util.EH(s.Login))
-	router.Post("/logout", util.EH(s.Logout))
-	router.Post("/refresh", util.EH(s.Refresh))
-	router.Post("/password/reset", util.EH(s.ResetPassword))
+	router.Post("/login", httpx.EH(s.Login))
+	router.Post("/logout", httpx.EH(s.Logout))
+	router.Post("/refresh", httpx.EH(s.Refresh))
+	router.Post("/password/reset", httpx.EH(s.ResetPassword))
 }
 
 func validateUserCanAuthenticate(user *repository.User) error {
 	switch user.Role {
 	case repository.RoleBanned:
-		return util.Forbidden("用户已被封禁")
+		return httpx.Forbidden("用户已被封禁")
 	default:
 		return nil
 	}
@@ -84,14 +85,14 @@ func validateUserCanAuthenticate(user *repository.User) error {
 
 func validateUsername(username string) error {
 	if strings.TrimSpace(username) != username {
-		return util.BadRequest("用户名前后不能有空格")
+		return httpx.BadRequest("用户名前后不能有空格")
 	}
 	for _, r := range username {
 		if !unicode.IsPrint(r) {
-			return util.BadRequest("用户名只能包含可打印字符")
+			return httpx.BadRequest("用户名只能包含可打印字符")
 		}
 		if r == '@' {
-			return util.BadRequest("用户名不能包含@字符")
+			return httpx.BadRequest("用户名不能包含@字符")
 		}
 	}
 	return nil
@@ -100,10 +101,10 @@ func validateUsername(username string) error {
 func validatePassword(password string) error {
 	for _, r := range password {
 		if !unicode.IsPrint(r) {
-			return util.BadRequest("密码只能包含可打印字符")
+			return httpx.BadRequest("密码只能包含可打印字符")
 		}
 		if unicode.IsSpace(r) {
-			return util.BadRequest("密码不能包含空格")
+			return httpx.BadRequest("密码不能包含空格")
 		}
 	}
 	return nil
@@ -112,10 +113,10 @@ func validatePassword(password string) error {
 func (s *authService) Register(w http.ResponseWriter, r *http.Request) error {
 	settings := s.settingRepo.Get()
 	if !settings.RegisterEnabled {
-		return util.Forbidden("注册功能已关闭")
+		return httpx.Forbidden("注册功能已关闭")
 	}
 
-	req, err := util.Body[struct {
+	req, err := httpx.Body[struct {
 		App      string `json:"app" validate:"required"`
 		Username string `json:"username" validate:"required,min=2,max=16"`
 		Password string `json:"password" validate:"required,min=8,max=100"`
@@ -140,17 +141,17 @@ func (s *authService) Register(w http.ResponseWriter, r *http.Request) error {
 	hashedPassword, err := util.GenerateHash(req.Password)
 	if err != nil {
 		slog.Error("Password hash error", "error", err)
-		return util.InternalError(err, "密码哈希失败")
+		return httpx.InternalError(err, "密码哈希失败")
 	}
 
 	validOtp, err := s.otpRepo.CheckOtp(repository.OtpVerify, req.Email, req.Otp)
 	if err != nil {
 		slog.Error("Failed to verify OTP", "email", req.Email, "error", err)
-		return util.InternalError(err, "验证码校验失败")
+		return httpx.InternalError(err, "验证码校验失败")
 	}
 	if !validOtp {
 		slog.Error("Invalid OTP", "email", req.Email)
-		return util.BadRequest("无效验证码")
+		return httpx.BadRequest("无效验证码")
 	}
 
 	user := &repository.User{
@@ -166,13 +167,13 @@ func (s *authService) Register(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		if repository.IsUniqueConstraintViolation(err, "auth_user_username_key") {
 			slog.Error("Username already exist")
-			return util.Conflict("用户名已被占用")
+			return httpx.Conflict("用户名已被占用")
 		} else if repository.IsUniqueConstraintViolation(err, "auth_user_email_key") {
 			slog.Error("Email already exist")
-			return util.Conflict("邮箱已被占用")
+			return httpx.Conflict("邮箱已被占用")
 		}
 		slog.Error("Failed to save user", "error", err)
-		return util.InternalError(err, "创建用户失败")
+		return httpx.InternalError(err, "创建用户失败")
 	}
 	if err := s.otpRepo.DeleteOtp(repository.OtpVerify, req.Email, req.Otp); err != nil {
 		slog.Warn("Failed to delete used OTP", "email", req.Email, "error", err)
@@ -189,7 +190,7 @@ func (s *authService) Register(w http.ResponseWriter, r *http.Request) error {
 			App:        req.App,
 			ActorUser:  user.Username,
 			TargetUser: user.Username,
-			Ip:         util.GetRealIp(r),
+			Ip:         httpx.GetRealIp(r),
 		},
 	)
 
@@ -204,7 +205,7 @@ func (s *authService) Register(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (s *authService) Login(w http.ResponseWriter, r *http.Request) error {
-	req, err := util.Body[struct {
+	req, err := httpx.Body[struct {
 		App      string `json:"app" validate:"required"`
 		Username string `json:"username" validate:"required"`
 		Password string `json:"password" validate:"required"`
@@ -222,25 +223,25 @@ func (s *authService) Login(w http.ResponseWriter, r *http.Request) error {
 		user, err = s.userRepo.FindByEmail(req.Username)
 		if err != nil {
 			slog.Error("User lookup by email failed", "email", req.Username, "error", err)
-			return util.InternalError(err, "查询用户失败")
+			return httpx.InternalError(err, "查询用户失败")
 		}
 	}
 	if user == nil {
 		user, err = s.userRepo.FindByUsername(req.Username)
 		if err != nil {
 			slog.Error("User lookup by username failed", "username", req.Username, "error", err)
-			return util.InternalError(err, "查询用户失败")
+			return httpx.InternalError(err, "查询用户失败")
 		}
 	}
 	if user == nil {
 		slog.Error("User not found", "username", req.Username)
-		return util.NotFound("用户不存在")
+		return httpx.NotFound("用户不存在")
 	}
 
 	v, err := util.ValidateHash(user.Password, req.Password)
 	if !v.Valid || err != nil {
 		slog.Error("Password validation failed", "username", user.Username, "error", err)
-		return util.Unauthorized("密码错误")
+		return httpx.Unauthorized("密码错误")
 	}
 	if err := validateUserCanAuthenticate(user); err != nil {
 		slog.Warn("User is not allowed to log in", "username", user.Username, "role", user.Role)
@@ -270,7 +271,7 @@ func (s *authService) Login(w http.ResponseWriter, r *http.Request) error {
 			App:        req.App,
 			ActorUser:  user.Username,
 			TargetUser: user.Username,
-			Ip:         util.GetRealIp(r),
+			Ip:         httpx.GetRealIp(r),
 		},
 	)
 	return util.RespondAuthTokens(w, util.TokenOptions{
@@ -297,11 +298,11 @@ func (s *authService) Refresh(w http.ResponseWriter, r *http.Request) error {
 	user, err := s.userRepo.FindByUsername(username)
 	if err != nil {
 		slog.Error("User lookup failed", "username", username, "error", err)
-		return util.InternalError(err, "查询用户失败")
+		return httpx.InternalError(err, "查询用户失败")
 	}
 	if user == nil {
 		slog.Error("User not found", "username", username)
-		return util.NotFound("用户不存在")
+		return httpx.NotFound("用户不存在")
 	}
 	if err := validateUserCanAuthenticate(user); err != nil {
 		slog.Warn("User is not allowed to refresh token", "username", user.Username, "role", user.Role)
@@ -337,7 +338,7 @@ func (s *authService) Logout(w http.ResponseWriter, r *http.Request) error {
 		}{
 			ActorUser:  username,
 			TargetUser: username,
-			Ip:         util.GetRealIp(r),
+			Ip:         httpx.GetRealIp(r),
 		},
 	)
 
@@ -377,7 +378,7 @@ func (s *authService) sendOtpEmail(otpType string, email string, otp string) err
 }
 
 func (s *authService) RequestOtp(w http.ResponseWriter, r *http.Request) error {
-	req, err := util.Body[struct {
+	req, err := httpx.Body[struct {
 		Email string `json:"email" validate:"required,email"`
 		Type  string `json:"type" validate:"required,oneof=verify reset_password"`
 	}](r)
@@ -387,16 +388,16 @@ func (s *authService) RequestOtp(w http.ResponseWriter, r *http.Request) error {
 	}
 	settings := s.settingRepo.Get()
 	if req.Type == repository.OtpVerify && !settings.RegisterEnabled {
-		return util.Forbidden("注册功能已关闭")
+		return httpx.Forbidden("注册功能已关闭")
 	}
 	if req.Type == repository.OtpResetPassword && !settings.ResetPasswordEnabled {
-		return util.Forbidden("重置密码功能已关闭")
+		return httpx.Forbidden("重置密码功能已关闭")
 	}
 
 	user, err := s.userRepo.FindByEmail(req.Email)
 	if err != nil {
 		slog.Error("User lookup failed", "email", req.Email, "error", err)
-		return util.InternalError(err, "邮件检查失败")
+		return httpx.InternalError(err, "邮件检查失败")
 	}
 
 	// 根据不同类型进行不同的验证
@@ -404,28 +405,28 @@ func (s *authService) RequestOtp(w http.ResponseWriter, r *http.Request) error {
 	case repository.OtpVerify:
 		if user != nil {
 			slog.Error("Email already in use", "email", req.Email)
-			return util.Conflict("邮箱已经被使用")
+			return httpx.Conflict("邮箱已经被使用")
 		}
 	case repository.OtpResetPassword:
 		if user == nil {
 			slog.Error("User not found", "email", req.Email)
-			return util.NotFound("用户不存在")
+			return httpx.NotFound("用户不存在")
 		}
 	default:
 		slog.Error("Invalid OTP request type", "type", req.Type)
-		return util.BadRequest("无效的请求类型")
+		return httpx.BadRequest("无效的请求类型")
 	}
 
 	otp, err := s.otpRepo.SetOtp(req.Type, req.Email)
 	if err != nil {
 		slog.Error("Failed to create OTP", "email", req.Email, "error", err)
-		return util.InternalError(err, "创建验证码失败")
+		return httpx.InternalError(err, "创建验证码失败")
 	}
 
 	err = s.sendOtpEmail(req.Type, req.Email, otp)
 	if err != nil {
 		slog.Error("Failed to send OTP email", "email", req.Email, "error", err)
-		return util.InternalError(err, "发送验证邮件失败")
+		return httpx.InternalError(err, "发送验证邮件失败")
 	}
 
 	s.eventRepo.Save(
@@ -437,20 +438,20 @@ func (s *authService) RequestOtp(w http.ResponseWriter, r *http.Request) error {
 		}{
 			Email: req.Email,
 			Type:  req.Type,
-			Ip:    util.GetRealIp(r),
+			Ip:    httpx.GetRealIp(r),
 		},
 	)
 
-	return util.RespondText(w, "验证邮件已发送")
+	return httpx.RespondText(w, "验证邮件已发送")
 }
 
 func (s *authService) ResetPassword(w http.ResponseWriter, r *http.Request) error {
 	settings := s.settingRepo.Get()
 	if !settings.ResetPasswordEnabled {
-		return util.Forbidden("重置密码功能已关闭")
+		return httpx.Forbidden("重置密码功能已关闭")
 	}
 
-	req, err := util.Body[struct {
+	req, err := httpx.Body[struct {
 		Email    string `json:"email" validate:"required,email"`
 		Otp      string `json:"otp" validate:"required,len=26"`
 		Password string `json:"password" validate:"required,min=8,max=100"`
@@ -466,34 +467,34 @@ func (s *authService) ResetPassword(w http.ResponseWriter, r *http.Request) erro
 	user, err := s.userRepo.FindByEmail(req.Email)
 	if err != nil {
 		slog.Error("User lookup failed", "email", req.Email, "error", err)
-		return util.InternalError(err, "查询用户失败")
+		return httpx.InternalError(err, "查询用户失败")
 	}
 	if user == nil {
 		slog.Error("User not found", "email", req.Email)
-		return util.NotFound("用户不存在")
+		return httpx.NotFound("用户不存在")
 	}
 
 	newHashedPassword, err := util.GenerateHash(req.Password)
 	if err != nil {
 		slog.Error("Failed to hash password", "email", req.Email, "error", err)
-		return util.InternalError(err, "密码哈希失败")
+		return httpx.InternalError(err, "密码哈希失败")
 	}
 
 	validOtp, err := s.otpRepo.CheckOtp(repository.OtpResetPassword, req.Email, req.Otp)
 	if err != nil {
 		slog.Error("Failed to verify OTP", "email", req.Email, "error", err)
-		return util.InternalError(err, "验证码校验失败")
+		return httpx.InternalError(err, "验证码校验失败")
 	}
 	if !validOtp {
 		slog.Error("Invalid OTP", "email", req.Email)
-		return util.Unauthorized("无效的验证码")
+		return httpx.Unauthorized("无效的验证码")
 	}
 
 	user.Password = newHashedPassword
 	err = s.userRepo.UpdateHashedPassword(user)
 	if err != nil {
 		slog.Error("Failed to update password", "email", req.Email, "error", err)
-		return util.InternalError(err, "密码重置失败")
+		return httpx.InternalError(err, "密码重置失败")
 	}
 	if err := s.otpRepo.DeleteOtp(repository.OtpResetPassword, req.Email, req.Otp); err != nil {
 		slog.Warn("Failed to delete used OTP", "email", req.Email, "error", err)
@@ -508,9 +509,9 @@ func (s *authService) ResetPassword(w http.ResponseWriter, r *http.Request) erro
 		}{
 			ActorUser:  user.Username,
 			TargetUser: user.Username,
-			Ip:         util.GetRealIp(r),
+			Ip:         httpx.GetRealIp(r),
 		},
 	)
 
-	return util.RespondText(w, "密码重置成功")
+	return httpx.RespondText(w, "密码重置成功")
 }
