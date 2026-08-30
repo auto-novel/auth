@@ -1,10 +1,12 @@
 package httpx
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
 	"math"
+	"mime"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -18,7 +20,8 @@ func Body[T any](r *http.Request) (T, error) {
 	var zero T
 
 	contentType := r.Header.Get("Content-Type")
-	if contentType != "" && contentType != "application/json" {
+	mediaType, _, err := mime.ParseMediaType(contentType)
+	if err != nil || mediaType != "application/json" {
 		return zero, &HttpError{
 			StatusCode: http.StatusUnsupportedMediaType,
 			Message:    "expected content-type application/json",
@@ -27,12 +30,26 @@ func Body[T any](r *http.Request) (T, error) {
 
 	// 限制读取的最大字节数为1MB
 	const maxBytesDefault = 1 << 20
-	limitedReader := io.LimitReader(r.Body, maxBytesDefault)
 	defer r.Body.Close()
+	body, err := io.ReadAll(io.LimitReader(r.Body, maxBytesDefault+1))
+	if err != nil {
+		return zero, BadRequest("invalid JSON format")
+	}
+	if len(body) > maxBytesDefault {
+		return zero, &HttpError{
+			StatusCode: http.StatusRequestEntityTooLarge,
+			Message:    "request body too large",
+		}
+	}
 
 	// 解码JSON
 	var result T
-	if err := json.NewDecoder(limitedReader).Decode(&result); err != nil {
+	decoder := json.NewDecoder(bytes.NewReader(body))
+	if err := decoder.Decode(&result); err != nil {
+		return zero, BadRequest("invalid JSON format")
+	}
+	// 请求体只能包含一个 JSON 值，允许后面有空白字符。
+	if err := decoder.Decode(&struct{}{}); err != io.EOF {
 		return zero, BadRequest("invalid JSON format")
 	}
 
