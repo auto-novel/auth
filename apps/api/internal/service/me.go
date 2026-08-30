@@ -1,9 +1,9 @@
 package service
 
 import (
+	"auth/internal/authn"
 	"auth/internal/httpx"
 	"auth/internal/repository"
-	"auth/internal/util"
 	"log/slog"
 	"net/http"
 	"time"
@@ -39,7 +39,7 @@ func (s *meService) Use(router chi.Router) {
 }
 
 func (s *meService) GetStrikes(w http.ResponseWriter, r *http.Request) error {
-	principal, err := util.AuthenticatedPrincipal(r)
+	principal, err := authn.AuthenticatedPrincipal(r)
 	if err != nil {
 		return err
 	}

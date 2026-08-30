@@ -1,9 +1,9 @@
 package service
 
 import (
+	"auth/internal/authn"
 	"auth/internal/httpx"
 	"auth/internal/repository"
-	"auth/internal/util"
 	"encoding/json"
 	"log/slog"
 	"net/http"
@@ -285,7 +285,7 @@ func (s *adminService) GetUser(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (s *adminService) RestrictUser(w http.ResponseWriter, r *http.Request) error {
-	principal, err := util.AuthenticatedPrincipal(r)
+	principal, err := authn.AuthenticatedPrincipal(r)
 	if err != nil {
 		return err
 	}
@@ -333,7 +333,7 @@ func (s *adminService) RestrictUser(w http.ResponseWriter, r *http.Request) erro
 }
 
 func (s *adminService) BanUser(w http.ResponseWriter, r *http.Request) error {
-	principal, err := util.AuthenticatedPrincipal(r)
+	principal, err := authn.AuthenticatedPrincipal(r)
 	if err != nil {
 		return err
 	}
@@ -381,7 +381,7 @@ func (s *adminService) BanUser(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (s *adminService) UnrestrictUser(w http.ResponseWriter, r *http.Request) error {
-	principal, err := util.AuthenticatedPrincipal(r)
+	principal, err := authn.AuthenticatedPrincipal(r)
 	if err != nil {
 		return err
 	}
@@ -428,7 +428,7 @@ func (s *adminService) UnrestrictUser(w http.ResponseWriter, r *http.Request) er
 }
 
 func (s *adminService) UnbanUser(w http.ResponseWriter, r *http.Request) error {
-	principal, err := util.AuthenticatedPrincipal(r)
+	principal, err := authn.AuthenticatedPrincipal(r)
 	if err != nil {
 		return err
 	}
@@ -531,7 +531,7 @@ func (s *adminService) GetSetting(w http.ResponseWriter, r *http.Request) error 
 }
 
 func (s *adminService) UpdateSetting(w http.ResponseWriter, r *http.Request) error {
-	principal, err := util.AuthenticatedPrincipal(r)
+	principal, err := authn.AuthenticatedPrincipal(r)
 	if err != nil {
 		return err
 	}

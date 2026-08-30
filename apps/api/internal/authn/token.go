@@ -1,12 +1,9 @@
-package util
+package authn
 
 import (
 	"auth/internal/httpx"
-	"auth/internal/repository"
-	"context"
 	"log/slog"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -36,14 +33,6 @@ type accessClaim struct {
 	CreatedAt *jwt.NumericDate `json:"crat"`
 }
 
-type Principal struct {
-	UserID   int64
-	Username string
-	Role     string
-}
-
-type principalContextKey struct{}
-
 func VerifyRefreshToken(r *http.Request) (string, error) {
 	cookie, err := r.Cookie(RefreshTokenCookieName)
 
@@ -57,65 +46,6 @@ func VerifyRefreshToken(r *http.Request) (string, error) {
 	}
 
 	return claims.Subject, nil
-}
-
-func verifyAccessToken(r *http.Request) (Principal, error) {
-	tokenString := r.Header.Get("Authorization")
-
-	if (tokenString == "") || !strings.HasPrefix(tokenString, "Bearer ") {
-		return Principal{}, httpx.Unauthorized("缺少访问令牌")
-	}
-
-	claims, err := parseClaims(tokenString[len("Bearer "):], AccessTokenSecret, &accessClaim{})
-	if err != nil {
-		return Principal{}, httpx.Unauthorized("无效的访问令牌")
-	}
-	if claims.Subject == "" {
-		return Principal{}, httpx.Unauthorized("无效的访问令牌")
-	}
-
-	return Principal{UserID: claims.UserID, Username: claims.Subject, Role: claims.Role}, nil
-}
-
-func RequireAccessToken(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		principal, err := verifyAccessToken(r)
-		if err != nil {
-			httpx.RespondError(w, err)
-			return
-		}
-		ctx := context.WithValue(r.Context(), principalContextKey{}, principal)
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
-}
-
-func RequireRole(role string) func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return RequireAccessToken(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			principal, err := AuthenticatedPrincipal(r)
-			if err != nil {
-				httpx.RespondError(w, err)
-				return
-			}
-			if principal.Role != role {
-				httpx.RespondError(w, httpx.Forbidden("权限不足"))
-				return
-			}
-			next.ServeHTTP(w, r)
-		}))
-	}
-}
-
-func RequireAdmin(next http.Handler) http.Handler {
-	return RequireRole(repository.RoleAdmin)(next)
-}
-
-func AuthenticatedPrincipal(r *http.Request) (Principal, error) {
-	principal, ok := r.Context().Value(principalContextKey{}).(Principal)
-	if !ok || principal.Username == "" {
-		return Principal{}, httpx.Unauthorized("缺少认证上下文")
-	}
-	return principal, nil
 }
 
 type TokenPolicy struct {

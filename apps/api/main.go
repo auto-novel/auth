@@ -1,11 +1,11 @@
 package main
 
 import (
+	"auth/internal/authn"
 	"auth/internal/httpx"
 	"auth/internal/infra"
 	"auth/internal/repository"
 	"auth/internal/service"
-	"auth/internal/util"
 	"context"
 	"log/slog"
 	"net/http"
@@ -73,8 +73,8 @@ func main() {
 		slog.Error("Refresh and access token secrets must be different")
 		return
 	}
-	util.RefreshTokenSecret = refreshTokenSecret
-	util.AccessTokenSecret = accessTokenSecret
+	authn.RefreshTokenSecret = refreshTokenSecret
+	authn.AccessTokenSecret = accessTokenSecret
 
 	// infra
 	db := infra.NewSqlDb(
@@ -141,12 +141,12 @@ func main() {
 		router.Use(httpx.RequestLogger())
 		router.Route("/auth", authService.Use)
 		router.Route("/admin", func(router chi.Router) {
-			router.Use(util.RequireAdmin)
+			router.Use(authn.RequireAdmin)
 			adminService.Use(router)
 			router.Route("/strikes", adminStrikeService.Use)
 		})
 		router.Route("/me", func(router chi.Router) {
-			router.Use(util.RequireAccessToken)
+			router.Use(authn.RequireAccessToken)
 			meService.Use(router)
 		})
 	})

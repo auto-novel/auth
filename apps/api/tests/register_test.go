@@ -3,8 +3,8 @@
 package tests
 
 import (
+	"auth/internal/authn"
 	"auth/internal/repository"
-	"auth/internal/util"
 	"crypto/sha256"
 	"encoding/json"
 	"io"
@@ -106,7 +106,7 @@ func TestAuthRegisterSuccess(t *testing.T) {
 	resetDatabase(t)
 
 	req := reqRegister{
-		App:      util.AppAuth,
+		App:      authn.AppAuth,
 		Username: "new-user",
 		Password: "Password123!",
 		Email:    "new-user@example.com",
@@ -135,7 +135,7 @@ func TestAuthRegisterSuccess(t *testing.T) {
 		t.Fatalf("expected member role, got %#v", claims["role"])
 	}
 
-	refreshCookie := findCookie(resp, util.RefreshTokenCookieName)
+	refreshCookie := findCookie(resp, authn.RefreshTokenCookieName)
 	if refreshCookie == nil {
 		t.Fatal("expected refresh token cookie")
 	}
@@ -170,7 +170,7 @@ func TestAuthRegisterSuccess(t *testing.T) {
 	if otpCount != 0 {
 		t.Fatalf("expected successful OTP to be consumed, found %d records", otpCount)
 	}
-	validation, err := util.ValidateHash(user.Password, req.Password)
+	validation, err := authn.ValidateHash(user.Password, req.Password)
 	if err != nil || !validation.Valid {
 		t.Fatalf("stored password hash does not validate: %v", err)
 	}
@@ -236,7 +236,7 @@ func TestAuthRegisterRejectsInvalidOtp(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			resetDatabase(t)
 			req := reqRegister{
-				App:      util.AppAuth,
+				App:      authn.AppAuth,
 				Username: "otp-user",
 				Password: "Password123!",
 				Email:    "otp-user@example.com",
@@ -265,7 +265,7 @@ func TestAuthRegisterConflicts(t *testing.T) {
 	resetDatabase(t)
 
 	first := reqRegister{
-		App:      util.AppAuth,
+		App:      authn.AppAuth,
 		Username: "existing-user",
 		Password: "Password123!",
 		Email:    "existing@example.com",

@@ -1,10 +1,10 @@
 package service
 
 import (
+	"auth/internal/authn"
 	"auth/internal/httpx"
 	"auth/internal/infra"
 	"auth/internal/repository"
-	"auth/internal/util"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -135,10 +135,10 @@ func (s *authService) Register(w http.ResponseWriter, r *http.Request) error {
 		slog.Error("Invalid password", "error", err)
 		return err
 	}
-	if _, err := util.TokenPolicyForApp(req.App); err != nil {
+	if _, err := authn.TokenPolicyForApp(req.App); err != nil {
 		return err
 	}
-	hashedPassword, err := util.GenerateHash(req.Password)
+	hashedPassword, err := authn.GenerateHash(req.Password)
 	if err != nil {
 		slog.Error("Password hash error", "error", err)
 		return httpx.InternalError(err, "密码哈希失败")
@@ -194,7 +194,7 @@ func (s *authService) Register(w http.ResponseWriter, r *http.Request) error {
 		},
 	)
 
-	return util.RespondAuthTokens(w, util.TokenOptions{
+	return authn.RespondAuthTokens(w, authn.TokenOptions{
 		App:              req.App,
 		UserID:           user.ID,
 		Username:         user.Username,
@@ -214,7 +214,7 @@ func (s *authService) Login(w http.ResponseWriter, r *http.Request) error {
 		slog.Error("Login request body parse error", "error", err)
 		return err
 	}
-	if _, err := util.TokenPolicyForApp(req.App); err != nil {
+	if _, err := authn.TokenPolicyForApp(req.App); err != nil {
 		return err
 	}
 
@@ -238,7 +238,7 @@ func (s *authService) Login(w http.ResponseWriter, r *http.Request) error {
 		return httpx.NotFound("用户不存在")
 	}
 
-	v, err := util.ValidateHash(user.Password, req.Password)
+	v, err := authn.ValidateHash(user.Password, req.Password)
 	if !v.Valid || err != nil {
 		slog.Error("Password validation failed", "username", user.Username, "error", err)
 		return httpx.Unauthorized("密码错误")
@@ -248,7 +248,7 @@ func (s *authService) Login(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 	if v.Obsolete {
-		newHashedPassword, err := util.GenerateHash(req.Password)
+		newHashedPassword, err := authn.GenerateHash(req.Password)
 		if err == nil {
 			user.Password = newHashedPassword
 			s.userRepo.UpdateHashedPassword(user)
@@ -274,7 +274,7 @@ func (s *authService) Login(w http.ResponseWriter, r *http.Request) error {
 			Ip:         httpx.GetRealIp(r),
 		},
 	)
-	return util.RespondAuthTokens(w, util.TokenOptions{
+	return authn.RespondAuthTokens(w, authn.TokenOptions{
 		App:              req.App,
 		UserID:           user.ID,
 		Username:         user.Username,
@@ -286,11 +286,11 @@ func (s *authService) Login(w http.ResponseWriter, r *http.Request) error {
 
 func (s *authService) Refresh(w http.ResponseWriter, r *http.Request) error {
 	app := r.URL.Query().Get("app")
-	if _, err := util.TokenPolicyForApp(app); err != nil {
+	if _, err := authn.TokenPolicyForApp(app); err != nil {
 		return err
 	}
 
-	username, err := util.VerifyRefreshToken(r)
+	username, err := authn.VerifyRefreshToken(r)
 	if err != nil {
 		return err
 	}
@@ -312,7 +312,7 @@ func (s *authService) Refresh(w http.ResponseWriter, r *http.Request) error {
 	user.LastLogin = time.Now()
 	s.userRepo.UpdateLastLogin(user)
 
-	return util.RespondAuthTokens(w, util.TokenOptions{
+	return authn.RespondAuthTokens(w, authn.TokenOptions{
 		App:              app,
 		UserID:           user.ID,
 		Username:         user.Username,
@@ -323,7 +323,7 @@ func (s *authService) Refresh(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (s *authService) Logout(w http.ResponseWriter, r *http.Request) error {
-	username, err := util.VerifyRefreshToken(r)
+	username, err := authn.VerifyRefreshToken(r)
 	if err != nil {
 		slog.Error("Failed to verify refresh token", "error", err)
 		return err
@@ -342,7 +342,7 @@ func (s *authService) Logout(w http.ResponseWriter, r *http.Request) error {
 		},
 	)
 
-	return util.RespondLogout(w)
+	return authn.RespondLogout(w)
 }
 
 func (s *authService) sendOtpEmail(otpType string, email string, otp string) error {
@@ -474,7 +474,7 @@ func (s *authService) ResetPassword(w http.ResponseWriter, r *http.Request) erro
 		return httpx.NotFound("用户不存在")
 	}
 
-	newHashedPassword, err := util.GenerateHash(req.Password)
+	newHashedPassword, err := authn.GenerateHash(req.Password)
 	if err != nil {
 		slog.Error("Failed to hash password", "email", req.Email, "error", err)
 		return httpx.InternalError(err, "密码哈希失败")
