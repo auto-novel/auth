@@ -2,6 +2,12 @@ import { createRouter, createWebHistory } from 'vue-router';
 
 import { AdminLoginView } from '@novelia/admin-kit';
 
+import EventsView from '@/views/events/EventsView.vue';
+import OverviewView from '@/views/overview/OverviewView.vue';
+import SettingsView from '@/views/settings/SettingsView.vue';
+import StrikesView from '@/views/strikes/StrikesView.vue';
+import UsersView from '@/views/users/UsersView.vue';
+
 const APP_TITLE = '认证服务管理后台';
 
 const router = createRouter({
@@ -21,31 +27,31 @@ const router = createRouter({
         {
           path: 'overview',
           name: 'overview',
-          component: () => import('@/views/overview/OverviewView.vue'),
+          component: OverviewView,
           meta: { title: '概览' },
         },
         {
           path: 'users',
           name: 'users',
-          component: () => import('@/views/users/UsersView.vue'),
+          component: UsersView,
           meta: { title: '用户管理' },
         },
         {
           path: 'strikes',
           name: 'strikes',
-          component: () => import('@/views/strikes/StrikesView.vue'),
+          component: StrikesView,
           meta: { title: '处罚管理' },
         },
         {
           path: 'events',
           name: 'events',
-          component: () => import('@/views/events/EventsView.vue'),
+          component: EventsView,
           meta: { title: '事件记录' },
         },
         {
           path: 'settings',
           name: 'settings',
-          component: () => import('@/views/settings/SettingsView.vue'),
+          component: SettingsView,
           meta: { title: '系统设置' },
         },
         { path: 'logs', redirect: { name: 'events' } },
