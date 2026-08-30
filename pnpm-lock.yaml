@@ -6,7 +6,11 @@ settings:
 
 importers:
 
-  .: {}
+  .:
+    devDependencies:
+      prettier:
+        specifier: ^3.9.6
+        version: 3.9.6
 
   apps/admin:
     dependencies:
@@ -93,10 +97,6 @@ importers:
       '@types/node':
         specifier: ^25.9.5
         version: 25.9.5
-      prettier:
-        specifier: ^3.9.6
-        version: 3.9.6
-
   packages/admin-kit:
     dependencies:
       '@novelia/auth-api':

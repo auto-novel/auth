@@ -11,5 +11,8 @@
     "dev:native": "pnpm --filter auth-login dev:native",
     "build": "pnpm --filter @novelia/auth-api build && pnpm --filter @novelia/admin-kit build && pnpm --filter auth-login build && pnpm --filter auth-admin build",
     "preview": "pnpm --filter auth-login preview"
+  },
+  "devDependencies": {
+    "prettier": "^3.9.6"
   }
 }
