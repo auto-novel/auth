@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -81,6 +82,33 @@ func validateUserCanAuthenticate(user *repository.User) error {
 	}
 }
 
+func validateUsername(username string) error {
+	if strings.TrimSpace(username) != username {
+		return util.BadRequest("用户名前后不能有空格")
+	}
+	for _, r := range username {
+		if !unicode.IsPrint(r) {
+			return util.BadRequest("用户名只能包含可打印字符")
+		}
+		if r == '@' {
+			return util.BadRequest("用户名不能包含@字符")
+		}
+	}
+	return nil
+}
+
+func validatePassword(password string) error {
+	for _, r := range password {
+		if !unicode.IsPrint(r) {
+			return util.BadRequest("密码只能包含可打印字符")
+		}
+		if unicode.IsSpace(r) {
+			return util.BadRequest("密码不能包含空格")
+		}
+	}
+	return nil
+}
+
 func (s *authService) Register(w http.ResponseWriter, r *http.Request) error {
 	settings := s.settingRepo.Get()
 	if !settings.RegisterEnabled {
@@ -98,11 +126,11 @@ func (s *authService) Register(w http.ResponseWriter, r *http.Request) error {
 		slog.Error("Register request body parse error", "error", err)
 		return err
 	}
-	if err := util.ValidUsername(req.Username); err != nil {
+	if err := validateUsername(req.Username); err != nil {
 		slog.Error("Invalid username", "username", req.Username, "error", err)
 		return err
 	}
-	if err := util.ValidPassword(req.Password); err != nil {
+	if err := validatePassword(req.Password); err != nil {
 		slog.Error("Invalid password", "error", err)
 		return err
 	}
@@ -136,10 +164,10 @@ func (s *authService) Register(w http.ResponseWriter, r *http.Request) error {
 	}
 	err = s.userRepo.Save(user)
 	if err != nil {
-		if util.IsUniqueConstraintViolation(err, "auth_user_username_key") {
+		if repository.IsUniqueConstraintViolation(err, "auth_user_username_key") {
 			slog.Error("Username already exist")
 			return util.Conflict("用户名已被占用")
-		} else if util.IsUniqueConstraintViolation(err, "auth_user_email_key") {
+		} else if repository.IsUniqueConstraintViolation(err, "auth_user_email_key") {
 			slog.Error("Email already exist")
 			return util.Conflict("邮箱已被占用")
 		}
@@ -429,6 +457,9 @@ func (s *authService) ResetPassword(w http.ResponseWriter, r *http.Request) erro
 	}](r)
 	if err != nil {
 		slog.Error("Request body parse error", "error", err)
+		return err
+	}
+	if err := validatePassword(req.Password); err != nil {
 		return err
 	}
 
