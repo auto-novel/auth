@@ -24,13 +24,11 @@ func env(key, fallback string) string {
 }
 
 func envInt(key string, fallback int) int {
-	if value, ok := os.LookupEnv(key); ok {
-		intValue, err := strconv.Atoi(value)
-		if err == nil {
-			return intValue
-		}
+	value, err := strconv.Atoi(env(key, ""))
+	if err != nil {
+		return fallback
 	}
-	return fallback
+	return value
 }
 
 func runOtpCleanup(ctx context.Context, repo repository.OtpRepository, interval time.Duration) {
@@ -64,8 +62,18 @@ func main() {
 	slog.SetDefault(logger)
 
 	// util
-	util.RefreshTokenSecret = env("REFRESH_TOKEN_SECRET", "secret")
-	util.AccessTokenSecret = env("ACCESS_TOKEN_SECRET", "secret")
+	refreshTokenSecret := env("REFRESH_TOKEN_SECRET", "")
+	accessTokenSecret := env("ACCESS_TOKEN_SECRET", "")
+	if len(refreshTokenSecret) < 32 || len(accessTokenSecret) < 32 {
+		slog.Error("Token secrets must each contain at least 32 characters")
+		return
+	}
+	if refreshTokenSecret == accessTokenSecret {
+		slog.Error("Refresh and access token secrets must be different")
+		return
+	}
+	util.RefreshTokenSecret = refreshTokenSecret
+	util.AccessTokenSecret = accessTokenSecret
 
 	// infra
 	db := infra.NewSqlDb(
@@ -75,6 +83,8 @@ func main() {
 		env("DB_PASSWORD", ""),
 		env("DB_NAME", "auth"),
 	)
+	defer db.Close()
+
 	email := infra.NewEmailClient(
 		env("MAILGUN_DOMAIN", ""),
 		env("MAILGUN_APIKEY", ""),
@@ -142,5 +152,7 @@ func main() {
 
 	// start server
 	slog.Info("Listening on localhost:8080...")
-	http.ListenAndServe(":8080", router)
+	if err := http.ListenAndServe(":8080", router); err != nil {
+		slog.Error("HTTP server failed", "error", err)
+	}
 }
