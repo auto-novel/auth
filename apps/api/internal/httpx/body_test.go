@@ -11,6 +11,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/go-playground/validator/v10"
 )
 
 type bodyRequest struct {
@@ -76,6 +78,24 @@ func TestBodyRejectsRequestLargerThanLimit(t *testing.T) {
 	}
 	if httpErr.StatusCode != http.StatusRequestEntityTooLarge {
 		t.Fatalf("Body returned status %d, want %d", httpErr.StatusCode, http.StatusRequestEntityTooLarge)
+	}
+}
+
+func TestBodyReturnsInternalErrorForInvalidValidationInput(t *testing.T) {
+	request := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(`1`))
+	request.Header.Set("Content-Type", "application/json")
+
+	_, err := Body[int](request)
+	var httpErr *HttpError
+	if !errors.As(err, &httpErr) {
+		t.Fatalf("Body returned %v, want HttpError", err)
+	}
+	if httpErr.StatusCode != http.StatusInternalServerError {
+		t.Fatalf("Body returned status %d, want %d", httpErr.StatusCode, http.StatusInternalServerError)
+	}
+	var validationErr *validator.InvalidValidationError
+	if !errors.As(err, &validationErr) {
+		t.Fatalf("Body returned cause %v, want InvalidValidationError", err)
 	}
 }
 

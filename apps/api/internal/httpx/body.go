@@ -3,6 +3,7 @@ package httpx
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"math"
@@ -15,6 +16,8 @@ import (
 
 	"github.com/go-playground/validator/v10"
 )
+
+var bodyValidator = validator.New(validator.WithRequiredStructEnabled())
 
 func Body[T any](r *http.Request) (T, error) {
 	var zero T
@@ -54,8 +57,7 @@ func Body[T any](r *http.Request) (T, error) {
 	}
 
 	// 验证JSON
-	validate := validator.New(validator.WithRequiredStructEnabled())
-	if err := validate.Struct(result); err != nil {
+	if err := bodyValidator.Struct(result); err != nil {
 		validationErrorToMessage := func(ve validator.FieldError) string {
 			fieldName := ve.Field()
 			switch fieldName {
@@ -93,9 +95,12 @@ func Body[T any](r *http.Request) (T, error) {
 			}
 		}
 
-		errors := err.(validator.ValidationErrors)
-		messages := make([]string, len(errors))
-		for i, ve := range errors {
+		var validationErrors validator.ValidationErrors
+		if !errors.As(err, &validationErrors) {
+			return zero, InternalError(err, "failed to validate request body")
+		}
+		messages := make([]string, len(validationErrors))
+		for i, ve := range validationErrors {
 			messages[i] = validationErrorToMessage(ve)
 		}
 		return zero, BadRequest(strings.Join(messages, "; "))
