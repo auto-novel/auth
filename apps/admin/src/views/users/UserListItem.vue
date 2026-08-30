@@ -102,6 +102,23 @@ function formatId(id: number) {
       <n-button
         v-if="user.role === 'member'"
         size="tiny"
+        type="primary"
+        secondary
+        @click="emit('action', 'trust', user)"
+      >
+        信任用户
+      </n-button>
+      <n-button
+        v-if="user.role === 'trusted'"
+        size="tiny"
+        secondary
+        @click="emit('action', 'untrust', user)"
+      >
+        取消信任
+      </n-button>
+      <n-button
+        v-if="user.role === 'member'"
+        size="tiny"
         type="warning"
         secondary
         @click="emit('action', 'restrict', user)"
@@ -141,7 +158,7 @@ function formatId(id: number) {
 <style scoped>
 .user-row {
   display: grid;
-  grid-template-columns: 100px minmax(180px, 1fr) 150px 124px;
+  grid-template-columns: 100px minmax(180px, 1fr) 150px 194px;
   gap: 20px;
   align-items: center;
 }

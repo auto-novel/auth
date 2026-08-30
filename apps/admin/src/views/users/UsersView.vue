@@ -46,6 +46,18 @@ const actionConfig = computed(() => {
       buttonType: 'warning' | 'error' | 'primary';
     }
   > = {
+    trust: {
+      title: '信任用户',
+      result: '已信任用户',
+      description: '设置后，该用户将获得可信用户权限。',
+      buttonType: 'primary',
+    },
+    untrust: {
+      title: '取消信任',
+      result: '已取消用户的可信状态',
+      description: '取消后，该用户将恢复为普通用户。',
+      buttonType: 'primary',
+    },
     restrict: {
       title: '限制用户',
       result: '已限制用户',

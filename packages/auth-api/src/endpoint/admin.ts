@@ -22,7 +22,8 @@ export interface UserListParams {
   role?: string;
 }
 
-export type UserAction = 'restrict' | 'unrestrict' | 'ban' | 'unban';
+export type UserAction =
+  'trust' | 'untrust' | 'restrict' | 'unrestrict' | 'ban' | 'unban';
 
 export interface UserActionRequest {
   username: string;

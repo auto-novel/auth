@@ -20,6 +20,8 @@ const (
 )
 
 const (
+	EventTrustUser      string = "trust-user"
+	EventUntrustUser    string = "untrust-user"
 	EventRestrictUser   string = "restrict-user"
 	EventUnrestrictUser string = "unrestrict-user"
 	EventBanUser        string = "ban-user"
@@ -32,6 +34,8 @@ type AdminService interface {
 	GetOverviewActivity(http.ResponseWriter, *http.Request) error
 	GetOverviewUserSummary(http.ResponseWriter, *http.Request) error
 	GetUser(http.ResponseWriter, *http.Request) error
+	TrustUser(http.ResponseWriter, *http.Request) error
+	UntrustUser(http.ResponseWriter, *http.Request) error
 	RestrictUser(http.ResponseWriter, *http.Request) error
 	UnrestrictUser(http.ResponseWriter, *http.Request) error
 	BanUser(http.ResponseWriter, *http.Request) error
@@ -65,6 +69,8 @@ func (s *adminService) Use(router chi.Router) {
 	router.Get("/overview/activity", httpx.EH(s.GetOverviewActivity))
 	router.Get("/overview/user-summary", httpx.EH(s.GetOverviewUserSummary))
 	router.Get("/user", httpx.EH(s.GetUser))
+	router.Post("/user/trust", httpx.EH(s.TrustUser))
+	router.Post("/user/untrust", httpx.EH(s.UntrustUser))
 	router.Post("/user/restrict", httpx.EH(s.RestrictUser))
 	router.Post("/user/unrestrict", httpx.EH(s.UnrestrictUser))
 	router.Post("/user/ban", httpx.EH(s.BanUser))
@@ -282,6 +288,106 @@ func (s *adminService) GetUser(w http.ResponseWriter, r *http.Request) error {
 		}
 	}
 	return httpx.RespondJson(w, userPage)
+}
+
+func (s *adminService) TrustUser(w http.ResponseWriter, r *http.Request) error {
+	principal, err := authn.AuthenticatedPrincipal(r)
+	if err != nil {
+		return err
+	}
+
+	req, err := httpx.Body[struct {
+		Username string `json:"username" label:"用户名" validate:"required"`
+		Reason   string `json:"reason" label:"原因" validate:"required"`
+	}](r)
+	if err != nil {
+		slog.Error("Request body parse error", "error", err)
+		return err
+	}
+
+	user, err := s.userRepo.FindByUsername(req.Username)
+	if err != nil {
+		slog.Error("User lookup failed", "username", req.Username, "error", err)
+		return httpx.NotFound("用户不存在")
+	}
+	if user == nil {
+		return httpx.NotFound("用户不存在")
+	}
+	if user.Role != repository.RoleMember {
+		slog.Error("Unauthorized role change attempt", "username", req.Username, "current_role", user.Role)
+		return httpx.Unauthorized("只能将普通用户设为可信用户")
+	}
+
+	user.Role = repository.RoleTrusted
+	if err := s.userRepo.UpdateRole(user); err != nil {
+		slog.Error("Failed to update user role", "username", user.Username, "error", err)
+		return httpx.InternalError(err, "更新用户角色失败")
+	}
+
+	s.eventRepo.Save(
+		EventTrustUser,
+		&struct {
+			ActorUser  string `json:"actor_user"`
+			TargetUser string `json:"target_user"`
+			Reason     string `json:"reason"`
+		}{
+			ActorUser:  principal.Username,
+			TargetUser: user.Username,
+			Reason:     req.Reason,
+		},
+	)
+
+	return nil
+}
+
+func (s *adminService) UntrustUser(w http.ResponseWriter, r *http.Request) error {
+	principal, err := authn.AuthenticatedPrincipal(r)
+	if err != nil {
+		return err
+	}
+
+	req, err := httpx.Body[struct {
+		Username string `json:"username" label:"用户名" validate:"required"`
+		Reason   string `json:"reason" label:"原因" validate:"required"`
+	}](r)
+	if err != nil {
+		slog.Error("Request body parse error", "error", err)
+		return err
+	}
+
+	user, err := s.userRepo.FindByUsername(req.Username)
+	if err != nil {
+		slog.Error("User lookup failed", "username", req.Username, "error", err)
+		return httpx.NotFound("用户不存在")
+	}
+	if user == nil {
+		return httpx.NotFound("用户不存在")
+	}
+	if user.Role != repository.RoleTrusted {
+		slog.Error("Unauthorized role change attempt", "username", req.Username, "current_role", user.Role)
+		return httpx.Unauthorized("只能取消可信用户的可信状态")
+	}
+
+	user.Role = repository.RoleMember
+	if err := s.userRepo.UpdateRole(user); err != nil {
+		slog.Error("Failed to update user role", "username", user.Username, "error", err)
+		return httpx.InternalError(err, "更新用户角色失败")
+	}
+
+	s.eventRepo.Save(
+		EventUntrustUser,
+		&struct {
+			ActorUser  string `json:"actor_user"`
+			TargetUser string `json:"target_user"`
+			Reason     string `json:"reason"`
+		}{
+			ActorUser:  principal.Username,
+			TargetUser: user.Username,
+			Reason:     req.Reason,
+		},
+	)
+
+	return nil
 }
 
 func (s *adminService) RestrictUser(w http.ResponseWriter, r *http.Request) error {
