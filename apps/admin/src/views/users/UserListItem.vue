@@ -106,7 +106,7 @@ function formatId(id: number) {
         secondary
         @click="emit('action', 'trust', user)"
       >
-        信任用户
+        信任
       </n-button>
       <n-button
         v-if="user.role === 'trusted'"
