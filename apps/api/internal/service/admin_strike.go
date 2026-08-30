@@ -181,10 +181,10 @@ func (s *adminStrikeService) CreateStrike(w http.ResponseWriter, r *http.Request
 		return err
 	}
 	req, err := httpx.Body[struct {
-		Username string `json:"username" validate:"required"`
-		Reason   string `json:"reason" validate:"required"`
-		Evidence string `json:"evidence" validate:"required"`
-		Point    int16  `json:"point" validate:"omitempty,min=1"`
+		Username string `json:"username" label:"用户名" validate:"required"`
+		Reason   string `json:"reason" label:"原因" validate:"required"`
+		Evidence string `json:"evidence" label:"证据" validate:"required"`
+		Point    int16  `json:"point" label:"分值" validate:"omitempty,min=1"`
 	}](r)
 	if err != nil {
 		return err

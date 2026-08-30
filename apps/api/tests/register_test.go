@@ -40,22 +40,22 @@ func TestAuthRegisterBadRequestCases(t *testing.T) {
 		{
 			name:    "InvalidEmail",
 			modify:  func(r *reqRegister) { r.Email = "not-an-email" },
-			message: "邮箱必须是有效的邮箱地址",
+			message: "邮箱必须是一个有效的邮箱",
 		},
 		{
 			name:    "ShortUsername",
 			modify:  func(r *reqRegister) { r.Username = "a" },
-			message: "用户名至少需要2个字符",
+			message: "用户名长度必须至少为2个字符",
 		},
 		{
 			name:    "ShortUsernameUnicode",
 			modify:  func(r *reqRegister) { r.Username = "你" },
-			message: "用户名至少需要2个字符",
+			message: "用户名长度必须至少为2个字符",
 		},
 		{
 			name:    "LongUsername",
 			modify:  func(r *reqRegister) { r.Username = strings.Repeat("a", 17) },
-			message: "用户名不能超过16个字符",
+			message: "用户名长度不能超过16个字符",
 		},
 		{
 			name:    "UsernameWithLeadingSpace",
@@ -70,22 +70,22 @@ func TestAuthRegisterBadRequestCases(t *testing.T) {
 		{
 			name:    "ShortPassword",
 			modify:  func(r *reqRegister) { r.Password = "short" },
-			message: "密码至少需要8个字符",
+			message: "密码长度必须至少为8个字符",
 		},
 		{
 			name:    "LongPassword",
 			modify:  func(r *reqRegister) { r.Password = strings.Repeat("a", 101) },
-			message: "密码不能超过100个字符",
+			message: "密码长度不能超过100个字符",
 		},
 		{
 			name:    "InvalidVerifyOtp",
 			modify:  func(r *reqRegister) { r.Otp = "abcdef" },
-			message: "验证码必须是数字",
+			message: "验证码必须是一个有效的数值",
 		},
 		{
 			name:    "ShortOtp",
 			modify:  func(r *reqRegister) { r.Otp = "123" },
-			message: "验证码长度必须为6位",
+			message: "验证码长度必须是6个字符",
 		},
 	}
 

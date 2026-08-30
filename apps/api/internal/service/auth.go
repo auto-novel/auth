@@ -117,11 +117,11 @@ func (s *authService) Register(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	req, err := httpx.Body[struct {
-		App      string `json:"app" validate:"required"`
-		Username string `json:"username" validate:"required,min=2,max=16"`
-		Password string `json:"password" validate:"required,min=8,max=100"`
-		Email    string `json:"email" validate:"required,email"`
-		Otp      string `json:"otp" validate:"required,numeric,len=6"`
+		App      string `json:"app" label:"应用名" validate:"required"`
+		Username string `json:"username" label:"用户名" validate:"required,min=2,max=16"`
+		Password string `json:"password" label:"密码" validate:"required,min=8,max=100"`
+		Email    string `json:"email" label:"邮箱" validate:"required,email"`
+		Otp      string `json:"otp" label:"验证码" validate:"required,numeric,len=6"`
 	}](r)
 	if err != nil {
 		slog.Error("Register request body parse error", "error", err)
@@ -206,9 +206,9 @@ func (s *authService) Register(w http.ResponseWriter, r *http.Request) error {
 
 func (s *authService) Login(w http.ResponseWriter, r *http.Request) error {
 	req, err := httpx.Body[struct {
-		App      string `json:"app" validate:"required"`
-		Username string `json:"username" validate:"required"`
-		Password string `json:"password" validate:"required"`
+		App      string `json:"app" label:"应用名" validate:"required"`
+		Username string `json:"username" label:"用户名" validate:"required"`
+		Password string `json:"password" label:"密码" validate:"required"`
 	}](r)
 	if err != nil {
 		slog.Error("Login request body parse error", "error", err)
@@ -379,8 +379,8 @@ func (s *authService) sendOtpEmail(otpType string, email string, otp string) err
 
 func (s *authService) RequestOtp(w http.ResponseWriter, r *http.Request) error {
 	req, err := httpx.Body[struct {
-		Email string `json:"email" validate:"required,email"`
-		Type  string `json:"type" validate:"required,oneof=verify reset_password"`
+		Email string `json:"email" label:"邮箱" validate:"required,email"`
+		Type  string `json:"type" label:"请求类型" validate:"required,oneof=verify reset_password"`
 	}](r)
 	if err != nil {
 		slog.Error("Request OTP body parse error", "error", err)
@@ -452,9 +452,9 @@ func (s *authService) ResetPassword(w http.ResponseWriter, r *http.Request) erro
 	}
 
 	req, err := httpx.Body[struct {
-		Email    string `json:"email" validate:"required,email"`
-		Otp      string `json:"otp" validate:"required,len=26"`
-		Password string `json:"password" validate:"required,min=8,max=100"`
+		Email    string `json:"email" label:"邮箱" validate:"required,email"`
+		Otp      string `json:"otp" label:"验证码" validate:"required,len=26"`
+		Password string `json:"password" label:"密码" validate:"required,min=8,max=100"`
 	}](r)
 	if err != nil {
 		slog.Error("Request body parse error", "error", err)

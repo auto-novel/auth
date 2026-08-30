@@ -16,7 +16,7 @@ import (
 )
 
 type bodyRequest struct {
-	Name string `json:"name" validate:"required"`
+	Name string `json:"name" label:"名称" validate:"required"`
 }
 
 func TestBody(t *testing.T) {
@@ -63,6 +63,20 @@ func TestBody(t *testing.T) {
 				t.Fatalf("Body returned status %d, want %d", httpErr.StatusCode, tt.wantStatus)
 			}
 		})
+	}
+}
+
+func TestBodyUsesLabelInValidationError(t *testing.T) {
+	request := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(`{}`))
+	request.Header.Set("Content-Type", "application/json")
+
+	_, err := Body[bodyRequest](request)
+	var httpErr *HttpError
+	if !errors.As(err, &httpErr) {
+		t.Fatalf("Body returned %v, want HttpError", err)
+	}
+	if httpErr.StatusCode != http.StatusBadRequest || httpErr.Message != "名称为必填字段" {
+		t.Fatalf("Body returned (%d, %q), want (%d, %q)", httpErr.StatusCode, httpErr.Message, http.StatusBadRequest, "名称为必填字段")
 	}
 }
 

@@ -10,14 +10,48 @@ import (
 	"mime"
 	"net/http"
 	"net/url"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
 
+	localeZh "github.com/go-playground/locales/zh"
+	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
+	translationsZh "github.com/go-playground/validator/v10/translations/zh"
 )
 
-var bodyValidator = validator.New(validator.WithRequiredStructEnabled())
+var (
+	bodyValidator  = validator.New(validator.WithRequiredStructEnabled())
+	bodyTranslator ut.Translator
+)
+
+func init() {
+	locale := localeZh.New()
+	universalTranslator := ut.New(locale, locale)
+	var found bool
+	bodyTranslator, found = universalTranslator.GetTranslator("zh")
+	if !found {
+		panic("Chinese validator translator is unavailable")
+	}
+
+	bodyValidator.RegisterTagNameFunc(func(field reflect.StructField) string {
+		if label := field.Tag.Get("label"); label != "" {
+			return label
+		}
+		name := strings.SplitN(field.Tag.Get("json"), ",", 2)[0]
+		if name == "-" {
+			return ""
+		}
+		if name != "" {
+			return name
+		}
+		return field.Name
+	})
+	if err := translationsZh.RegisterDefaultTranslations(bodyValidator, bodyTranslator); err != nil {
+		panic(err)
+	}
+}
 
 func Body[T any](r *http.Request) (T, error) {
 	var zero T
@@ -58,50 +92,13 @@ func Body[T any](r *http.Request) (T, error) {
 
 	// 验证JSON
 	if err := bodyValidator.Struct(result); err != nil {
-		validationErrorToMessage := func(ve validator.FieldError) string {
-			fieldName := ve.Field()
-			switch fieldName {
-			case "App":
-				fieldName = "应用名"
-			case "Email":
-				fieldName = "邮箱"
-			case "Username":
-				fieldName = "用户名"
-			case "Password":
-				fieldName = "密码"
-			case "Otp":
-				fieldName = "验证码"
-			default:
-				fieldName = strings.ToLower(fieldName)
-			}
-
-			switch ve.Tag() {
-			case "required":
-				return fmt.Sprintf("%s不能为空", fieldName)
-			case "email":
-				return fmt.Sprintf("%s必须是有效的邮箱地址", fieldName)
-			case "min":
-				return fmt.Sprintf("%s至少需要%s个字符", fieldName, ve.Param())
-			case "max":
-				return fmt.Sprintf("%s不能超过%s个字符", fieldName, ve.Param())
-			case "len":
-				return fmt.Sprintf("%s长度必须为%s位", fieldName, ve.Param())
-			case "numeric":
-				return fmt.Sprintf("%s必须是数字", fieldName)
-			case "alphanum":
-				return fmt.Sprintf("%s只能包含字母和数字", fieldName)
-			default:
-				return fmt.Sprintf("%s验证失败(%s)", fieldName, ve.Tag())
-			}
-		}
-
 		var validationErrors validator.ValidationErrors
 		if !errors.As(err, &validationErrors) {
 			return zero, InternalError(err, "failed to validate request body")
 		}
 		messages := make([]string, len(validationErrors))
 		for i, ve := range validationErrors {
-			messages[i] = validationErrorToMessage(ve)
+			messages[i] = ve.Translate(bodyTranslator)
 		}
 		return zero, BadRequest(strings.Join(messages, "; "))
 	}

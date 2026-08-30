@@ -291,8 +291,8 @@ func (s *adminService) RestrictUser(w http.ResponseWriter, r *http.Request) erro
 	}
 
 	req, err := httpx.Body[struct {
-		Username string `json:"username" validate:"required"`
-		Reason   string `json:"reason" validate:"required"`
+		Username string `json:"username" label:"用户名" validate:"required"`
+		Reason   string `json:"reason" label:"原因" validate:"required"`
 	}](r)
 	if err != nil {
 		slog.Error("Request body parse error", "error", err)
@@ -339,8 +339,8 @@ func (s *adminService) BanUser(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	req, err := httpx.Body[struct {
-		Username string `json:"username" validate:"required"`
-		Reason   string `json:"reason" validate:"required"`
+		Username string `json:"username" label:"用户名" validate:"required"`
+		Reason   string `json:"reason" label:"原因" validate:"required"`
 	}](r)
 	if err != nil {
 		slog.Error("Request body parse error", "error", err)
@@ -387,8 +387,8 @@ func (s *adminService) UnrestrictUser(w http.ResponseWriter, r *http.Request) er
 	}
 
 	req, err := httpx.Body[struct {
-		Username string `json:"username" validate:"required"`
-		Reason   string `json:"reason" validate:"required"`
+		Username string `json:"username" label:"用户名" validate:"required"`
+		Reason   string `json:"reason" label:"原因" validate:"required"`
 	}](r)
 	if err != nil {
 		slog.Error("Request body parse error", "error", err)
@@ -434,8 +434,8 @@ func (s *adminService) UnbanUser(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	req, err := httpx.Body[struct {
-		Username string `json:"username" validate:"required"`
-		Reason   string `json:"reason" validate:"required"`
+		Username string `json:"username" label:"用户名" validate:"required"`
+		Reason   string `json:"reason" label:"原因" validate:"required"`
 	}](r)
 	if err != nil {
 		slog.Error("Request body parse error", "error", err)
@@ -537,8 +537,8 @@ func (s *adminService) UpdateSetting(w http.ResponseWriter, r *http.Request) err
 	}
 
 	req, err := httpx.Body[struct {
-		RegisterEnabled      *bool `json:"registerEnabled" validate:"required"`
-		ResetPasswordEnabled *bool `json:"resetPasswordEnabled" validate:"required"`
+		RegisterEnabled      *bool `json:"registerEnabled" label:"注册功能" validate:"required"`
+		ResetPasswordEnabled *bool `json:"resetPasswordEnabled" label:"重置密码功能" validate:"required"`
 	}](r)
 	if err != nil {
 		slog.Error("Setting request body parse error", "error", err)
