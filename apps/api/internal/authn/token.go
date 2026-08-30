@@ -56,15 +56,15 @@ type TokenPolicy struct {
 var tokenPolicies = map[string]TokenPolicy{
 	AppAuth: {
 		RefreshTokenLifetime: time.Hour * 24 * 100,
-		AccessTokenLifetime:  time.Hour * 24 * 7,
+		AccessTokenLifetime:  time.Hour * 2,
 	},
 	AppN: {
 		RefreshTokenLifetime: time.Hour * 24 * 100,
-		AccessTokenLifetime:  time.Hour * 24 * 7,
+		AccessTokenLifetime:  time.Hour * 2,
 	},
 	AppF: {
 		RefreshTokenLifetime: time.Hour * 24 * 100,
-		AccessTokenLifetime:  time.Hour * 24 * 7,
+		AccessTokenLifetime:  time.Hour * 2,
 	},
 	AppLegado: {
 		RefreshTokenLifetime: 0,
