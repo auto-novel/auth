@@ -53,7 +53,7 @@ func TestMain(m *testing.M) {
 	cancel()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "integration database is unavailable: %v\n", err)
-		fmt.Fprintln(os.Stderr, "run from the repository root: ./apps/api/tests/run.sh")
+		fmt.Fprintln(os.Stderr, "run from the repository root: ./apps/api/script/test_integration.sh")
 		os.Exit(1)
 	}
 

@@ -59,5 +59,5 @@ go test ./... -v -p 4
 运行集成测试（需要 Docker）
 
 ```bash
-./tests/run.sh -v
+./script/test_integration.sh -v
 ```
