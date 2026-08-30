@@ -187,10 +187,10 @@ func (r *userRepository) FindByEmail(email string) (*User, error) {
 
 func (r *userRepository) Save(user *User) error {
 	stmt := AuthUser.INSERT(AuthUser.MutableColumns).
-		MODEL(user)
+		MODEL(user).
+		RETURNING(AuthUser.AllColumns)
 
-	_, err := stmt.Exec(r.db)
-	return err
+	return stmt.Query(r.db, user)
 }
 
 func (r *userRepository) UpdateLastLogin(user *User) error {

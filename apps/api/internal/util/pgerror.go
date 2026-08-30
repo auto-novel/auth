@@ -1,9 +1,14 @@
 package util
 
-import "github.com/lib/pq"
+import (
+	"errors"
+
+	"github.com/lib/pq"
+)
 
 func IsUniqueConstraintViolation(err error, constraint string) bool {
-	if pqErr, ok := err.(*pq.Error); ok {
+	var pqErr *pq.Error
+	if errors.As(err, &pqErr) {
 		return pqErr.Code == "23505" && pqErr.Constraint == constraint
 	}
 	return false

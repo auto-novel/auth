@@ -167,6 +167,7 @@ func (s *authService) Register(w http.ResponseWriter, r *http.Request) error {
 
 	return util.RespondAuthTokens(w, util.TokenOptions{
 		App:              req.App,
+		UserID:           user.ID,
 		Username:         user.Username,
 		Role:             user.Role,
 		CreatedAt:        user.CreatedAt,
@@ -246,6 +247,7 @@ func (s *authService) Login(w http.ResponseWriter, r *http.Request) error {
 	)
 	return util.RespondAuthTokens(w, util.TokenOptions{
 		App:              req.App,
+		UserID:           user.ID,
 		Username:         user.Username,
 		Role:             user.Role,
 		CreatedAt:        user.CreatedAt,
@@ -283,6 +285,7 @@ func (s *authService) Refresh(w http.ResponseWriter, r *http.Request) error {
 
 	return util.RespondAuthTokens(w, util.TokenOptions{
 		App:              app,
+		UserID:           user.ID,
 		Username:         user.Username,
 		Role:             user.Role,
 		CreatedAt:        user.CreatedAt,

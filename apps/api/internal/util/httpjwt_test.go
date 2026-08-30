@@ -63,10 +63,13 @@ func TestRequireAccessTokenStoresPrincipal(t *testing.T) {
 		if err != nil {
 			t.Fatalf("AuthenticatedPrincipal returned error: %v", err)
 		}
+		if principal.UserID != 42 {
+			t.Fatalf("principal user ID = %d, want 42", principal.UserID)
+		}
 		_, _ = io.WriteString(w, principal.Username+":"+principal.Role)
 	}))
 	req := httptest.NewRequest(http.MethodGet, "/me", nil)
-	req.Header.Set("Authorization", "Bearer "+testAccessToken(t, "member", repository.RoleMember))
+	req.Header.Set("Authorization", "Bearer "+testAccessTokenWithUserID(t, 42, "member", repository.RoleMember))
 	response := httptest.NewRecorder()
 
 	handler.ServeHTTP(response, req)
@@ -108,8 +111,13 @@ func TestTokenPolicyForApp(t *testing.T) {
 }
 
 func testAccessToken(t *testing.T, username, role string) string {
+	return testAccessTokenWithUserID(t, 0, username, role)
+}
+
+func testAccessTokenWithUserID(t *testing.T, userID int64, username, role string) string {
 	t.Helper()
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"uid":  userID,
 		"sub":  username,
 		"role": role,
 		"exp":  time.Now().Add(time.Hour).Unix(),

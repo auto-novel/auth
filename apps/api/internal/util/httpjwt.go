@@ -30,11 +30,13 @@ type refreshClaim struct {
 
 type accessClaim struct {
 	jwt.RegisteredClaims
+	UserID    int64            `json:"uid"`
 	Role      string           `json:"role"`
 	CreatedAt *jwt.NumericDate `json:"crat"`
 }
 
 type Principal struct {
+	UserID   int64
 	Username string
 	Role     string
 }
@@ -71,7 +73,7 @@ func verifyAccessToken(r *http.Request) (Principal, error) {
 		return Principal{}, Unauthorized("无效的访问令牌")
 	}
 
-	return Principal{Username: claims.Subject, Role: claims.Role}, nil
+	return Principal{UserID: claims.UserID, Username: claims.Subject, Role: claims.Role}, nil
 }
 
 func RequireAccessToken(next http.Handler) http.Handler {
@@ -149,6 +151,7 @@ func TokenPolicyForApp(app string) (TokenPolicy, error) {
 
 type TokenOptions struct {
 	App              string
+	UserID           int64
 	Username         string
 	Role             string
 	CreatedAt        time.Time
@@ -191,6 +194,7 @@ func issueAccessToken(opts TokenOptions, policy TokenPolicy) (string, error) {
 			ExpiresAt: jwt.NewNumericDate(expiresAt),
 			IssuedAt:  jwt.NewNumericDate(issuedAt),
 		},
+		UserID:    opts.UserID,
 		Role:      opts.Role,
 		CreatedAt: jwt.NewNumericDate(opts.CreatedAt),
 	}

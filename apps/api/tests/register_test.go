@@ -150,6 +150,9 @@ func TestAuthRegisterSuccess(t *testing.T) {
 	if user == nil {
 		t.Fatal("registered user was not persisted")
 	}
+	if claims["uid"] != float64(user.ID) {
+		t.Fatalf("expected user ID %d, got %#v", user.ID, claims["uid"])
+	}
 	if user.Email != req.Email || user.Role != repository.RoleMember {
 		t.Fatalf("unexpected registered user: %#v", user)
 	}
