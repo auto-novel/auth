@@ -1,6 +1,7 @@
 package httpx
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -104,16 +105,23 @@ func RespondText(w http.ResponseWriter, message string) error {
 	h := w.Header()
 	h.Set("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprint(w, message)
+	if _, err := fmt.Fprint(w, message); err != nil {
+		return InternalError(err, "failed to write response")
+	}
 	return nil
 }
 
 func RespondJson[T any](w http.ResponseWriter, response T) error {
+	var body bytes.Buffer
+	if err := json.NewEncoder(&body).Encode(response); err != nil {
+		return InternalError(err, "failed to encode response")
+	}
+
 	h := w.Header()
 	h.Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(response); err != nil {
-		return InternalServerError("failed to encode response")
+	if _, err := body.WriteTo(w); err != nil {
+		return InternalError(err, "failed to write response")
 	}
 	return nil
 }
