@@ -1,7 +1,6 @@
 package admin
 
 import (
-	"auth/internal/authn"
 	"auth/internal/httpx"
 	"auth/internal/repository"
 	"auth/internal/service"
@@ -286,7 +285,7 @@ func (s *adminService) GetUser(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (s *adminService) TrustUser(w http.ResponseWriter, r *http.Request) error {
-	principal, err := authn.AuthenticatedPrincipal(r)
+	principal, err := httpx.AuthenticatedPrincipal(r)
 	if err != nil {
 		return err
 	}
@@ -336,7 +335,7 @@ func (s *adminService) TrustUser(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (s *adminService) UntrustUser(w http.ResponseWriter, r *http.Request) error {
-	principal, err := authn.AuthenticatedPrincipal(r)
+	principal, err := httpx.AuthenticatedPrincipal(r)
 	if err != nil {
 		return err
 	}
@@ -386,7 +385,7 @@ func (s *adminService) UntrustUser(w http.ResponseWriter, r *http.Request) error
 }
 
 func (s *adminService) RestrictUser(w http.ResponseWriter, r *http.Request) error {
-	principal, err := authn.AuthenticatedPrincipal(r)
+	principal, err := httpx.AuthenticatedPrincipal(r)
 	if err != nil {
 		return err
 	}
@@ -434,7 +433,7 @@ func (s *adminService) RestrictUser(w http.ResponseWriter, r *http.Request) erro
 }
 
 func (s *adminService) BanUser(w http.ResponseWriter, r *http.Request) error {
-	principal, err := authn.AuthenticatedPrincipal(r)
+	principal, err := httpx.AuthenticatedPrincipal(r)
 	if err != nil {
 		return err
 	}
@@ -482,7 +481,7 @@ func (s *adminService) BanUser(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (s *adminService) UnrestrictUser(w http.ResponseWriter, r *http.Request) error {
-	principal, err := authn.AuthenticatedPrincipal(r)
+	principal, err := httpx.AuthenticatedPrincipal(r)
 	if err != nil {
 		return err
 	}
@@ -529,7 +528,7 @@ func (s *adminService) UnrestrictUser(w http.ResponseWriter, r *http.Request) er
 }
 
 func (s *adminService) UnbanUser(w http.ResponseWriter, r *http.Request) error {
-	principal, err := authn.AuthenticatedPrincipal(r)
+	principal, err := httpx.AuthenticatedPrincipal(r)
 	if err != nil {
 		return err
 	}
@@ -634,7 +633,7 @@ func (s *adminService) GetSetting(w http.ResponseWriter, r *http.Request) error 
 }
 
 func (s *adminService) UpdateSetting(w http.ResponseWriter, r *http.Request) error {
-	principal, err := authn.AuthenticatedPrincipal(r)
+	principal, err := httpx.AuthenticatedPrincipal(r)
 	if err != nil {
 		return err
 	}

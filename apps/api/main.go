@@ -1,7 +1,7 @@
 package main
 
 import (
-	"auth/internal/authn"
+	"auth/internal/httpx"
 	"auth/internal/infra"
 	"auth/internal/repository"
 	adminservice "auth/internal/service/admin"
@@ -75,7 +75,7 @@ func main() {
 		slog.Error("Refresh and access token secrets must be different")
 		return
 	}
-	authn.AccessTokenSecret = accessTokenSecret
+	httpx.AccessTokenSecret = accessTokenSecret
 	infra.RefreshTokenSecret = refreshTokenSecret
 	infra.AccessTokenSecret = accessTokenSecret
 
@@ -148,12 +148,12 @@ func main() {
 		}))
 		router.Route("/auth", authService.Use)
 		router.Route("/admin", func(router chi.Router) {
-			router.Use(authn.RequireAdmin)
+			router.Use(httpx.RequireAdmin)
 			adminService.Use(router)
 			router.Route("/strikes", adminStrikeService.Use)
 		})
 		router.Route("/me", func(router chi.Router) {
-			router.Use(authn.RequireAccessToken)
+			router.Use(httpx.RequireAccessToken)
 			meService.Use(router)
 		})
 	})

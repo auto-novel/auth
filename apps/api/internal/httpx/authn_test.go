@@ -1,7 +1,6 @@
-package authn
+package httpx
 
 import (
-	"auth/internal/httpx"
 	"auth/internal/repository"
 	"io"
 	"net/http"
@@ -31,7 +30,7 @@ func TestRequireAdmin(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			handler := RequireAdmin(httpx.EH(func(w http.ResponseWriter, r *http.Request) error {
+			handler := RequireAdmin(EH(func(w http.ResponseWriter, r *http.Request) error {
 				principal, err := AuthenticatedPrincipal(r)
 				if err != nil {
 					return err

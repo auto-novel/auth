@@ -3,7 +3,7 @@
 package tests
 
 import (
-	"auth/internal/authn"
+	"auth/internal/hash"
 	"auth/internal/infra"
 	"auth/internal/repository"
 	authservice "auth/internal/service/auth"
@@ -172,7 +172,7 @@ func TestAuthRegisterSuccess(t *testing.T) {
 	if otpCount != 0 {
 		t.Fatalf("expected successful OTP to be consumed, found %d records", otpCount)
 	}
-	validation, err := authn.ValidateHash(user.Password, req.Password)
+	validation, err := hash.ValidateHash(user.Password, req.Password)
 	if err != nil || !validation.Valid {
 		t.Fatalf("stored password hash does not validate: %v", err)
 	}

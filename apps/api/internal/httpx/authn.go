@@ -1,7 +1,6 @@
-package authn
+package httpx
 
 import (
-	"auth/internal/httpx"
 	"auth/internal/repository"
 	"context"
 	"net/http"
@@ -49,22 +48,22 @@ func verifyAccessToken(r *http.Request) (Principal, error) {
 	tokenString := r.Header.Get("Authorization")
 
 	if tokenString == "" || !strings.HasPrefix(tokenString, "Bearer ") {
-		return Principal{}, httpx.Unauthorized("缺少访问令牌")
+		return Principal{}, Unauthorized("缺少访问令牌")
 	}
 
 	claims, err := parseAccessClaim(tokenString[len("Bearer "):])
 	if err != nil {
-		return Principal{}, httpx.Unauthorized("无效的访问令牌")
+		return Principal{}, Unauthorized("无效的访问令牌")
 	}
 	if claims.Subject == "" {
-		return Principal{}, httpx.Unauthorized("无效的访问令牌")
+		return Principal{}, Unauthorized("无效的访问令牌")
 	}
 
 	return Principal{UserID: claims.UserID, Username: claims.Subject, Role: claims.Role}, nil
 }
 
 func RequireAccessToken(next http.Handler) http.Handler {
-	return httpx.EH(func(w http.ResponseWriter, r *http.Request) error {
+	return EH(func(w http.ResponseWriter, r *http.Request) error {
 		principal, err := verifyAccessToken(r)
 		if err != nil {
 			return err
@@ -77,13 +76,13 @@ func RequireAccessToken(next http.Handler) http.Handler {
 
 func RequireRole(role string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
-		return RequireAccessToken(httpx.EH(func(w http.ResponseWriter, r *http.Request) error {
+		return RequireAccessToken(EH(func(w http.ResponseWriter, r *http.Request) error {
 			principal, err := AuthenticatedPrincipal(r)
 			if err != nil {
 				return err
 			}
 			if principal.Role != role {
-				return httpx.Forbidden("权限不足")
+				return Forbidden("权限不足")
 			}
 			next.ServeHTTP(w, r)
 			return nil
@@ -98,7 +97,7 @@ func RequireAdmin(next http.Handler) http.Handler {
 func AuthenticatedPrincipal(r *http.Request) (Principal, error) {
 	principal, ok := r.Context().Value(principalContextKey{}).(Principal)
 	if !ok || principal.Username == "" {
-		return Principal{}, httpx.Unauthorized("缺少认证上下文")
+		return Principal{}, Unauthorized("缺少认证上下文")
 	}
 	return principal, nil
 }

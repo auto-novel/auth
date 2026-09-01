@@ -1,7 +1,6 @@
 package me
 
 import (
-	"auth/internal/authn"
 	"auth/internal/httpx"
 	"auth/internal/repository"
 	"auth/internal/service"
@@ -41,7 +40,7 @@ func (s *meService) Use(router chi.Router) {
 }
 
 func (s *meService) GetStrikes(w http.ResponseWriter, r *http.Request) error {
-	principal, err := authn.AuthenticatedPrincipal(r)
+	principal, err := httpx.AuthenticatedPrincipal(r)
 	if err != nil {
 		return err
 	}

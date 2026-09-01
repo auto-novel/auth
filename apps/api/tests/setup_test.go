@@ -3,7 +3,7 @@
 package tests
 
 import (
-	"auth/internal/authn"
+	"auth/internal/httpx"
 	"auth/internal/infra"
 	"auth/internal/repository"
 	adminservice "auth/internal/service/admin"
@@ -80,7 +80,7 @@ func TestMain(m *testing.M) {
 	adminStrikeService := adminservice.NewAdminStrikeService(userRepo, eventRepo, strikeRepo)
 	meService := meservice.NewMeService(userRepo, strikeRepo)
 
-	authn.AccessTokenSecret = testAccessTokenSecret
+	httpx.AccessTokenSecret = testAccessTokenSecret
 	infra.AccessTokenSecret = testAccessTokenSecret
 	infra.RefreshTokenSecret = testRefreshTokenSecret
 
@@ -88,12 +88,12 @@ func TestMain(m *testing.M) {
 	router.Use(middleware.Recoverer)
 	router.Route("/v1/auth", authService.Use)
 	router.Route("/v1/admin", func(router chi.Router) {
-		router.Use(authn.RequireAdmin)
+		router.Use(httpx.RequireAdmin)
 		adminService.Use(router)
 		router.Route("/strikes", adminStrikeService.Use)
 	})
 	router.Route("/v1/me", func(router chi.Router) {
-		router.Use(authn.RequireAccessToken)
+		router.Use(httpx.RequireAccessToken)
 		meService.Use(router)
 	})
 	server := httptest.NewServer(router)

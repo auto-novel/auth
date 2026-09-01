@@ -3,7 +3,7 @@
 package tests
 
 import (
-	"auth/internal/authn"
+	"auth/internal/hash"
 	"auth/internal/infra"
 	"auth/internal/repository"
 	authservice "auth/internal/service/auth"
@@ -142,7 +142,7 @@ func TestAuthOtpRequestIsRateLimited(t *testing.T) {
 
 func createUser(t *testing.T, username, email, password, role string) *repository.User {
 	t.Helper()
-	hash, err := authn.GenerateHash(password)
+	passwordHash, err := hash.GenerateHash(password)
 	if err != nil {
 		t.Fatalf("hash password: %v", err)
 	}
@@ -150,7 +150,7 @@ func createUser(t *testing.T, username, email, password, role string) *repositor
 		Username:  username,
 		Email:     email,
 		Role:      role,
-		Password:  hash,
+		Password:  passwordHash,
 		CreatedAt: time.Now(),
 		LastLogin: time.Now(),
 		Attr:      "{}",

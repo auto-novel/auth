@@ -1,7 +1,6 @@
 package admin
 
 import (
-	"auth/internal/authn"
 	"auth/internal/httpx"
 	"auth/internal/repository"
 	"auth/internal/service"
@@ -179,7 +178,7 @@ func (s *adminStrikeService) GetStrikes(w http.ResponseWriter, r *http.Request) 
 }
 
 func (s *adminStrikeService) CreateStrike(w http.ResponseWriter, r *http.Request) error {
-	principal, err := authn.AuthenticatedPrincipal(r)
+	principal, err := httpx.AuthenticatedPrincipal(r)
 	if err != nil {
 		return err
 	}
@@ -211,7 +210,7 @@ func (s *adminStrikeService) CreateStrike(w http.ResponseWriter, r *http.Request
 }
 
 func (s *adminStrikeService) RevokeStrike(w http.ResponseWriter, r *http.Request) error {
-	principal, err := authn.AuthenticatedPrincipal(r)
+	principal, err := httpx.AuthenticatedPrincipal(r)
 	if err != nil {
 		return err
 	}

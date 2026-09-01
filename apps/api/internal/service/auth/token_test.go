@@ -1,7 +1,7 @@
 package auth
 
 import (
-	"auth/internal/authn"
+	"auth/internal/httpx"
 	"auth/internal/infra"
 	"net/http"
 	"net/http/httptest"
@@ -10,12 +10,12 @@ import (
 )
 
 func TestIssuedAccessTokenCanBeAuthenticated(t *testing.T) {
-	previousAuthnSecret := authn.AccessTokenSecret
+	previousAccessTokenSecret := httpx.AccessTokenSecret
 	previousIssuerSecret := infra.AccessTokenSecret
-	authn.AccessTokenSecret = "access-token-contract-test-secret"
-	infra.AccessTokenSecret = authn.AccessTokenSecret
+	httpx.AccessTokenSecret = "access-token-contract-test-secret"
+	infra.AccessTokenSecret = httpx.AccessTokenSecret
 	t.Cleanup(func() {
-		authn.AccessTokenSecret = previousAuthnSecret
+		httpx.AccessTokenSecret = previousAccessTokenSecret
 		infra.AccessTokenSecret = previousIssuerSecret
 	})
 
@@ -30,8 +30,8 @@ func TestIssuedAccessTokenCanBeAuthenticated(t *testing.T) {
 		t.Fatalf("IssueAccessToken returned error: %v", err)
 	}
 
-	handler := authn.RequireAccessToken(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		principal, err := authn.AuthenticatedPrincipal(r)
+	handler := httpx.RequireAccessToken(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		principal, err := httpx.AuthenticatedPrincipal(r)
 		if err != nil {
 			t.Fatalf("AuthenticatedPrincipal returned error: %v", err)
 		}
