@@ -1,12 +1,19 @@
 package httpx
 
 import (
-	"auth/internal/repository"
 	"context"
 	"net/http"
 	"strings"
 
 	"github.com/golang-jwt/jwt/v5"
+)
+
+const (
+	roleAdmin      string = "admin"
+	roleTrusted    string = "trusted"
+	roleMember     string = "member"
+	roleRestricted string = "restricted"
+	roleBanned     string = "banned"
 )
 
 var AccessTokenSecret string
@@ -74,7 +81,7 @@ func RequireAccessToken(next http.Handler) http.Handler {
 	})
 }
 
-func RequireRole(role string) func(http.Handler) http.Handler {
+func requireRole(role string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return RequireAccessToken(EH(func(w http.ResponseWriter, r *http.Request) error {
 			principal, err := AuthenticatedPrincipal(r)
@@ -91,7 +98,15 @@ func RequireRole(role string) func(http.Handler) http.Handler {
 }
 
 func RequireAdmin(next http.Handler) http.Handler {
-	return RequireRole(repository.RoleAdmin)(next)
+	return requireRole(roleAdmin)(next)
+}
+
+func RequireTrusted(next http.Handler) http.Handler {
+	return requireRole(roleTrusted)(next)
+}
+
+func RequireMember(next http.Handler) http.Handler {
+	return requireRole(roleMember)(next)
 }
 
 func AuthenticatedPrincipal(r *http.Request) (Principal, error) {
