@@ -4,7 +4,9 @@ package tests
 
 import (
 	"auth/internal/authn"
+	"auth/internal/infra"
 	"auth/internal/repository"
+	"auth/internal/service"
 	"crypto/sha256"
 	"encoding/json"
 	"io"
@@ -106,7 +108,7 @@ func TestAuthRegisterSuccess(t *testing.T) {
 	resetDatabase(t)
 
 	req := reqRegister{
-		App:      authn.AppAuth,
+		App:      infra.AppAuth,
 		Username: "new-user",
 		Password: "Password123!",
 		Email:    "new-user@example.com",
@@ -135,7 +137,7 @@ func TestAuthRegisterSuccess(t *testing.T) {
 		t.Fatalf("expected member role, got %#v", claims["role"])
 	}
 
-	refreshCookie := findCookie(resp, authn.RefreshTokenCookieName)
+	refreshCookie := findCookie(resp, service.RefreshTokenCookieName)
 	if refreshCookie == nil {
 		t.Fatal("expected refresh token cookie")
 	}
@@ -236,7 +238,7 @@ func TestAuthRegisterRejectsInvalidOtp(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			resetDatabase(t)
 			req := reqRegister{
-				App:      authn.AppAuth,
+				App:      infra.AppAuth,
 				Username: "otp-user",
 				Password: "Password123!",
 				Email:    "otp-user@example.com",
@@ -265,7 +267,7 @@ func TestAuthRegisterConflicts(t *testing.T) {
 	resetDatabase(t)
 
 	first := reqRegister{
-		App:      authn.AppAuth,
+		App:      infra.AppAuth,
 		Username: "existing-user",
 		Password: "Password123!",
 		Email:    "existing@example.com",

@@ -73,8 +73,9 @@ func main() {
 		slog.Error("Refresh and access token secrets must be different")
 		return
 	}
-	authn.RefreshTokenSecret = refreshTokenSecret
 	authn.AccessTokenSecret = accessTokenSecret
+	infra.RefreshTokenSecret = refreshTokenSecret
+	infra.AccessTokenSecret = accessTokenSecret
 
 	// infra
 	db := infra.NewSqlDb(

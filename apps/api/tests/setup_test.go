@@ -79,7 +79,8 @@ func TestMain(m *testing.M) {
 	meService := service.NewMeService(userRepo, strikeRepo)
 
 	authn.AccessTokenSecret = testAccessTokenSecret
-	authn.RefreshTokenSecret = testRefreshTokenSecret
+	infra.AccessTokenSecret = testAccessTokenSecret
+	infra.RefreshTokenSecret = testRefreshTokenSecret
 
 	router := chi.NewRouter()
 	router.Use(middleware.Recoverer)

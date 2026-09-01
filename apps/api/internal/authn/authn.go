@@ -6,7 +6,18 @@ import (
 	"context"
 	"net/http"
 	"strings"
+
+	"github.com/golang-jwt/jwt/v5"
 )
+
+var AccessTokenSecret string
+
+type accessClaim struct {
+	jwt.RegisteredClaims
+	UserID    int64            `json:"uid"`
+	Role      string           `json:"role"`
+	CreatedAt *jwt.NumericDate `json:"crat"`
+}
 
 type Principal struct {
 	UserID   int64
@@ -16,6 +27,24 @@ type Principal struct {
 
 type principalContextKey struct{}
 
+func parseAccessClaim(tokenString string) (*accessClaim, error) {
+	claims := &accessClaim{}
+	token, err := jwt.ParseWithClaims(tokenString, claims,
+		func(token *jwt.Token) (interface{}, error) {
+			return []byte(AccessTokenSecret), nil
+		},
+	)
+	if err != nil || !token.Valid {
+		return nil, err
+	}
+
+	validClaims, ok := token.Claims.(*accessClaim)
+	if !ok {
+		return nil, jwt.ErrTokenInvalidClaims
+	}
+	return validClaims, nil
+}
+
 func verifyAccessToken(r *http.Request) (Principal, error) {
 	tokenString := r.Header.Get("Authorization")
 
@@ -23,7 +52,7 @@ func verifyAccessToken(r *http.Request) (Principal, error) {
 		return Principal{}, httpx.Unauthorized("缺少访问令牌")
 	}
 
-	claims, err := parseClaims(tokenString[len("Bearer "):], AccessTokenSecret, &accessClaim{})
+	claims, err := parseAccessClaim(tokenString[len("Bearer "):])
 	if err != nil {
 		return Principal{}, httpx.Unauthorized("无效的访问令牌")
 	}

@@ -136,7 +136,7 @@ func (s *authService) Register(w http.ResponseWriter, r *http.Request) error {
 		slog.Error("Invalid password", "error", err)
 		return err
 	}
-	if _, err := authn.TokenPolicyForApp(req.App); err != nil {
+	if _, err := tokenPolicyForApp(req.App); err != nil {
 		return err
 	}
 	hashedPassword, err := authn.GenerateHash(req.Password)
@@ -195,7 +195,7 @@ func (s *authService) Register(w http.ResponseWriter, r *http.Request) error {
 		},
 	)
 
-	return authn.RespondAuthTokens(w, r, authn.TokenOptions{
+	return respondAuthTokens(w, r, tokenOptions{
 		App:              req.App,
 		UserID:           user.ID,
 		Username:         user.Username,
@@ -215,7 +215,7 @@ func (s *authService) Login(w http.ResponseWriter, r *http.Request) error {
 		slog.Error("Login request body parse error", "error", err)
 		return err
 	}
-	if _, err := authn.TokenPolicyForApp(req.App); err != nil {
+	if _, err := tokenPolicyForApp(req.App); err != nil {
 		return err
 	}
 
@@ -275,7 +275,7 @@ func (s *authService) Login(w http.ResponseWriter, r *http.Request) error {
 			Ip:         httpx.GetRealIp(r),
 		},
 	)
-	return authn.RespondAuthTokens(w, r, authn.TokenOptions{
+	return respondAuthTokens(w, r, tokenOptions{
 		App:              req.App,
 		UserID:           user.ID,
 		Username:         user.Username,
@@ -287,11 +287,11 @@ func (s *authService) Login(w http.ResponseWriter, r *http.Request) error {
 
 func (s *authService) Refresh(w http.ResponseWriter, r *http.Request) error {
 	app := r.URL.Query().Get("app")
-	if _, err := authn.TokenPolicyForApp(app); err != nil {
+	if _, err := tokenPolicyForApp(app); err != nil {
 		return err
 	}
 
-	username, err := authn.VerifyRefreshToken(r)
+	username, err := verifyRefreshToken(r)
 	if err != nil {
 		return err
 	}
@@ -313,7 +313,7 @@ func (s *authService) Refresh(w http.ResponseWriter, r *http.Request) error {
 	user.LastLogin = time.Now()
 	s.userRepo.UpdateLastLogin(user)
 
-	return authn.RespondAuthTokens(w, r, authn.TokenOptions{
+	return respondAuthTokens(w, r, tokenOptions{
 		App:              app,
 		UserID:           user.ID,
 		Username:         user.Username,
@@ -324,7 +324,7 @@ func (s *authService) Refresh(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (s *authService) Logout(w http.ResponseWriter, r *http.Request) error {
-	username, err := authn.VerifyRefreshToken(r)
+	username, err := verifyRefreshToken(r)
 	if err != nil {
 		slog.Error("Failed to verify refresh token", "error", err)
 		return err
@@ -343,7 +343,7 @@ func (s *authService) Logout(w http.ResponseWriter, r *http.Request) error {
 		},
 	)
 
-	return authn.RespondLogout(w, r)
+	return respondLogout(w, r)
 }
 
 func (s *authService) sendOtpEmail(otpType string, email string, otp string) error {

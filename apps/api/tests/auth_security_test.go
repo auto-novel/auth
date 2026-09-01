@@ -4,7 +4,9 @@ package tests
 
 import (
 	"auth/internal/authn"
+	"auth/internal/infra"
 	"auth/internal/repository"
+	"auth/internal/service"
 	"bytes"
 	"encoding/json"
 	"io"
@@ -22,7 +24,7 @@ func TestAuthLoginRejectsBannedUser(t *testing.T) {
 		http.MethodPost,
 		"/v1/auth/login",
 		map[string]string{
-			"app":      authn.AppAuth,
+			"app":      infra.AppAuth,
 			"username": "banned-user",
 			"password": "Password123!",
 		},
@@ -35,14 +37,14 @@ func TestAuthRefreshRejectsNewlyBannedUser(t *testing.T) {
 	resetDatabase(t)
 	user := createUser(t, "refresh-user", "refresh@example.com", "Password123!", repository.RoleMember)
 	resp, _ := sendJSON(t, http.MethodPost, "/v1/auth/login", map[string]string{
-		"app":      authn.AppAuth,
+		"app":      infra.AppAuth,
 		"username": user.Username,
 		"password": "Password123!",
 	}, "192.0.2.20", nil)
 	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("seed login returned status %d", resp.StatusCode)
 	}
-	refreshCookie := findCookie(resp, authn.RefreshTokenCookieName)
+	refreshCookie := findCookie(resp, service.RefreshTokenCookieName)
 	if refreshCookie == nil {
 		t.Fatal("seed login did not return a refresh token")
 	}
@@ -55,7 +57,7 @@ func TestAuthRefreshRejectsNewlyBannedUser(t *testing.T) {
 	refreshResp, body := sendJSON(
 		t,
 		http.MethodPost,
-		"/v1/auth/refresh?app="+authn.AppAuth,
+		"/v1/auth/refresh?app="+infra.AppAuth,
 		nil,
 		"192.0.2.20",
 		refreshCookie,
@@ -69,14 +71,14 @@ func TestAuthRestrictedUserCanLoginAndRefresh(t *testing.T) {
 	resetDatabase(t)
 	user := createUser(t, "restricted-user", "restricted@example.com", "Password123!", repository.RoleRestricted)
 	resp, body := sendJSON(t, http.MethodPost, "/v1/auth/login", map[string]string{
-		"app":      authn.AppAuth,
+		"app":      infra.AppAuth,
 		"username": user.Username,
 		"password": "Password123!",
 	}, "192.0.2.21", nil)
 	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("restricted user login returned status %d: %s", resp.StatusCode, body)
 	}
-	refreshCookie := findCookie(resp, authn.RefreshTokenCookieName)
+	refreshCookie := findCookie(resp, service.RefreshTokenCookieName)
 	if refreshCookie == nil {
 		t.Fatal("restricted user login did not return a refresh token")
 	}
@@ -84,7 +86,7 @@ func TestAuthRestrictedUserCanLoginAndRefresh(t *testing.T) {
 	refreshResp, body := sendJSON(
 		t,
 		http.MethodPost,
-		"/v1/auth/refresh?app="+authn.AppAuth,
+		"/v1/auth/refresh?app="+infra.AppAuth,
 		nil,
 		"192.0.2.21",
 		refreshCookie,
