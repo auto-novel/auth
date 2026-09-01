@@ -22,9 +22,8 @@ func RateLimiter(limit int) func(next http.Handler) http.Handler {
 	)
 }
 
+// The origin only accepts Cloudflare traffic, so forwarded client IP headers are trusted.
 func GetRealIp(r *http.Request) string {
-	// Cloudflare preserves the original client address in CF-Connecting-IP.
-	// The other headers cover direct requests through conventional proxies.
 	for _, candidate := range []string{
 		r.Header.Get("CF-Connecting-IP"),
 		r.Header.Get("True-Client-IP"),
