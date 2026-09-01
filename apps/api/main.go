@@ -4,7 +4,9 @@ import (
 	"auth/internal/authn"
 	"auth/internal/infra"
 	"auth/internal/repository"
-	"auth/internal/service"
+	adminservice "auth/internal/service/admin"
+	authservice "auth/internal/service/auth"
+	meservice "auth/internal/service/me"
 	"context"
 	"log/slog"
 	"net/http"
@@ -111,24 +113,24 @@ func main() {
 	)
 
 	// service
-	authService := service.NewAuthService(
+	authService := authservice.NewAuthService(
 		userRepo,
 		eventRepo,
 		otpRepo,
 		email,
 		settingRepo,
 	)
-	adminService := service.NewAdminService(
+	adminService := adminservice.NewAdminService(
 		userRepo,
 		eventRepo,
 		settingRepo,
 	)
-	adminStrikeService := service.NewAdminStrikeService(
+	adminStrikeService := adminservice.NewAdminStrikeService(
 		userRepo,
 		eventRepo,
 		strikeRepo,
 	)
-	meService := service.NewMeService(userRepo, strikeRepo)
+	meService := meservice.NewMeService(userRepo, strikeRepo)
 
 	// router
 	router := chi.NewRouter()

@@ -1,9 +1,10 @@
-package service
+package admin
 
 import (
 	"auth/internal/authn"
 	"auth/internal/httpx"
 	"auth/internal/repository"
+	"auth/internal/service"
 	"encoding/json"
 	"log/slog"
 	"net/http"
@@ -79,11 +80,6 @@ func (s *adminService) Use(router chi.Router) {
 	router.Get("/event", httpx.EH(s.GetEvent))
 	router.Get("/setting", httpx.EH(s.GetSetting))
 	router.Post("/setting", httpx.EH(s.UpdateSetting))
-}
-
-type PageResponse[T any] struct {
-	Total int64 `json:"total"`
-	Items []T   `json:"items"`
 }
 
 type UserResponse struct {
@@ -243,17 +239,17 @@ func (s *adminService) GetOverviewUserSummary(w http.ResponseWriter, r *http.Req
 
 func (s *adminService) GetUser(w http.ResponseWriter, r *http.Request) error {
 	query := r.URL.Query()
-	timeRange, err := parseTimeRange(query)
+	timeRange, err := service.ParseTimeRange(query)
 	if err != nil {
 		return err
 	}
 	filter := repository.UserFilter{
 		Query:         query.Get("q"),
 		Role:          query.Get("role"),
-		CreatedAfter:  timeRange.after,
-		CreatedBefore: timeRange.before,
+		CreatedAfter:  timeRange.After,
+		CreatedBefore: timeRange.Before,
 	}
-	page, err := parsePage(query, defaultPageSize, maxPageSize)
+	page, err := service.ParsePage(query, service.DefaultPageSize, service.MaxPageSize)
 	if err != nil {
 		return err
 	}
@@ -264,13 +260,13 @@ func (s *adminService) GetUser(w http.ResponseWriter, r *http.Request) error {
 		return httpx.InternalError(err, "查询用户失败")
 	}
 
-	users, err := s.userRepo.List(filter, page.limit, page.offset)
+	users, err := s.userRepo.List(filter, page.Limit, page.Offset)
 	if err != nil {
 		slog.Error("Failed to list users", "error", err)
 		return httpx.InternalError(err, "查询用户失败")
 	}
 
-	userPage := PageResponse[UserResponse]{
+	userPage := service.PageResponse[UserResponse]{
 		Total: usersCount,
 		Items: make([]UserResponse, len(users)),
 	}
@@ -587,7 +583,7 @@ func (s *adminService) GetEvent(w http.ResponseWriter, r *http.Request) error {
 			actions = append(actions, action)
 		}
 	}
-	timeRange, err := parseTimeRange(query)
+	timeRange, err := service.ParseTimeRange(query)
 	if err != nil {
 		return err
 	}
@@ -595,10 +591,10 @@ func (s *adminService) GetEvent(w http.ResponseWriter, r *http.Request) error {
 		ActorUser:     query.Get("actor_user"),
 		TargetUser:    query.Get("target_user"),
 		Actions:       actions,
-		CreatedAfter:  timeRange.after,
-		CreatedBefore: timeRange.before,
+		CreatedAfter:  timeRange.After,
+		CreatedBefore: timeRange.Before,
 	}
-	page, err := parsePage(query, defaultPageSize, maxPageSize)
+	page, err := service.ParsePage(query, service.DefaultPageSize, service.MaxPageSize)
 	if err != nil {
 		return err
 	}
@@ -609,13 +605,13 @@ func (s *adminService) GetEvent(w http.ResponseWriter, r *http.Request) error {
 		return httpx.InternalError(err, "查询事件失败")
 	}
 
-	events, err := s.eventRepo.List(filter, page.limit, page.offset)
+	events, err := s.eventRepo.List(filter, page.Limit, page.Offset)
 	if err != nil {
 		slog.Error("Failed to list events", "error", err)
 		return httpx.InternalError(err, "查询事件失败")
 	}
 
-	eventPage := PageResponse[EventResponse]{
+	eventPage := service.PageResponse[EventResponse]{
 		Total: eventsCount,
 		Items: make([]EventResponse, len(events)),
 	}

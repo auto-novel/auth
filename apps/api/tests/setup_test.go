@@ -6,7 +6,9 @@ import (
 	"auth/internal/authn"
 	"auth/internal/infra"
 	"auth/internal/repository"
-	"auth/internal/service"
+	adminservice "auth/internal/service/admin"
+	authservice "auth/internal/service/auth"
+	meservice "auth/internal/service/me"
 	"context"
 	"database/sql"
 	"fmt"
@@ -67,16 +69,16 @@ func TestMain(m *testing.M) {
 		testDB.Close()
 		os.Exit(1)
 	}
-	authService := service.NewAuthService(
+	authService := authservice.NewAuthService(
 		userRepo,
 		eventRepo,
 		otpRepo,
 		noopEmailClient{},
 		settingRepo,
 	)
-	adminService := service.NewAdminService(userRepo, eventRepo, settingRepo)
-	adminStrikeService := service.NewAdminStrikeService(userRepo, eventRepo, strikeRepo)
-	meService := service.NewMeService(userRepo, strikeRepo)
+	adminService := adminservice.NewAdminService(userRepo, eventRepo, settingRepo)
+	adminStrikeService := adminservice.NewAdminStrikeService(userRepo, eventRepo, strikeRepo)
+	meService := meservice.NewMeService(userRepo, strikeRepo)
 
 	authn.AccessTokenSecret = testAccessTokenSecret
 	infra.AccessTokenSecret = testAccessTokenSecret

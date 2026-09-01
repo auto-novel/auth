@@ -1,9 +1,10 @@
-package service
+package me
 
 import (
 	"auth/internal/authn"
 	"auth/internal/httpx"
 	"auth/internal/repository"
+	"auth/internal/service"
 	"log/slog"
 	"net/http"
 	"time"
@@ -54,20 +55,20 @@ func (s *meService) GetStrikes(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	query := r.URL.Query()
-	timeRange, err := parseTimeRange(query)
+	timeRange, err := service.ParseTimeRange(query)
 	if err != nil {
 		return err
 	}
 	filter := repository.StrikeFilter{
 		UserID:        user.ID,
-		CreatedAfter:  timeRange.after,
-		CreatedBefore: timeRange.before,
+		CreatedAfter:  timeRange.After,
+		CreatedBefore: timeRange.Before,
 	}
-	page, err := parsePage(query, defaultPageSize, maxPageSize)
+	page, err := service.ParsePage(query, service.DefaultPageSize, service.MaxPageSize)
 	if err != nil {
 		return err
 	}
-	return s.respondStrikes(w, r, filter, page.limit, page.offset)
+	return s.respondStrikes(w, r, filter, page.Limit, page.Offset)
 }
 
 func (s *meService) respondStrikes(w http.ResponseWriter, r *http.Request, filter repository.StrikeFilter, limit, offset int64) error {
@@ -79,7 +80,7 @@ func (s *meService) respondStrikes(w http.ResponseWriter, r *http.Request, filte
 	if err != nil {
 		return httpx.InternalError(err, "查询违规记录失败")
 	}
-	response := PageResponse[MeStrikeResponse]{
+	response := service.PageResponse[MeStrikeResponse]{
 		Total: total,
 		Items: make([]MeStrikeResponse, len(records)),
 	}

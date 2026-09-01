@@ -1,6 +1,7 @@
-package service
+package admin
 
 import (
+	authservice "auth/internal/service/auth"
 	"encoding/json"
 	"testing"
 	"time"
@@ -36,7 +37,7 @@ func TestAdminResponsesUseConsistentResourceTypes(t *testing.T) {
 		{
 			name: "event",
 			response: EventResponse{
-				ID: 1, Action: EventLogin,
+				ID: 1, Action: authservice.EventLogin,
 				Detail: json.RawMessage(`{"actor_user":"alice"}`), CreatedAt: timestamp,
 			},
 			check: func(t *testing.T, fields map[string]any) {

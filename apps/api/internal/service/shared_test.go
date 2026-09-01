@@ -12,7 +12,7 @@ import (
 )
 
 func TestParsePage(t *testing.T) {
-	largestPage := math.MaxInt64/defaultPageSize + 1
+	largestPage := math.MaxInt64/DefaultPageSize + 1
 	tests := []struct {
 		name        string
 		query       url.Values
@@ -20,9 +20,9 @@ func TestParsePage(t *testing.T) {
 		wantOffset  int64
 		wantMessage string
 	}{
-		{name: "defaults", query: url.Values{}, wantLimit: defaultPageSize},
+		{name: "defaults", query: url.Values{}, wantLimit: DefaultPageSize},
 		{name: "values", query: url.Values{"page": {"2"}, "page_size": {"100"}}, wantLimit: 100, wantOffset: 100},
-		{name: "largest offset", query: url.Values{"page": {strconv.FormatInt(largestPage, 10)}}, wantLimit: defaultPageSize, wantOffset: (largestPage - 1) * defaultPageSize},
+		{name: "largest offset", query: url.Values{"page": {strconv.FormatInt(largestPage, 10)}}, wantLimit: DefaultPageSize, wantOffset: (largestPage - 1) * DefaultPageSize},
 		{name: "invalid page", query: url.Values{"page": {"invalid"}}, wantMessage: "页码必须为正整数"},
 		{name: "invalid page size", query: url.Values{"page_size": {"invalid"}}, wantMessage: "每页数量必须为正整数"},
 		{name: "page size over limit", query: url.Values{"page_size": {"101"}}, wantMessage: "每页数量不能超过 100"},
@@ -31,13 +31,13 @@ func TestParsePage(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := parsePage(tt.query, defaultPageSize, maxPageSize)
+			got, err := ParsePage(tt.query, DefaultPageSize, MaxPageSize)
 			if tt.wantMessage == "" {
 				if err != nil {
 					t.Fatalf("parsePage returned error: %v", err)
 				}
-				if got.limit != tt.wantLimit || got.offset != tt.wantOffset {
-					t.Fatalf("parsePage returned (%d, %d), want (%d, %d)", got.limit, got.offset, tt.wantLimit, tt.wantOffset)
+				if got.Limit != tt.wantLimit || got.Offset != tt.wantOffset {
+					t.Fatalf("ParsePage returned (%d, %d), want (%d, %d)", got.Limit, got.Offset, tt.wantLimit, tt.wantOffset)
 				}
 				return
 			}
@@ -48,7 +48,7 @@ func TestParsePage(t *testing.T) {
 }
 
 func TestParsePageRejectsInvalidConfiguration(t *testing.T) {
-	_, err := parsePage(url.Values{}, 0, 100)
+	_, err := ParsePage(url.Values{}, 0, 100)
 	var httpErr *httpx.HttpError
 	if !errors.As(err, &httpErr) {
 		t.Fatalf("parsePage returned %v, want HttpError", err)
@@ -80,13 +80,13 @@ func TestParseTimeRange(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := parseTimeRange(tt.query)
+			got, err := ParseTimeRange(tt.query)
 			if tt.wantMessage == "" {
 				if err != nil {
 					t.Fatalf("parseTimeRange returned error: %v", err)
 				}
-				if !got.after.Equal(tt.wantAfter) || !got.before.Equal(tt.wantBefore) {
-					t.Fatalf("parseTimeRange returned (%v, %v), want (%v, %v)", got.after, got.before, tt.wantAfter, tt.wantBefore)
+				if !got.After.Equal(tt.wantAfter) || !got.Before.Equal(tt.wantBefore) {
+					t.Fatalf("ParseTimeRange returned (%v, %v), want (%v, %v)", got.After, got.Before, tt.wantAfter, tt.wantBefore)
 				}
 				return
 			}

@@ -6,7 +6,7 @@ import (
 	"auth/internal/authn"
 	"auth/internal/infra"
 	"auth/internal/repository"
-	"auth/internal/service"
+	authservice "auth/internal/service/auth"
 	"crypto/sha256"
 	"encoding/json"
 	"io"
@@ -137,7 +137,7 @@ func TestAuthRegisterSuccess(t *testing.T) {
 		t.Fatalf("expected member role, got %#v", claims["role"])
 	}
 
-	refreshCookie := findCookie(resp, service.RefreshTokenCookieName)
+	refreshCookie := findCookie(resp, authservice.RefreshTokenCookieName)
 	if refreshCookie == nil {
 		t.Fatal("expected refresh token cookie")
 	}

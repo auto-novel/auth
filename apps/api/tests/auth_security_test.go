@@ -6,7 +6,7 @@ import (
 	"auth/internal/authn"
 	"auth/internal/infra"
 	"auth/internal/repository"
-	"auth/internal/service"
+	authservice "auth/internal/service/auth"
 	"bytes"
 	"encoding/json"
 	"io"
@@ -44,7 +44,7 @@ func TestAuthRefreshRejectsNewlyBannedUser(t *testing.T) {
 	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("seed login returned status %d", resp.StatusCode)
 	}
-	refreshCookie := findCookie(resp, service.RefreshTokenCookieName)
+	refreshCookie := findCookie(resp, authservice.RefreshTokenCookieName)
 	if refreshCookie == nil {
 		t.Fatal("seed login did not return a refresh token")
 	}
@@ -78,7 +78,7 @@ func TestAuthRestrictedUserCanLoginAndRefresh(t *testing.T) {
 	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("restricted user login returned status %d: %s", resp.StatusCode, body)
 	}
-	refreshCookie := findCookie(resp, service.RefreshTokenCookieName)
+	refreshCookie := findCookie(resp, authservice.RefreshTokenCookieName)
 	if refreshCookie == nil {
 		t.Fatal("restricted user login did not return a refresh token")
 	}
