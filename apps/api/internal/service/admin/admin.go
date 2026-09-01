@@ -30,22 +30,6 @@ const (
 	EventUpdateSetting  string = "update-setting"
 )
 
-type AdminService interface {
-	Use(chi.Router)
-	GetOverviewActivity(http.ResponseWriter, *http.Request) error
-	GetOverviewUserSummary(http.ResponseWriter, *http.Request) error
-	GetUser(http.ResponseWriter, *http.Request) error
-	TrustUser(http.ResponseWriter, *http.Request) error
-	UntrustUser(http.ResponseWriter, *http.Request) error
-	RestrictUser(http.ResponseWriter, *http.Request) error
-	UnrestrictUser(http.ResponseWriter, *http.Request) error
-	BanUser(http.ResponseWriter, *http.Request) error
-	UnbanUser(http.ResponseWriter, *http.Request) error
-	GetEvent(http.ResponseWriter, *http.Request) error
-	GetSetting(http.ResponseWriter, *http.Request) error
-	UpdateSetting(http.ResponseWriter, *http.Request) error
-}
-
 type adminService struct {
 	userRepo    repository.UserRepository
 	eventRepo   repository.EventRepository
@@ -56,7 +40,7 @@ func NewAdminService(
 	userRepo repository.UserRepository,
 	eventRepo repository.EventRepository,
 	settingRepo repository.SettingRepository,
-) AdminService {
+) *adminService {
 	s := &adminService{
 		userRepo:    userRepo,
 		eventRepo:   eventRepo,

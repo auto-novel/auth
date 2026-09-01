@@ -24,16 +24,6 @@ const (
 	EventResetPassword string = "reset_password"
 )
 
-type AuthService interface {
-	Use(chi.Router)
-	Register(http.ResponseWriter, *http.Request) error
-	Login(http.ResponseWriter, *http.Request) error
-	Refresh(http.ResponseWriter, *http.Request) error
-	Logout(http.ResponseWriter, *http.Request) error
-	RequestOtp(http.ResponseWriter, *http.Request) error
-	ResetPassword(http.ResponseWriter, *http.Request) error
-}
-
 type authService struct {
 	userRepo    repository.UserRepository
 	eventRepo   repository.EventRepository
@@ -48,7 +38,7 @@ func NewAuthService(
 	otpRepo repository.OtpRepository,
 	email infra.EmailClient,
 	settingRepo repository.SettingRepository,
-) AuthService {
+) *authService {
 	s := &authService{
 		userRepo:    userRepo,
 		eventRepo:   eventRepo,

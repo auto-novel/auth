@@ -12,11 +12,6 @@ import (
 	"github.com/go-chi/render"
 )
 
-type MeService interface {
-	Use(chi.Router)
-	GetStrikes(http.ResponseWriter, *http.Request) error
-}
-
 type MeStrikeResponse struct {
 	ID        int64      `json:"id"`
 	Reason    string     `json:"reason"`
@@ -31,7 +26,7 @@ type meService struct {
 	strikeRepo repository.StrikeRepository
 }
 
-func NewMeService(userRepo repository.UserRepository, strikeRepo repository.StrikeRepository) MeService {
+func NewMeService(userRepo repository.UserRepository, strikeRepo repository.StrikeRepository) *meService {
 	return &meService{userRepo: userRepo, strikeRepo: strikeRepo}
 }
 

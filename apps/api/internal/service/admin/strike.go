@@ -19,10 +19,6 @@ const (
 	maxStrikePoints = 3
 )
 
-type AdminStrikeService interface {
-	Use(chi.Router)
-}
-
 type adminStrikeService struct {
 	userRepo   repository.UserRepository
 	eventRepo  repository.EventRepository
@@ -33,7 +29,7 @@ func NewAdminStrikeService(
 	userRepo repository.UserRepository,
 	eventRepo repository.EventRepository,
 	strikeRepo repository.StrikeRepository,
-) AdminStrikeService {
+) *adminStrikeService {
 	return &adminStrikeService{
 		userRepo:   userRepo,
 		eventRepo:  eventRepo,
