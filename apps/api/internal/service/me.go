@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/render"
 )
 
 type MeService interface {
@@ -66,10 +67,10 @@ func (s *meService) GetStrikes(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	return s.respondStrikes(w, filter, pagination.Limit, pagination.Offset)
+	return s.respondStrikes(w, r, filter, pagination.Limit, pagination.Offset)
 }
 
-func (s *meService) respondStrikes(w http.ResponseWriter, filter repository.StrikeFilter, limit, offset int64) error {
+func (s *meService) respondStrikes(w http.ResponseWriter, r *http.Request, filter repository.StrikeFilter, limit, offset int64) error {
 	total, err := s.strikeRepo.Count(filter)
 	if err != nil {
 		return httpx.InternalError(err, "查询违规记录失败")
@@ -92,5 +93,6 @@ func (s *meService) respondStrikes(w http.ResponseWriter, filter repository.Stri
 			RevokedAt: record.RevokedAt,
 		}
 	}
-	return httpx.RespondJson(w, response)
+	render.JSON(w, r, response)
+	return nil
 }

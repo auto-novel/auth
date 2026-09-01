@@ -31,13 +31,13 @@ func TestRequireAdmin(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			handler := RequireAdmin(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			handler := RequireAdmin(httpx.EH(func(w http.ResponseWriter, r *http.Request) error {
 				principal, err := AuthenticatedPrincipal(r)
 				if err != nil {
-					httpx.RespondError(w, err)
-					return
+					return err
 				}
-				_, _ = io.WriteString(w, principal.Username)
+				_, err = io.WriteString(w, principal.Username)
+				return err
 			}))
 			req := httptest.NewRequest(http.MethodGet, "/admin", nil)
 			if tt.token != "" {

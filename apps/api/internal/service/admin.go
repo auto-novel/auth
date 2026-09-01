@@ -12,6 +12,7 @@ import (
 	_ "time/tzdata"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/render"
 )
 
 const (
@@ -227,20 +228,22 @@ func (s *adminService) GetOverviewActivity(w http.ResponseWriter, r *http.Reques
 			RegisterCount: stat.RegisterCount,
 		}
 	}
-	return httpx.RespondJson(w, response)
+	render.JSON(w, r, response)
+	return nil
 }
 
-func (s *adminService) GetOverviewUserSummary(w http.ResponseWriter, _ *http.Request) error {
+func (s *adminService) GetOverviewUserSummary(w http.ResponseWriter, r *http.Request) error {
 	summary, err := s.userRepo.Summary()
 	if err != nil {
 		slog.Error("Failed to get overview user summary", "error", err)
 		return httpx.InternalError(err, "查询用户概览失败")
 	}
-	return httpx.RespondJson(w, OverviewUserSummaryResponse{
+	render.JSON(w, r, OverviewUserSummaryResponse{
 		TotalUsers:      summary.TotalUsers,
 		RestrictedUsers: summary.RestrictedUsers,
 		BannedUsers:     summary.BannedUsers,
 	})
+	return nil
 }
 
 func (s *adminService) GetUser(w http.ResponseWriter, r *http.Request) error {
@@ -287,7 +290,8 @@ func (s *adminService) GetUser(w http.ResponseWriter, r *http.Request) error {
 			Attr:      jsonObject(user.Attr),
 		}
 	}
-	return httpx.RespondJson(w, userPage)
+	render.JSON(w, r, userPage)
+	return nil
 }
 
 func (s *adminService) TrustUser(w http.ResponseWriter, r *http.Request) error {
@@ -628,12 +632,14 @@ func (s *adminService) GetEvent(w http.ResponseWriter, r *http.Request) error {
 			CreatedAt: event.CreatedAt,
 		}
 	}
-	return httpx.RespondJson(w, eventPage)
+	render.JSON(w, r, eventPage)
+	return nil
 }
 
 func (s *adminService) GetSetting(w http.ResponseWriter, r *http.Request) error {
 	settings := s.settingRepo.Get()
-	return httpx.RespondJson(w, settings)
+	render.JSON(w, r, settings)
+	return nil
 }
 
 func (s *adminService) UpdateSetting(w http.ResponseWriter, r *http.Request) error {
@@ -673,5 +679,6 @@ func (s *adminService) UpdateSetting(w http.ResponseWriter, r *http.Request) err
 		},
 	)
 
-	return httpx.RespondJson(w, settings)
+	render.JSON(w, r, settings)
+	return nil
 }

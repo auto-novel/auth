@@ -1,12 +1,12 @@
 package httpx
 
 import (
-	"bytes"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
+
+	"github.com/go-chi/render"
 )
 
 type HttpError struct {
@@ -69,18 +69,17 @@ func EH(f func(http.ResponseWriter, *http.Request) error) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		err := f(w, r)
 		if err != nil {
-			RespondError(w, err)
+			respondError(w, r, err)
 			return
 		}
 	}
 }
 
-// 修复http.Error的额外换行符问题
-func RespondError(w http.ResponseWriter, err error) {
+func respondError(w http.ResponseWriter, r *http.Request, err error) {
 	var code int
 	var message string
 
-	httpErr := &HttpError{}
+	var httpErr *HttpError
 	if errors.As(err, &httpErr) {
 		code = httpErr.StatusCode
 		message = httpErr.Message
@@ -93,35 +92,9 @@ func RespondError(w http.ResponseWriter, err error) {
 		slog.Error("Unhandled request error", "status", code, "error", err)
 	}
 
-	h := w.Header()
-	h.Del("Content-Length")
-	h.Set("Content-Type", "text/plain; charset=utf-8")
-	h.Set("X-Content-Type-Options", "nosniff")
-	w.WriteHeader(code)
-	fmt.Fprint(w, message)
-}
-
-func RespondText(w http.ResponseWriter, message string) error {
-	h := w.Header()
-	h.Set("Content-Type", "text/plain; charset=utf-8")
-	w.WriteHeader(http.StatusOK)
-	if _, err := fmt.Fprint(w, message); err != nil {
-		return InternalError(err, "failed to write response")
-	}
-	return nil
-}
-
-func RespondJson[T any](w http.ResponseWriter, response T) error {
-	var body bytes.Buffer
-	if err := json.NewEncoder(&body).Encode(response); err != nil {
-		return InternalError(err, "failed to encode response")
-	}
-
-	h := w.Header()
-	h.Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	if _, err := body.WriteTo(w); err != nil {
-		return InternalError(err, "failed to write response")
-	}
-	return nil
+	header := w.Header()
+	header.Del("Content-Length")
+	header.Set("X-Content-Type-Options", "nosniff")
+	render.Status(r, code)
+	render.PlainText(w, r, message)
 }

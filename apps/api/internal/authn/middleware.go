@@ -35,30 +35,29 @@ func verifyAccessToken(r *http.Request) (Principal, error) {
 }
 
 func RequireAccessToken(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return httpx.EH(func(w http.ResponseWriter, r *http.Request) error {
 		principal, err := verifyAccessToken(r)
 		if err != nil {
-			httpx.RespondError(w, err)
-			return
+			return err
 		}
 		ctx := context.WithValue(r.Context(), principalContextKey{}, principal)
 		next.ServeHTTP(w, r.WithContext(ctx))
+		return nil
 	})
 }
 
 func RequireRole(role string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
-		return RequireAccessToken(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		return RequireAccessToken(httpx.EH(func(w http.ResponseWriter, r *http.Request) error {
 			principal, err := AuthenticatedPrincipal(r)
 			if err != nil {
-				httpx.RespondError(w, err)
-				return
+				return err
 			}
 			if principal.Role != role {
-				httpx.RespondError(w, httpx.Forbidden("权限不足"))
-				return
+				return httpx.Forbidden("权限不足")
 			}
 			next.ServeHTTP(w, r)
+			return nil
 		}))
 	}
 }

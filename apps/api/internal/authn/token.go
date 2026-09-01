@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/go-chi/render"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -89,7 +90,7 @@ type TokenOptions struct {
 	WithRefreshToken bool
 }
 
-func RespondAuthTokens(w http.ResponseWriter, opts TokenOptions) error {
+func RespondAuthTokens(w http.ResponseWriter, r *http.Request, opts TokenOptions) error {
 	policy, err := TokenPolicyForApp(opts.App)
 	if err != nil {
 		return err
@@ -106,12 +107,14 @@ func RespondAuthTokens(w http.ResponseWriter, opts TokenOptions) error {
 	if err != nil {
 		return err
 	}
-	return httpx.RespondText(w, accessToken)
+	render.PlainText(w, r, accessToken)
+	return nil
 }
 
-func RespondLogout(w http.ResponseWriter) error {
+func RespondLogout(w http.ResponseWriter, r *http.Request) error {
 	attachRefreshToken(w, "", 0)
-	return httpx.RespondText(w, "")
+	render.PlainText(w, r, "")
+	return nil
 }
 
 func issueAccessToken(opts TokenOptions, policy TokenPolicy) (string, error) {

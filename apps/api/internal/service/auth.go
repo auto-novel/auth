@@ -13,6 +13,7 @@ import (
 	"unicode"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/render"
 )
 
 const (
@@ -194,7 +195,7 @@ func (s *authService) Register(w http.ResponseWriter, r *http.Request) error {
 		},
 	)
 
-	return authn.RespondAuthTokens(w, authn.TokenOptions{
+	return authn.RespondAuthTokens(w, r, authn.TokenOptions{
 		App:              req.App,
 		UserID:           user.ID,
 		Username:         user.Username,
@@ -274,7 +275,7 @@ func (s *authService) Login(w http.ResponseWriter, r *http.Request) error {
 			Ip:         httpx.GetRealIp(r),
 		},
 	)
-	return authn.RespondAuthTokens(w, authn.TokenOptions{
+	return authn.RespondAuthTokens(w, r, authn.TokenOptions{
 		App:              req.App,
 		UserID:           user.ID,
 		Username:         user.Username,
@@ -312,7 +313,7 @@ func (s *authService) Refresh(w http.ResponseWriter, r *http.Request) error {
 	user.LastLogin = time.Now()
 	s.userRepo.UpdateLastLogin(user)
 
-	return authn.RespondAuthTokens(w, authn.TokenOptions{
+	return authn.RespondAuthTokens(w, r, authn.TokenOptions{
 		App:              app,
 		UserID:           user.ID,
 		Username:         user.Username,
@@ -342,7 +343,7 @@ func (s *authService) Logout(w http.ResponseWriter, r *http.Request) error {
 		},
 	)
 
-	return authn.RespondLogout(w)
+	return authn.RespondLogout(w, r)
 }
 
 func (s *authService) sendOtpEmail(otpType string, email string, otp string) error {
@@ -442,7 +443,8 @@ func (s *authService) RequestOtp(w http.ResponseWriter, r *http.Request) error {
 		},
 	)
 
-	return httpx.RespondText(w, "验证邮件已发送")
+	render.PlainText(w, r, "验证邮件已发送")
+	return nil
 }
 
 func (s *authService) ResetPassword(w http.ResponseWriter, r *http.Request) error {
@@ -513,5 +515,6 @@ func (s *authService) ResetPassword(w http.ResponseWriter, r *http.Request) erro
 		},
 	)
 
-	return httpx.RespondText(w, "密码重置成功")
+	render.PlainText(w, r, "密码重置成功")
+	return nil
 }

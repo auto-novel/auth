@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/render"
 )
 
 const (
@@ -172,7 +173,8 @@ func (s *adminStrikeService) GetStrikes(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		return httpx.InternalError(err, "查询违规记录失败")
 	}
-	return httpx.RespondJson(w, strikePage(records, total))
+	render.JSON(w, r, strikePage(records, total))
+	return nil
 }
 
 func (s *adminStrikeService) CreateStrike(w http.ResponseWriter, r *http.Request) error {
@@ -199,11 +201,12 @@ func (s *adminStrikeService) CreateStrike(w http.ResponseWriter, r *http.Request
 	}
 	operatorUsername := principal.Username
 	targetUsername := target.Username
-	return httpx.RespondJson(w, strikeResponse(repository.StrikeDetails{
+	render.JSON(w, r, strikeResponse(repository.StrikeDetails{
 		AuthStrikeRecord: record,
 		Username:         &targetUsername,
 		OperatorUsername: &operatorUsername,
 	}))
+	return nil
 }
 
 func (s *adminStrikeService) RevokeStrike(w http.ResponseWriter, r *http.Request) error {
@@ -237,10 +240,11 @@ func (s *adminStrikeService) RevokeStrike(w http.ResponseWriter, r *http.Request
 		return httpx.Conflict("违规记录已撤销")
 	}
 	revokedByUsername := principal.Username
-	return httpx.RespondJson(w, strikeResponse(repository.StrikeDetails{
+	render.JSON(w, r, strikeResponse(repository.StrikeDetails{
 		AuthStrikeRecord:  *revoked,
 		Username:          record.Username,
 		OperatorUsername:  record.OperatorUsername,
 		RevokedByUsername: &revokedByUsername,
 	}))
+	return nil
 }
