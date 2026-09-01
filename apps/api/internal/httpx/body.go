@@ -4,16 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
-	"math"
 	"mime"
 	"net/http"
-	"net/url"
 	"reflect"
-	"strconv"
 	"strings"
-	"time"
 
 	localeZh "github.com/go-playground/locales/zh"
 	ut "github.com/go-playground/universal-translator"
@@ -104,74 +99,4 @@ func Body[T any](r *http.Request) (T, error) {
 	}
 
 	return result, nil
-}
-
-type Pagination struct {
-	Limit  int64
-	Offset int64
-}
-
-type TimeRange struct {
-	After  time.Time
-	Before time.Time
-}
-
-func ParsePagination(query url.Values, defaultPageSize, maxPageSize int64) (Pagination, error) {
-	if defaultPageSize <= 0 || maxPageSize < defaultPageSize {
-		return Pagination{}, InternalServerError("分页参数配置无效")
-	}
-	page, err := getPositiveQueryInt(query, "page", 1)
-	if err != nil {
-		return Pagination{}, err
-	}
-	pageSize, err := getPositiveQueryInt(query, "page_size", defaultPageSize)
-	if err != nil {
-		return Pagination{}, err
-	}
-	if pageSize > maxPageSize {
-		return Pagination{}, BadRequest(fmt.Sprintf("page_size 不能超过 %d", maxPageSize))
-	}
-	if page-1 > math.MaxInt64/pageSize {
-		return Pagination{}, BadRequest("page 超出可支持的范围")
-	}
-	return Pagination{Limit: pageSize, Offset: (page - 1) * pageSize}, nil
-}
-
-func getPositiveQueryInt(query url.Values, key string, defaultValue int64) (int64, error) {
-	value := query.Get(key)
-	if value == "" {
-		return defaultValue, nil
-	}
-	parsed, err := strconv.ParseInt(value, 10, 64)
-	if err != nil || parsed <= 0 {
-		return 0, BadRequest(fmt.Sprintf("%s 必须为正整数", key))
-	}
-	return parsed, nil
-}
-
-func ParseTimeRange(query url.Values) (TimeRange, error) {
-	after, err := parseOptionalUnixTime(query, "created_after")
-	if err != nil {
-		return TimeRange{}, err
-	}
-	before, err := parseOptionalUnixTime(query, "created_before")
-	if err != nil {
-		return TimeRange{}, err
-	}
-	if !after.IsZero() && !before.IsZero() && after.After(before) {
-		return TimeRange{}, BadRequest("created_after 不能晚于 created_before")
-	}
-	return TimeRange{After: after, Before: before}, nil
-}
-
-func parseOptionalUnixTime(query url.Values, key string) (time.Time, error) {
-	value := query.Get(key)
-	if value == "" {
-		return time.Time{}, nil
-	}
-	epochSeconds, err := strconv.ParseInt(value, 10, 64)
-	if err != nil {
-		return time.Time{}, BadRequest(fmt.Sprintf("%s 必须为 Unix 时间戳", key))
-	}
-	return time.Unix(epochSeconds, 0), nil
 }

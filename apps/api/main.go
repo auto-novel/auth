@@ -2,7 +2,6 @@ package main
 
 import (
 	"auth/internal/authn"
-	"auth/internal/httpx"
 	"auth/internal/infra"
 	"auth/internal/repository"
 	"auth/internal/service"
@@ -15,6 +14,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/httplog/v3"
 )
 
 func env(key, fallback string) string {
@@ -138,7 +138,11 @@ func main() {
 		w.Write([]byte("OK\n"))
 	})
 	router.Route("/v1", func(router chi.Router) {
-		router.Use(httpx.RequestLogger())
+		router.Use(httplog.RequestLogger(slog.Default(), &httplog.Options{
+			Level:         slog.LevelInfo,
+			Schema:        httplog.SchemaECS,
+			RecoverPanics: true,
+		}))
 		router.Route("/auth", authService.Use)
 		router.Route("/admin", func(router chi.Router) {
 			router.Use(authn.RequireAdmin)

@@ -86,11 +86,6 @@ type PageResponse[T any] struct {
 	Items []T   `json:"items"`
 }
 
-const (
-	defaultPageSize int64 = 50
-	maxPageSize     int64 = 100
-)
-
 type UserResponse struct {
 	ID        int64           `json:"id"`
 	Username  string          `json:"username"`
@@ -248,17 +243,17 @@ func (s *adminService) GetOverviewUserSummary(w http.ResponseWriter, r *http.Req
 
 func (s *adminService) GetUser(w http.ResponseWriter, r *http.Request) error {
 	query := r.URL.Query()
-	timeRange, err := httpx.ParseTimeRange(query)
+	timeRange, err := parseTimeRange(query)
 	if err != nil {
 		return err
 	}
 	filter := repository.UserFilter{
 		Query:         query.Get("q"),
 		Role:          query.Get("role"),
-		CreatedAfter:  timeRange.After,
-		CreatedBefore: timeRange.Before,
+		CreatedAfter:  timeRange.after,
+		CreatedBefore: timeRange.before,
 	}
-	pagination, err := httpx.ParsePagination(query, defaultPageSize, maxPageSize)
+	page, err := parsePage(query, defaultPageSize, maxPageSize)
 	if err != nil {
 		return err
 	}
@@ -269,7 +264,7 @@ func (s *adminService) GetUser(w http.ResponseWriter, r *http.Request) error {
 		return httpx.InternalError(err, "查询用户失败")
 	}
 
-	users, err := s.userRepo.List(filter, pagination.Limit, pagination.Offset)
+	users, err := s.userRepo.List(filter, page.limit, page.offset)
 	if err != nil {
 		slog.Error("Failed to list users", "error", err)
 		return httpx.InternalError(err, "查询用户失败")
@@ -592,7 +587,7 @@ func (s *adminService) GetEvent(w http.ResponseWriter, r *http.Request) error {
 			actions = append(actions, action)
 		}
 	}
-	timeRange, err := httpx.ParseTimeRange(query)
+	timeRange, err := parseTimeRange(query)
 	if err != nil {
 		return err
 	}
@@ -600,10 +595,10 @@ func (s *adminService) GetEvent(w http.ResponseWriter, r *http.Request) error {
 		ActorUser:     query.Get("actor_user"),
 		TargetUser:    query.Get("target_user"),
 		Actions:       actions,
-		CreatedAfter:  timeRange.After,
-		CreatedBefore: timeRange.Before,
+		CreatedAfter:  timeRange.after,
+		CreatedBefore: timeRange.before,
 	}
-	pagination, err := httpx.ParsePagination(query, defaultPageSize, maxPageSize)
+	page, err := parsePage(query, defaultPageSize, maxPageSize)
 	if err != nil {
 		return err
 	}
@@ -614,7 +609,7 @@ func (s *adminService) GetEvent(w http.ResponseWriter, r *http.Request) error {
 		return httpx.InternalError(err, "查询事件失败")
 	}
 
-	events, err := s.eventRepo.List(filter, pagination.Limit, pagination.Offset)
+	events, err := s.eventRepo.List(filter, page.limit, page.offset)
 	if err != nil {
 		slog.Error("Failed to list events", "error", err)
 		return httpx.InternalError(err, "查询事件失败")

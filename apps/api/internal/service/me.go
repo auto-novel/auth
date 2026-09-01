@@ -54,20 +54,20 @@ func (s *meService) GetStrikes(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	query := r.URL.Query()
-	timeRange, err := httpx.ParseTimeRange(query)
+	timeRange, err := parseTimeRange(query)
 	if err != nil {
 		return err
 	}
 	filter := repository.StrikeFilter{
 		UserID:        user.ID,
-		CreatedAfter:  timeRange.After,
-		CreatedBefore: timeRange.Before,
+		CreatedAfter:  timeRange.after,
+		CreatedBefore: timeRange.before,
 	}
-	pagination, err := httpx.ParsePagination(query, defaultPageSize, maxPageSize)
+	page, err := parsePage(query, defaultPageSize, maxPageSize)
 	if err != nil {
 		return err
 	}
-	return s.respondStrikes(w, r, filter, pagination.Limit, pagination.Offset)
+	return s.respondStrikes(w, r, filter, page.limit, page.offset)
 }
 
 func (s *meService) respondStrikes(w http.ResponseWriter, r *http.Request, filter repository.StrikeFilter, limit, offset int64) error {

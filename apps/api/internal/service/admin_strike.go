@@ -139,13 +139,13 @@ func (s *adminStrikeService) createStrike(
 
 func (s *adminStrikeService) GetStrikes(w http.ResponseWriter, r *http.Request) error {
 	query := r.URL.Query()
-	timeRange, err := httpx.ParseTimeRange(query)
+	timeRange, err := parseTimeRange(query)
 	if err != nil {
 		return err
 	}
 	filter := repository.StrikeFilter{
-		CreatedAfter:  timeRange.After,
-		CreatedBefore: timeRange.Before,
+		CreatedAfter:  timeRange.after,
+		CreatedBefore: timeRange.before,
 	}
 	if username := query.Get("username"); username != "" {
 		target, err := s.findStrikeTarget(username)
@@ -161,7 +161,7 @@ func (s *adminStrikeService) GetStrikes(w http.ResponseWriter, r *http.Request) 
 		}
 		filter.OperatorID = &operator.ID
 	}
-	pagination, err := httpx.ParsePagination(query, defaultPageSize, maxPageSize)
+	page, err := parsePage(query, defaultPageSize, maxPageSize)
 	if err != nil {
 		return err
 	}
@@ -169,7 +169,7 @@ func (s *adminStrikeService) GetStrikes(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		return httpx.InternalError(err, "查询违规记录失败")
 	}
-	records, err := s.strikeRepo.ListDetails(filter, pagination.Limit, pagination.Offset)
+	records, err := s.strikeRepo.ListDetails(filter, page.limit, page.offset)
 	if err != nil {
 		return httpx.InternalError(err, "查询违规记录失败")
 	}

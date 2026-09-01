@@ -1,13 +1,11 @@
 package httpx
 
 import (
-	"log/slog"
 	"net"
 	"net/http"
 	"strings"
 	"time"
 
-	"github.com/go-chi/httplog/v3"
 	"github.com/go-chi/httprate"
 )
 
@@ -60,12 +58,4 @@ func canonicalIp(value string) string {
 		return ""
 	}
 	return ip.String()
-}
-
-func RequestLogger() func(next http.Handler) http.Handler {
-	return httplog.RequestLogger(slog.Default(), &httplog.Options{
-		Level:         slog.LevelInfo,
-		Schema:        httplog.SchemaECS,
-		RecoverPanics: true,
-	})
 }
