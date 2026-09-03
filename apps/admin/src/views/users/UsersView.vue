@@ -178,6 +178,27 @@ function closeActionModal() {
   pendingAction.value = null;
 }
 
+function updateUserRole(action: UserAction, username: string, reason: string) {
+  switch (action) {
+    case 'trust':
+      return api.admin.trustUser({ username });
+    case 'untrust':
+      return api.admin.untrustUser({ username });
+    case 'restrict':
+      return api.admin.restrictUser({ username, reason });
+    case 'unrestrict':
+      return api.admin.unrestrictUser({ username, reason });
+    case 'ban':
+      return api.admin.banUser({ username, reason });
+    case 'unban':
+      return api.admin.unbanUser({ username, reason });
+    default: {
+      const unsupportedAction: never = action;
+      throw new Error(`不支持的用户操作：${unsupportedAction}`);
+    }
+  }
+}
+
 async function confirmAction() {
   const target = pendingAction.value;
   const config = actionConfig.value;
@@ -187,10 +208,7 @@ async function confirmAction() {
   actionInProgress.value = true;
   actionError.value = '';
   try {
-    await api.admin.updateUserRole(target.action, {
-      username: target.user.username,
-      ...(actionRequiresReason.value ? { reason } : {}),
-    });
+    await updateUserRole(target.action, target.user.username, reason);
     pendingAction.value = null;
     actionSucceeded.value = `${config.result} ${target.user.username}`;
     await loadUsers();

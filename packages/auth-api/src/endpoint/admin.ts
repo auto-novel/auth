@@ -25,9 +25,12 @@ export interface UserListParams {
 export type UserAction =
   'trust' | 'untrust' | 'restrict' | 'unrestrict' | 'ban' | 'unban';
 
-export interface UserActionRequest {
+export interface UserRoleRequest {
   username: string;
-  reason?: string;
+}
+
+export interface UserRoleReasonRequest extends UserRoleRequest {
+  reason: string;
 }
 
 export interface DailyAuthStat {
@@ -130,8 +133,23 @@ export function createAdminEndpoints(client: ApiClient) {
         })
         .json<UserPage>();
     },
-    updateUserRole(action: UserAction, request: UserActionRequest) {
-      return client.post(`admin/user/${action}`, request).void();
+    trustUser(request: UserRoleRequest) {
+      return client.post('admin/user/trust', request).void();
+    },
+    untrustUser(request: UserRoleRequest) {
+      return client.post('admin/user/untrust', request).void();
+    },
+    restrictUser(request: UserRoleReasonRequest) {
+      return client.post('admin/user/restrict', request).void();
+    },
+    unrestrictUser(request: UserRoleReasonRequest) {
+      return client.post('admin/user/unrestrict', request).void();
+    },
+    banUser(request: UserRoleReasonRequest) {
+      return client.post('admin/user/ban', request).void();
+    },
+    unbanUser(request: UserRoleReasonRequest) {
+      return client.post('admin/user/unban', request).void();
     },
     getOverviewActivity(startDate: string, endDate: string) {
       return client

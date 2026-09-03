@@ -15,9 +15,10 @@ export type {
   UpdateAuthSettingsRequest,
   User,
   UserAction,
-  UserActionRequest,
   UserListParams,
   UserPage,
+  UserRoleReasonRequest,
+  UserRoleRequest,
 } from './endpoint/admin';
 export { ApiError } from './endpoint/client';
 export type { AuthUser } from './session';
