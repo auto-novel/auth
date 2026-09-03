@@ -27,7 +27,7 @@ export type UserAction =
 
 export interface UserActionRequest {
   username: string;
-  reason: string;
+  reason?: string;
 }
 
 export interface DailyAuthStat {

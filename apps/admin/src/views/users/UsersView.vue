@@ -85,6 +85,11 @@ const actionConfig = computed(() => {
   };
   return pendingAction.value ? configs[pendingAction.value.action] : null;
 });
+const actionRequiresReason = computed(
+  () =>
+    pendingAction.value?.action !== 'trust' &&
+    pendingAction.value?.action !== 'untrust',
+);
 
 function getCreatedBounds(range: [number, number] | null) {
   if (!range) return {};
@@ -177,14 +182,14 @@ async function confirmAction() {
   const target = pendingAction.value;
   const config = actionConfig.value;
   const reason = actionReason.value.trim();
-  if (!target || !config || !reason) return;
+  if (!target || !config || (actionRequiresReason.value && !reason)) return;
 
   actionInProgress.value = true;
   actionError.value = '';
   try {
     await api.admin.updateUserRole(target.action, {
       username: target.user.username,
-      reason,
+      ...(actionRequiresReason.value ? { reason } : {}),
     });
     pendingAction.value = null;
     actionSucceeded.value = `${config.result} ${target.user.username}`;
@@ -283,6 +288,7 @@ onMounted(loadUsers);
           </n-button>
         </n-space>
         <n-input
+          v-if="actionRequiresReason"
           v-model:value="actionReason"
           type="textarea"
           :placeholder="`请输入${actionConfig?.title ?? '操作'}原因`"
@@ -306,7 +312,7 @@ onMounted(loadUsers);
           <n-button
             :type="actionConfig?.buttonType"
             :loading="actionInProgress"
-            :disabled="!actionReason.trim()"
+            :disabled="actionRequiresReason && !actionReason.trim()"
             @click="confirmAction"
           >
             确认{{ actionConfig?.title }}
