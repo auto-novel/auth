@@ -33,7 +33,9 @@ type ViewportMode = 'mobile' | 'tablet' | 'desktop';
 const props = defineProps<{ menuOptions: MenuOption[] }>();
 const mobileMenuOpen = ref(false);
 const mobileMediaQuery = window.matchMedia('(max-width: 767px)');
-const tabletMediaQuery = window.matchMedia('(min-width: 768px) and (max-width: 1023px)');
+const tabletMediaQuery = window.matchMedia(
+  '(min-width: 768px) and (max-width: 1023px)',
+);
 
 function getViewportMode(): ViewportMode {
   if (mobileMediaQuery.matches) return 'mobile';
@@ -55,9 +57,10 @@ const allMenuOptions = computed<Array<MenuOption | MenuDividerOption>>(() => [
   {
     label: '切换主题',
     key: 'admin-kit-theme-toggle',
-    icon: () => h(NIcon, null, {
-      default: () => h(isDark.value ? DarkModeOutlined : LightModeOutlined),
-    }),
+    icon: () =>
+      h(NIcon, null, {
+        default: () => h(isDark.value ? DarkModeOutlined : LightModeOutlined),
+      }),
   },
 ]);
 const activeKey = computed(() => route.path);
@@ -89,18 +92,52 @@ onBeforeUnmount(() => {
   mobileMediaQuery.removeEventListener('change', updateViewport);
   tabletMediaQuery.removeEventListener('change', updateViewport);
 });
-watch(() => route.path, () => { mobileMenuOpen.value = false; });
+watch(
+  () => route.path,
+  () => {
+    mobileMenuOpen.value = false;
+  },
+);
 </script>
 
 <template>
   <n-layout :has-sider="!isMobile" class="app-layout">
-    <n-layout-sider v-if="!isMobile" bordered collapse-mode="width" :width="200" :collapsed-width="64" :collapsed="collapsed">
-      <SidebarNavigation :active-key="activeKey" :collapsed="collapsed" :options="allMenuOptions" :brand="options.brand" :repository="options.repository" @select="handleMenuSelect" />
+    <n-layout-sider
+      v-if="!isMobile"
+      bordered
+      collapse-mode="width"
+      :width="200"
+      :collapsed-width="64"
+      :collapsed="collapsed"
+    >
+      <SidebarNavigation
+        :active-key="activeKey"
+        :collapsed="collapsed"
+        :options="allMenuOptions"
+        :brand="options.brand"
+        :repository="options.repository"
+        @select="handleMenuSelect"
+      />
     </n-layout-sider>
 
-    <n-drawer v-if="isMobile" v-model:show="mobileMenuOpen" :width="280" placement="left">
-      <n-drawer-content body-content-style="padding: 0; height: 100%;" :native-scrollbar="false">
-        <SidebarNavigation :active-key="activeKey" :collapsed="false" :options="allMenuOptions" :brand="options.brand" :repository="options.repository" @select="handleMenuSelect" />
+    <n-drawer
+      v-if="isMobile"
+      v-model:show="mobileMenuOpen"
+      :width="280"
+      placement="left"
+    >
+      <n-drawer-content
+        body-content-style="padding: 0; height: 100%;"
+        :native-scrollbar="false"
+      >
+        <SidebarNavigation
+          :active-key="activeKey"
+          :collapsed="false"
+          :options="allMenuOptions"
+          :brand="options.brand"
+          :repository="options.repository"
+          @select="handleMenuSelect"
+        />
       </n-drawer-content>
     </n-drawer>
 
@@ -108,12 +145,36 @@ watch(() => route.path, () => { mobileMenuOpen.value = false; });
       <n-layout-header bordered class="page-header">
         <div class="page-header__content">
           <n-space align="center">
-            <n-button v-if="isMobile" class="sidebar-toggle" quaternary circle aria-label="打开导航菜单" title="打开导航菜单" @click="mobileMenuOpen = true">
+            <n-button
+              v-if="isMobile"
+              class="sidebar-toggle"
+              quaternary
+              circle
+              aria-label="打开导航菜单"
+              title="打开导航菜单"
+              @click="mobileMenuOpen = true"
+            >
               <template #icon><n-icon :component="MenuOutlined" /></template>
             </n-button>
-            <n-button v-else class="sidebar-toggle" quaternary circle :aria-label="collapsed ? '展开侧边栏' : '收起侧边栏'" :title="collapsed ? '展开侧边栏' : '收起侧边栏'" @click="collapsed = !collapsed">
+            <n-button
+              v-else
+              class="sidebar-toggle"
+              quaternary
+              circle
+              :aria-label="collapsed ? '展开侧边栏' : '收起侧边栏'"
+              :title="collapsed ? '展开侧边栏' : '收起侧边栏'"
+              @click="collapsed = !collapsed"
+            >
               <template #icon>
-                <n-icon><component :is="collapsed ? KeyboardDoubleArrowRightOutlined : KeyboardDoubleArrowLeftOutlined" /></n-icon>
+                <n-icon>
+                  <component
+                    :is="
+                      collapsed
+                        ? KeyboardDoubleArrowRightOutlined
+                        : KeyboardDoubleArrowLeftOutlined
+                    "
+                  />
+                </n-icon>
               </template>
             </n-button>
             <n-page-header :title="currentTitle" />
@@ -121,8 +182,15 @@ watch(() => route.path, () => { mobileMenuOpen.value = false; });
           <UserAccountButton />
         </div>
       </n-layout-header>
-      <n-layout-content class="page-content" content-style="padding: var(--page-content-padding)">
-        <router-view v-if="isAuthorized" />
+      <n-layout-content
+        class="page-content"
+        content-style="padding: var(--page-content-padding)"
+      >
+        <router-view v-if="isAuthorized" v-slot="{ Component }">
+          <keep-alive>
+            <component :is="Component" />
+          </keep-alive>
+        </router-view>
         <n-result
           v-else
           status="403"
@@ -135,14 +203,39 @@ watch(() => route.path, () => { mobileMenuOpen.value = false; });
 </template>
 
 <style scoped>
-.app-layout { height: 100dvh; }
-.page-layout { min-width: 0; }
-.page-header { height: 64px; padding: 0 24px; display: flex; align-items: center; }
-.page-header__content { width: 100%; min-width: 0; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-.sidebar-toggle:focus:not(:focus-visible) { color: var(--n-text-color); background-color: var(--n-color); }
-.page-content { --page-content-padding: 24px; }
+.app-layout {
+  height: 100dvh;
+}
+.page-layout {
+  min-width: 0;
+}
+.page-header {
+  height: 64px;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+}
+.page-header__content {
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.sidebar-toggle:focus:not(:focus-visible) {
+  color: var(--n-text-color);
+  background-color: var(--n-color);
+}
+.page-content {
+  --page-content-padding: 24px;
+}
 @media (max-width: 767px) {
-  .page-header { padding: 0 16px; }
-  .page-content { --page-content-padding: 16px; }
+  .page-header {
+    padding: 0 16px;
+  }
+  .page-content {
+    --page-content-padding: 16px;
+  }
 }
 </style>
