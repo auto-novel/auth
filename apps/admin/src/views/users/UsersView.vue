@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { useAdminKit } from '@novelia/admin-kit';
 import type { User, UserAction } from '@novelia/auth-api';
-import { NAlert, NButton, NInput, NModal, NSpace, NText } from 'naive-ui';
+import { NAlert, NButton, NSpace, NText } from 'naive-ui';
 import { computed, onMounted, ref } from 'vue';
 
+import UserActionModal from './UserActionModal.vue';
 import UserFilters from './UserFilters.vue';
 import UserList from './UserList.vue';
 
@@ -21,74 +22,10 @@ const query = ref('');
 const role = ref('');
 const createdRange = ref<[number, number] | null>(null);
 const pendingAction = ref<{ action: UserAction; user: User } | null>(null);
-const actionReason = ref('');
-const actionInProgress = ref(false);
-const actionError = ref('');
 const actionSucceeded = ref('');
-const banReasonOptions = ['广告', '倒狗'];
 let requestId = 0;
 const hasFilters = computed(() =>
   Boolean(query.value || role.value || createdRange.value),
-);
-const showActionModal = computed({
-  get: () => pendingAction.value !== null,
-  set: (show) => {
-    if (!show) closeActionModal();
-  },
-});
-const actionConfig = computed(() => {
-  const configs: Record<
-    UserAction,
-    {
-      title: string;
-      result: string;
-      description: string;
-      buttonType: 'warning' | 'error' | 'primary';
-    }
-  > = {
-    trust: {
-      title: '信任用户',
-      result: '已信任用户',
-      description: '设置后，该用户将获得可信用户权限。',
-      buttonType: 'primary',
-    },
-    untrust: {
-      title: '取消信任',
-      result: '已取消用户的可信状态',
-      description: '取消后，该用户将恢复为普通用户。',
-      buttonType: 'primary',
-    },
-    restrict: {
-      title: '限制用户',
-      result: '已限制用户',
-      description: '限制后，该用户的账号权限将受到限制。',
-      buttonType: 'warning',
-    },
-    unrestrict: {
-      title: '取消限制',
-      result: '已取消限制',
-      description: '取消后，该用户将恢复为普通用户。',
-      buttonType: 'primary',
-    },
-    ban: {
-      title: '封禁用户',
-      result: '已封禁用户',
-      description: '封禁后，该用户将无法登录。',
-      buttonType: 'error',
-    },
-    unban: {
-      title: '取消封禁',
-      result: '已取消封禁',
-      description: '取消后，该用户将恢复为普通用户并可以登录。',
-      buttonType: 'primary',
-    },
-  };
-  return pendingAction.value ? configs[pendingAction.value.action] : null;
-});
-const actionRequiresReason = computed(
-  () =>
-    pendingAction.value?.action !== 'trust' &&
-    pendingAction.value?.action !== 'untrust',
 );
 
 function getCreatedBounds(range: [number, number] | null) {
@@ -168,55 +105,17 @@ function changePageSize(nextPageSize: number) {
 
 function requestAction(action: UserAction, user: User) {
   pendingAction.value = { action, user };
-  actionReason.value = '';
-  actionError.value = '';
   actionSucceeded.value = '';
 }
 
 function closeActionModal() {
-  if (actionInProgress.value) return;
   pendingAction.value = null;
 }
 
-function updateUserRole(action: UserAction, username: string, reason: string) {
-  switch (action) {
-    case 'trust':
-      return api.admin.trustUser({ username });
-    case 'untrust':
-      return api.admin.untrustUser({ username });
-    case 'restrict':
-      return api.admin.restrictUser({ username, reason });
-    case 'unrestrict':
-      return api.admin.unrestrictUser({ username, reason });
-    case 'ban':
-      return api.admin.banUser({ username, reason });
-    case 'unban':
-      return api.admin.unbanUser({ username, reason });
-    default: {
-      const unsupportedAction: never = action;
-      throw new Error(`不支持的用户操作：${unsupportedAction}`);
-    }
-  }
-}
-
-async function confirmAction() {
-  const target = pendingAction.value;
-  const config = actionConfig.value;
-  const reason = actionReason.value.trim();
-  if (!target || !config || (actionRequiresReason.value && !reason)) return;
-
-  actionInProgress.value = true;
-  actionError.value = '';
-  try {
-    await updateUserRole(target.action, target.user.username, reason);
-    pendingAction.value = null;
-    actionSucceeded.value = `${config.result} ${target.user.username}`;
-    await loadUsers();
-  } catch (error) {
-    actionError.value = error instanceof Error ? error.message : String(error);
-  } finally {
-    actionInProgress.value = false;
-  }
+function handleActionSuccess(message: string) {
+  pendingAction.value = null;
+  actionSucceeded.value = message;
+  void loadUsers();
 }
 
 onMounted(loadUsers);
@@ -261,83 +160,11 @@ onMounted(loadUsers);
       @action="requestAction"
     />
 
-    <n-modal
-      v-model:show="showActionModal"
-      preset="card"
-      :title="actionConfig?.title"
-      style="width: min(520px, calc(100vw - 32px))"
-      :mask-closable="!actionInProgress"
-      :close-on-esc="!actionInProgress"
-    >
-      <n-space vertical :size="16">
-        <div class="action-message">
-          <n-text>
-            确认{{ actionConfig?.title }}
-            <n-text strong>{{ pendingAction?.user.username }}</n-text>
-            ？{{ actionConfig?.description }}
-          </n-text>
-          <n-text
-            v-if="
-              pendingAction?.action === 'restrict' ||
-              pendingAction?.action === 'ban'
-            "
-            strong
-            :type="pendingAction.action === 'ban' ? 'error' : 'warning'"
-          >
-            ！不推荐直接限制/封禁用户，优先使用“三振出局”。
-          </n-text>
-        </div>
-        <n-space
-          v-if="pendingAction?.action === 'ban'"
-          align="center"
-          size="small"
-        >
-          <n-text depth="3">快速填写：</n-text>
-          <n-button
-            v-for="reason in banReasonOptions"
-            :key="reason"
-            size="small"
-            secondary
-            :type="actionReason === reason ? 'primary' : 'default'"
-            :disabled="actionInProgress"
-            @click="actionReason = reason"
-          >
-            {{ reason }}
-          </n-button>
-        </n-space>
-        <n-input
-          v-if="actionRequiresReason"
-          v-model:value="actionReason"
-          type="textarea"
-          :placeholder="`请输入${actionConfig?.title ?? '操作'}原因`"
-          :autosize="{ minRows: 3, maxRows: 6 }"
-          :disabled="actionInProgress"
-          maxlength="500"
-          show-count
-          @keydown.ctrl.enter="confirmAction"
-        />
-        <n-alert
-          v-if="actionError"
-          type="error"
-          :title="`${actionConfig?.title ?? '操作'}失败`"
-        >
-          {{ actionError }}
-        </n-alert>
-        <div class="modal-actions">
-          <n-button :disabled="actionInProgress" @click="closeActionModal">
-            取消
-          </n-button>
-          <n-button
-            :type="actionConfig?.buttonType"
-            :loading="actionInProgress"
-            :disabled="actionRequiresReason && !actionReason.trim()"
-            @click="confirmAction"
-          >
-            确认{{ actionConfig?.title }}
-          </n-button>
-        </div>
-      </n-space>
-    </n-modal>
+    <UserActionModal
+      :target="pendingAction"
+      @close="closeActionModal"
+      @success="handleActionSuccess"
+    />
   </n-space>
 </template>
 
@@ -345,17 +172,5 @@ onMounted(loadUsers);
 .users-page {
   max-width: 1000px;
   margin-inline: auto;
-}
-
-.action-message {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
 }
 </style>
