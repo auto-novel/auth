@@ -18,6 +18,7 @@ const presets: { label: string; value: TimeRangePreset }[] = [
 ];
 
 const selectedPreset = ref<TimeRangePreset>(range.value ? 'custom' : 'all');
+let pendingInternalRange: string | undefined;
 
 function getRecentDaysRange(days: number): [number, number] {
   const end = new Date();
@@ -27,23 +28,37 @@ function getRecentDaysRange(days: number): [number, number] {
   return [start.getTime(), end.getTime()];
 }
 
+function getRangeKey(value: [number, number] | null) {
+  return value === null ? '' : value.join(':');
+}
+
+function updateRange(value: [number, number] | null) {
+  pendingInternalRange = getRangeKey(value);
+  range.value = value;
+}
+
 function selectPreset(value: string) {
   const preset = value as TimeRangePreset;
   selectedPreset.value = preset;
 
   if (preset === 'all') {
-    range.value = null;
+    updateRange(null);
   } else if (preset === 'today') {
-    range.value = getRecentDaysRange(1);
+    updateRange(getRecentDaysRange(1));
   } else if (preset === 'last-7-days') {
-    range.value = getRecentDaysRange(7);
+    updateRange(getRecentDaysRange(7));
   } else if (preset === 'last-30-days') {
-    range.value = getRecentDaysRange(30);
+    updateRange(getRecentDaysRange(30));
   }
 }
 
 watch(range, (value) => {
-  if (value === null) selectedPreset.value = 'all';
+  if (pendingInternalRange === getRangeKey(value)) {
+    pendingInternalRange = undefined;
+    return;
+  }
+  pendingInternalRange = undefined;
+  selectedPreset.value = value === null ? 'all' : 'custom';
 });
 </script>
 

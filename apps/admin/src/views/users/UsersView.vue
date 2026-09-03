@@ -2,13 +2,25 @@
 import { useAdminKit } from '@novelia/admin-kit';
 import type { User, UserAction } from '@novelia/auth-api';
 import { NAlert, NButton, NSpace, NText } from 'naive-ui';
-import { computed, onMounted, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
+import { useRoute, useRouter, type LocationQueryRaw } from 'vue-router';
+
+import {
+  readCreatedRange,
+  readPage,
+  readPageSize,
+  readQueryString,
+  writeCreatedRange,
+  writePagination,
+} from '@/utils/listQuery';
 
 import UserActionModal from './UserActionModal.vue';
 import UserFilters from './UserFilters.vue';
 import UserList from './UserList.vue';
 
 const { api } = useAdminKit();
+const route = useRoute();
+const router = useRouter();
 const users = ref<User[]>([]);
 const loading = ref(false);
 const errorMessage = ref('');
@@ -24,6 +36,7 @@ const createdRange = ref<[number, number] | null>(null);
 const pendingAction = ref<{ action: UserAction; user: User } | null>(null);
 const actionSucceeded = ref('');
 let requestId = 0;
+const roles = new Set(['admin', 'trusted', 'member', 'restricted', 'banned']);
 const hasFilters = computed(() =>
   Boolean(query.value || role.value || createdRange.value),
 );
@@ -42,6 +55,34 @@ function getCreatedBounds(range: [number, number] | null) {
     createdAfter: Math.floor(start.getTime() / 1000) - 1,
     createdBefore: Math.floor(end.getTime() / 1000),
   };
+}
+
+function createQuery(options: {
+  page: number;
+  pageSize: number;
+  query: string;
+  role: string;
+  createdRange: [number, number] | null;
+}) {
+  const nextQuery: LocationQueryRaw = {};
+  if (options.query) nextQuery.query = options.query;
+  if (options.role) nextQuery.role = options.role;
+  writeCreatedRange(nextQuery, options.createdRange);
+  writePagination(nextQuery, options.page, options.pageSize);
+  return nextQuery;
+}
+
+function syncFromRoute() {
+  page.value = readPage(route.query);
+  pageSize.value = readPageSize(route.query);
+  query.value = readQueryString(route.query, 'query').trim();
+  const routeRole = readQueryString(route.query, 'role');
+  role.value = roles.has(routeRole) ? routeRole : '';
+  createdRange.value = readCreatedRange(route.query);
+
+  queryInput.value = query.value;
+  roleInput.value = role.value || null;
+  createdRangeInput.value = createdRange.value ? [...createdRange.value] : null;
 }
 
 async function loadUsers() {
@@ -72,35 +113,51 @@ async function loadUsers() {
 }
 
 function search() {
-  query.value = queryInput.value.trim();
-  role.value = roleInput.value ?? '';
-  createdRange.value = createdRangeInput.value
-    ? [...createdRangeInput.value]
-    : null;
-  page.value = 1;
-  void loadUsers();
+  void router.push({
+    query: createQuery({
+      page: 1,
+      pageSize: pageSize.value,
+      query: queryInput.value.trim(),
+      role: roleInput.value ?? '',
+      createdRange: createdRangeInput.value,
+    }),
+  });
 }
 
 function resetFilters() {
-  queryInput.value = '';
-  roleInput.value = null;
-  createdRangeInput.value = null;
-  query.value = '';
-  role.value = '';
-  createdRange.value = null;
-  page.value = 1;
-  void loadUsers();
+  void router.push({
+    query: createQuery({
+      page: 1,
+      pageSize: pageSize.value,
+      query: '',
+      role: '',
+      createdRange: null,
+    }),
+  });
 }
 
 function changePage(nextPage: number) {
-  page.value = nextPage;
-  void loadUsers();
+  void router.push({
+    query: createQuery({
+      page: nextPage,
+      pageSize: pageSize.value,
+      query: query.value,
+      role: role.value,
+      createdRange: createdRange.value,
+    }),
+  });
 }
 
 function changePageSize(nextPageSize: number) {
-  pageSize.value = nextPageSize;
-  page.value = 1;
-  void loadUsers();
+  void router.push({
+    query: createQuery({
+      page: 1,
+      pageSize: nextPageSize,
+      query: query.value,
+      role: role.value,
+      createdRange: createdRange.value,
+    }),
+  });
 }
 
 function requestAction(action: UserAction, user: User) {
@@ -118,7 +175,14 @@ function handleActionSuccess(message: string) {
   void loadUsers();
 }
 
-onMounted(loadUsers);
+watch(
+  () => route.query,
+  () => {
+    syncFromRoute();
+    void loadUsers();
+  },
+  { immediate: true },
+);
 </script>
 
 <template>

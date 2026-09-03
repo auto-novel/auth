@@ -2,12 +2,25 @@
 import { useAdminKit } from '@novelia/admin-kit';
 import type { Event } from '@novelia/auth-api';
 import { NAlert, NButton, NSpace, NText } from 'naive-ui';
-import { computed, onMounted, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
+import { useRoute, useRouter, type LocationQueryRaw } from 'vue-router';
+
+import {
+  readCreatedRange,
+  readPage,
+  readPageSize,
+  readQueryString,
+  readQueryStrings,
+  writeCreatedRange,
+  writePagination,
+} from '@/utils/listQuery';
 
 import EventFilters from './EventFilters.vue';
 import EventList from './EventList.vue';
 
 const { api } = useAdminKit();
+const route = useRoute();
+const router = useRouter();
 const events = ref<Event[]>([]);
 const loading = ref(false);
 const errorMessage = ref('');
@@ -28,6 +41,37 @@ const hasFilters = computed(() =>
     actor.value || target.value || actions.value.length || createdRange.value,
   ),
 );
+
+function createQuery(options: {
+  page: number;
+  pageSize: number;
+  actor: string;
+  target: string;
+  actions: string[];
+  createdRange: [number, number] | null;
+}) {
+  const query: LocationQueryRaw = {};
+  if (options.actor) query.actor = options.actor;
+  if (options.target) query.target = options.target;
+  if (options.actions.length) query.action = options.actions;
+  writeCreatedRange(query, options.createdRange);
+  writePagination(query, options.page, options.pageSize);
+  return query;
+}
+
+function syncFromRoute() {
+  page.value = readPage(route.query);
+  pageSize.value = readPageSize(route.query);
+  actor.value = readQueryString(route.query, 'actor').trim();
+  target.value = readQueryString(route.query, 'target').trim();
+  actions.value = readQueryStrings(route.query, 'action');
+  createdRange.value = readCreatedRange(route.query);
+
+  actorInput.value = actor.value;
+  targetInput.value = target.value;
+  actionInput.value = [...actions.value];
+  createdRangeInput.value = createdRange.value ? [...createdRange.value] : null;
+}
 
 function getCreatedBounds(range: [number, number] | null) {
   if (!range) return {};
@@ -72,41 +116,65 @@ async function loadEvents() {
 }
 
 function search() {
-  actor.value = actorInput.value.trim();
-  target.value = targetInput.value.trim();
-  actions.value = [...actionInput.value];
-  createdRange.value = createdRangeInput.value
-    ? [...createdRangeInput.value]
-    : null;
-  page.value = 1;
-  void loadEvents();
+  void router.push({
+    query: createQuery({
+      page: 1,
+      pageSize: pageSize.value,
+      actor: actorInput.value.trim(),
+      target: targetInput.value.trim(),
+      actions: actionInput.value,
+      createdRange: createdRangeInput.value,
+    }),
+  });
 }
 
 function resetFilters() {
-  actorInput.value = '';
-  targetInput.value = '';
-  actionInput.value = [];
-  createdRangeInput.value = null;
-  actor.value = '';
-  target.value = '';
-  actions.value = [];
-  createdRange.value = null;
-  page.value = 1;
-  void loadEvents();
+  void router.push({
+    query: createQuery({
+      page: 1,
+      pageSize: pageSize.value,
+      actor: '',
+      target: '',
+      actions: [],
+      createdRange: null,
+    }),
+  });
 }
 
 function changePage(nextPage: number) {
-  page.value = nextPage;
-  void loadEvents();
+  void router.push({
+    query: createQuery({
+      page: nextPage,
+      pageSize: pageSize.value,
+      actor: actor.value,
+      target: target.value,
+      actions: actions.value,
+      createdRange: createdRange.value,
+    }),
+  });
 }
 
 function changePageSize(nextPageSize: number) {
-  pageSize.value = nextPageSize;
-  page.value = 1;
-  void loadEvents();
+  void router.push({
+    query: createQuery({
+      page: 1,
+      pageSize: nextPageSize,
+      actor: actor.value,
+      target: target.value,
+      actions: actions.value,
+      createdRange: createdRange.value,
+    }),
+  });
 }
 
-onMounted(loadEvents);
+watch(
+  () => route.query,
+  () => {
+    syncFromRoute();
+    void loadEvents();
+  },
+  { immediate: true },
+);
 </script>
 
 <template>

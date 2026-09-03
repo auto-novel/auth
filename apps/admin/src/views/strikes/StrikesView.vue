@@ -12,12 +12,24 @@ import {
   NSpace,
   NText,
 } from 'naive-ui';
-import { computed, onMounted, reactive, ref } from 'vue';
+import { computed, reactive, ref, watch } from 'vue';
+import { useRoute, useRouter, type LocationQueryRaw } from 'vue-router';
+
+import {
+  readCreatedRange,
+  readPage,
+  readPageSize,
+  readQueryString,
+  writeCreatedRange,
+  writePagination,
+} from '@/utils/listQuery';
 
 import StrikeFilters from './StrikeFilters.vue';
 import StrikeList from './StrikeList.vue';
 
 const { api } = useAdminKit();
+const route = useRoute();
+const router = useRouter();
 const strikes = ref<Strike[]>([]);
 const loading = ref(false);
 const errorMessage = ref('');
@@ -75,6 +87,38 @@ function getCreatedBounds(range: [number, number] | null) {
   };
 }
 
+function createQuery(options: {
+  page: number;
+  pageSize: number;
+  username: string;
+  operatorUsername: string;
+  createdRange: [number, number] | null;
+}) {
+  const query: LocationQueryRaw = {};
+  if (options.username) query.username = options.username;
+  if (options.operatorUsername) {
+    query.operatorUsername = options.operatorUsername;
+  }
+  writeCreatedRange(query, options.createdRange);
+  writePagination(query, options.page, options.pageSize);
+  return query;
+}
+
+function syncFromRoute() {
+  page.value = readPage(route.query);
+  pageSize.value = readPageSize(route.query);
+  username.value = readQueryString(route.query, 'username').trim();
+  operatorUsername.value = readQueryString(
+    route.query,
+    'operatorUsername',
+  ).trim();
+  createdRange.value = readCreatedRange(route.query);
+
+  usernameInput.value = username.value;
+  operatorUsernameInput.value = operatorUsername.value;
+  createdRangeInput.value = createdRange.value ? [...createdRange.value] : null;
+}
+
 async function loadStrikes() {
   const currentRequestId = ++requestId;
   loading.value = true;
@@ -101,35 +145,51 @@ async function loadStrikes() {
 }
 
 function search() {
-  username.value = usernameInput.value.trim();
-  operatorUsername.value = operatorUsernameInput.value.trim();
-  createdRange.value = createdRangeInput.value
-    ? [...createdRangeInput.value]
-    : null;
-  page.value = 1;
-  void loadStrikes();
+  void router.push({
+    query: createQuery({
+      page: 1,
+      pageSize: pageSize.value,
+      username: usernameInput.value.trim(),
+      operatorUsername: operatorUsernameInput.value.trim(),
+      createdRange: createdRangeInput.value,
+    }),
+  });
 }
 
 function resetFilters() {
-  usernameInput.value = '';
-  operatorUsernameInput.value = '';
-  createdRangeInput.value = null;
-  username.value = '';
-  operatorUsername.value = '';
-  createdRange.value = null;
-  page.value = 1;
-  void loadStrikes();
+  void router.push({
+    query: createQuery({
+      page: 1,
+      pageSize: pageSize.value,
+      username: '',
+      operatorUsername: '',
+      createdRange: null,
+    }),
+  });
 }
 
 function changePage(nextPage: number) {
-  page.value = nextPage;
-  void loadStrikes();
+  void router.push({
+    query: createQuery({
+      page: nextPage,
+      pageSize: pageSize.value,
+      username: username.value,
+      operatorUsername: operatorUsername.value,
+      createdRange: createdRange.value,
+    }),
+  });
 }
 
 function changePageSize(nextPageSize: number) {
-  pageSize.value = nextPageSize;
-  page.value = 1;
-  void loadStrikes();
+  void router.push({
+    query: createQuery({
+      page: 1,
+      pageSize: nextPageSize,
+      username: username.value,
+      operatorUsername: operatorUsername.value,
+      createdRange: createdRange.value,
+    }),
+  });
 }
 
 function openCreateModal() {
@@ -160,8 +220,20 @@ async function submitCreate() {
     });
     showCreateModal.value = false;
     successMessage.value = `已警告用户 ${createForm.username.trim()}`;
-    page.value = 1;
-    await loadStrikes();
+    const firstPageLocation = {
+      query: createQuery({
+        page: 1,
+        pageSize: pageSize.value,
+        username: username.value,
+        operatorUsername: operatorUsername.value,
+        createdRange: createdRange.value,
+      }),
+    };
+    if (router.resolve(firstPageLocation).fullPath === route.fullPath) {
+      await loadStrikes();
+    } else {
+      await router.push(firstPageLocation);
+    }
   } catch (error) {
     createError.value = error instanceof Error ? error.message : String(error);
   } finally {
@@ -190,7 +262,14 @@ async function confirmRevoke() {
   }
 }
 
-onMounted(loadStrikes);
+watch(
+  () => route.query,
+  () => {
+    syncFromRoute();
+    void loadStrikes();
+  },
+  { immediate: true },
+);
 </script>
 
 <template>
