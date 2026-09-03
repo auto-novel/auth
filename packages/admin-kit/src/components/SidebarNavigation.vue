@@ -21,10 +21,7 @@ const emit = defineEmits<{ select: [key: string] }>();
 
 <template>
   <div class="sidebar-navigation">
-    <SidebarHeader
-      :collapsed="collapsed"
-      :brand="brand"
-    />
+    <SidebarHeader :collapsed="collapsed" :brand="brand" />
     <n-menu
       :value="activeKey"
       :collapsed="collapsed"
@@ -43,5 +40,9 @@ const emit = defineEmits<{ select: [key: string] }>();
 </template>
 
 <style scoped>
-.sidebar-navigation { height: 100%; display: flex; flex-direction: column; }
+.sidebar-navigation {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
 </style>

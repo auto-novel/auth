@@ -15,6 +15,7 @@ docker compose up -d
 ```
 
 服务启动后，可通过以下地址访问：
+
 - Web: localhost:4000
 - Api: localhost:4000/api
 - Postgresql: localhost:4001
