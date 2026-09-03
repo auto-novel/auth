@@ -276,7 +276,6 @@ func (s *adminService) TrustUser(w http.ResponseWriter, r *http.Request) error {
 
 	req, err := httpx.Body[struct {
 		Username string `json:"username" label:"用户名" validate:"required"`
-		Reason   string `json:"reason" label:"原因" validate:"required"`
 	}](r)
 	if err != nil {
 		slog.Error("Request body parse error", "error", err)
@@ -307,11 +306,9 @@ func (s *adminService) TrustUser(w http.ResponseWriter, r *http.Request) error {
 		&struct {
 			ActorUser  string `json:"actor_user"`
 			TargetUser string `json:"target_user"`
-			Reason     string `json:"reason"`
 		}{
 			ActorUser:  principal.Username,
 			TargetUser: user.Username,
-			Reason:     req.Reason,
 		},
 	)
 
@@ -326,7 +323,6 @@ func (s *adminService) UntrustUser(w http.ResponseWriter, r *http.Request) error
 
 	req, err := httpx.Body[struct {
 		Username string `json:"username" label:"用户名" validate:"required"`
-		Reason   string `json:"reason" label:"原因" validate:"required"`
 	}](r)
 	if err != nil {
 		slog.Error("Request body parse error", "error", err)
@@ -357,11 +353,9 @@ func (s *adminService) UntrustUser(w http.ResponseWriter, r *http.Request) error
 		&struct {
 			ActorUser  string `json:"actor_user"`
 			TargetUser string `json:"target_user"`
-			Reason     string `json:"reason"`
 		}{
 			ActorUser:  principal.Username,
 			TargetUser: user.Username,
-			Reason:     req.Reason,
 		},
 	)
 
