@@ -33,6 +33,7 @@ interface AuthStorageOptions {
 interface AuthSessionOptions {
   app: string;
   storage?: AuthStorageOptions;
+  requestLogout(): Promise<string>;
   requestRefresh(app: string): Promise<string>;
 }
 
@@ -197,8 +198,9 @@ export function createAuthSession(options: AuthSessionOptions) {
 
   return {
     accessToken,
-    clear() {
+    logout() {
       setAccessToken();
+      return options.requestLogout();
     },
     dispose() {
       globalThis.clearInterval(refreshTimer);

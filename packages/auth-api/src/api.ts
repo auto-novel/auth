@@ -24,6 +24,7 @@ export function createAuthApi(options: AuthApiOptions) {
   const session = createAuthSession({
     app: options.app,
     storage: options.storage,
+    requestLogout: () => authEndpoints.logout(),
     requestRefresh: (app) => authEndpoints.refresh(app),
   });
   const client = createAuthenticatedApiClient(authClient, session.accessToken);
@@ -31,10 +32,7 @@ export function createAuthApi(options: AuthApiOptions) {
   return {
     auth: {
       refresh: session.accessToken.refresh,
-      logout() {
-        session.clear();
-        return authEndpoints.logout();
-      },
+      logout: session.logout,
     },
     admin: createAdminEndpoints(client),
     me: createMeEndpoints(client),
