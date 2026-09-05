@@ -3,11 +3,13 @@ import {
   createAuthEndpoints,
   createMeEndpoints,
 } from './endpoint';
-import { createApiClient } from './endpoint/client';
+import {
+  createApiClient,
+  createAuthenticatedApiClient,
+} from './endpoint/client';
 import { createAuthSession, type AuthUser } from './session';
 
 export interface AuthApiOptions {
-  fetch?: typeof globalThis.fetch;
   app: string;
   baseUrl: string;
   storage?: {
@@ -17,21 +19,14 @@ export interface AuthApiOptions {
 }
 
 export function createAuthApi(options: AuthApiOptions) {
-  const requestOptions = {
-    baseUrl: options.baseUrl,
-    fetch: options.fetch,
-  };
-  const authClient = createApiClient(requestOptions);
+  const authClient = createApiClient({ baseUrl: options.baseUrl });
   const authEndpoints = createAuthEndpoints(authClient);
   const session = createAuthSession({
     app: options.app,
     storage: options.storage,
     requestRefresh: (app) => authEndpoints.refresh(app),
   });
-  const client = createApiClient({
-    ...requestOptions,
-    accessToken: session.accessToken,
-  });
+  const client = createAuthenticatedApiClient(authClient, session.accessToken);
 
   return {
     auth: {

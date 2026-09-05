@@ -20,7 +20,12 @@ export type {
   UserRoleReasonRequest,
   UserRoleRequest,
 } from './endpoint/admin';
-export { ApiError } from './endpoint/client';
+export {
+  ApiError,
+  createAuthenticatedApiClient,
+  type AccessTokenProvider,
+  type ApiClient,
+} from './endpoint/client';
 export type { AuthUser } from './session';
 export type { MyStrike, MyStrikeListParams } from './endpoint/me';
 export type { Page } from './endpoint/types';

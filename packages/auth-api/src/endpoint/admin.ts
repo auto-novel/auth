@@ -134,22 +134,22 @@ export function createAdminEndpoints(client: ApiClient) {
         .json<UserPage>();
     },
     trustUser(request: UserRoleRequest) {
-      return client.post('admin/user/trust', request).void();
+      return client.post('admin/user/trust', { json: request }).text();
     },
     untrustUser(request: UserRoleRequest) {
-      return client.post('admin/user/untrust', request).void();
+      return client.post('admin/user/untrust', { json: request }).text();
     },
     restrictUser(request: UserRoleReasonRequest) {
-      return client.post('admin/user/restrict', request).void();
+      return client.post('admin/user/restrict', { json: request }).text();
     },
     unrestrictUser(request: UserRoleReasonRequest) {
-      return client.post('admin/user/unrestrict', request).void();
+      return client.post('admin/user/unrestrict', { json: request }).text();
     },
     banUser(request: UserRoleReasonRequest) {
-      return client.post('admin/user/ban', request).void();
+      return client.post('admin/user/ban', { json: request }).text();
     },
     unbanUser(request: UserRoleReasonRequest) {
-      return client.post('admin/user/unban', request).void();
+      return client.post('admin/user/unban', { json: request }).text();
     },
     getOverviewActivity(startDate: string, endDate: string) {
       return client
@@ -164,25 +164,35 @@ export function createAdminEndpoints(client: ApiClient) {
         .json<OverviewUserSummary>();
     },
     getEvents(params: EventListParams) {
-      return client
-        .get('admin/event', {
-          searchParams: {
-            page: params.page,
-            page_size: params.pageSize,
-            actor_user: params.actorUser || undefined,
-            target_user: params.targetUser || undefined,
-            action: params.actions,
-            created_after: params.createdAfter,
-            created_before: params.createdBefore,
-          },
-        })
-        .json<EventPage>();
+      const searchParams: Array<[string, string | number]> = [
+        ['page', params.page],
+        ['page_size', params.pageSize],
+      ];
+      if (params.actorUser) {
+        searchParams.push(['actor_user', params.actorUser]);
+      }
+      if (params.targetUser) {
+        searchParams.push(['target_user', params.targetUser]);
+      }
+      if (params.createdAfter !== undefined) {
+        searchParams.push(['created_after', params.createdAfter]);
+      }
+      if (params.createdBefore !== undefined) {
+        searchParams.push(['created_before', params.createdBefore]);
+      }
+      for (const action of params.actions ?? []) {
+        searchParams.push(['action', action]);
+      }
+
+      return client.get('admin/event', { searchParams }).json<EventPage>();
     },
     getAuthSettings() {
       return client.get('admin/setting').json<AuthSettings>();
     },
     updateAuthSettings(settings: UpdateAuthSettingsRequest) {
-      return client.post('admin/setting', settings).json<AuthSettings>();
+      return client
+        .post('admin/setting', { json: settings })
+        .json<AuthSettings>();
     },
     getStrikes(params: StrikeListParams) {
       return client
@@ -199,7 +209,7 @@ export function createAdminEndpoints(client: ApiClient) {
         .json<StrikePage>();
     },
     createStrike(request: CreateStrikeRequest) {
-      return client.post('admin/strikes', request).json<Strike>();
+      return client.post('admin/strikes', { json: request }).json<Strike>();
     },
     revokeStrike(strikeId: number) {
       return client.post(`admin/strikes/${strikeId}/revoke`).json<Strike>();

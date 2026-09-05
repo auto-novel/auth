@@ -9,6 +9,7 @@
     "build": "tsc -b"
   },
   "dependencies": {
+    "ky": "^2.1.0",
     "typescript": "^6.0.0"
   }
 }

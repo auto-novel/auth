@@ -4,18 +4,14 @@ export function createAuthEndpoints(client: ApiClient) {
   return {
     refresh(app: string) {
       return client
-        .post('auth/refresh', undefined, {
+        .post('auth/refresh', {
           credentials: 'include',
           searchParams: { app },
         })
         .text();
     },
     logout() {
-      return client
-        .post('auth/logout', undefined, {
-          credentials: 'include',
-        })
-        .void();
+      return client.post('auth/logout', { credentials: 'include' }).text();
     },
   };
 }

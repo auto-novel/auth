@@ -1,22 +1,16 @@
+import ky, { isHTTPError, isTimeoutError } from 'ky';
+
 export interface AccessTokenProvider {
   get(): string | undefined;
   refresh(): Promise<string | undefined>;
 }
 
 const REQUEST_TIMEOUT = 5000;
+const SESSION_EXPIRED_MESSAGE = '登录状态已失效，请重新登录';
 
 interface ApiRequestOptions {
   baseUrl: string;
-  fetch?: typeof globalThis.fetch;
 }
-
-interface ApiCallOptions extends RequestInit {
-  searchParams?: Record<string, SearchParamValue>;
-}
-
-type ApiMethodOptions = Omit<ApiCallOptions, 'body' | 'method'>;
-type SearchParam = string | number;
-type SearchParamValue = SearchParam | readonly SearchParam[] | undefined;
 
 export class ApiError extends Error {
   readonly status: number;
@@ -32,145 +26,76 @@ export class ApiError extends Error {
   }
 }
 
-function resolveUrl(
-  path: string,
-  baseUrl: string,
-  params?: Record<string, SearchParamValue>,
-) {
-  const url = `${baseUrl.replace(/\/+$/, '')}/${path.replace(/^\/+/, '')}`;
-  if (!params) return url;
+function apiErrorFromHttpError(error: unknown) {
+  if (!isHTTPError(error)) return;
 
-  const searchParams = new URLSearchParams();
-  for (const key of Object.keys(params)) {
-    const value = params[key];
-    if (value === undefined) continue;
-
-    const values = Array.isArray(value) ? value : [value];
-    for (const item of values) searchParams.append(key, String(item));
-  }
-
-  const query = searchParams.toString();
-  return query ? `${url}${url.includes('?') ? '&' : '?'}${query}` : url;
-}
-
-async function fetchWithTimeout(
-  fetcher: typeof globalThis.fetch,
-  input: RequestInfo | URL,
-  init: RequestInit,
-) {
-  const controller = new AbortController();
-  const callerSignal = init.signal;
-  let timedOut = false;
-  const timeoutId = globalThis.setTimeout(() => {
-    timedOut = true;
-    controller.abort();
-  }, REQUEST_TIMEOUT);
-  const abortFromCaller = () => {
-    globalThis.clearTimeout(timeoutId);
-    controller.abort(callerSignal?.reason);
-  };
-
-  if (callerSignal?.aborted) abortFromCaller();
-  else callerSignal?.addEventListener('abort', abortFromCaller, { once: true });
-
-  try {
-    return await fetcher(input, { ...init, signal: controller.signal });
-  } catch (error) {
-    if (timedOut && error instanceof Error && error.name === 'AbortError') {
-      throw new ApiError('请求超时，请稍后再试', 408);
+  let message: string | undefined;
+  if (typeof error.data === 'string') message = error.data;
+  else if (error.data !== undefined) {
+    try {
+      message = JSON.stringify(error.data);
+    } catch {
+      // Fall back to the status-based message below.
     }
-    throw error;
-  } finally {
-    globalThis.clearTimeout(timeoutId);
-    callerSignal?.removeEventListener('abort', abortFromCaller);
   }
+
+  return new ApiError(
+    message || `请求失败（${error.response.status}）`,
+    error.response.status,
+  );
 }
 
-async function fetchWithToken(
-  accessToken: AccessTokenProvider,
-  fetcher: typeof globalThis.fetch,
-  input: RequestInfo | URL,
-  init: RequestInit,
-) {
-  const sessionExpiredMessage = '登录状态已失效，请重新登录';
-  let token = accessToken.get();
-  if (!token) throw new ApiError(sessionExpiredMessage, 401);
-
-  const request = (accessToken: string) => {
-    const headers = new Headers(init.headers);
-    headers.set('Authorization', `Bearer ${accessToken}`);
-    return fetchWithTimeout(fetcher, input, { ...init, headers });
-  };
-
-  let response = await request(token);
-  if (response.status !== 401) return response;
-
-  token = await accessToken.refresh();
-  if (!token) throw new ApiError(sessionExpiredMessage, 401);
-  return request(token);
-}
-
-export function createApiClient(
-  options: ApiRequestOptions & { accessToken?: AccessTokenProvider },
-) {
+export function createApiClient(options: ApiRequestOptions) {
   if (!options.baseUrl.trim()) throw new Error('必须配置 baseUrl');
 
-  const fetcher = options.fetch ?? globalThis.fetch;
-
-  async function execute(path: string, callOptions: ApiCallOptions = {}) {
-    const { searchParams, ...init } = callOptions;
-    const url = resolveUrl(path, options.baseUrl, searchParams);
-
-    const response = options.accessToken
-      ? await fetchWithToken(options.accessToken, fetcher, url, init)
-      : await fetchWithTimeout(fetcher, url, init);
-
-    if (!response.ok) {
-      const message = await response.text();
-      throw new ApiError(
-        message || `请求失败（${response.status}）`,
-        response.status,
-      );
-    }
-
-    return response;
-  }
-
-  function result(response: Promise<Response>) {
-    return {
-      async text() {
-        return (await response).text();
-      },
-      async json<T>() {
-        return (await response).json() as Promise<T>;
-      },
-      async void() {
-        await response;
-      },
-    };
-  }
-
-  function request(path: string, callOptions?: ApiCallOptions) {
-    return result(execute(path, callOptions));
-  }
-
-  function get(path: string, callOptions?: ApiMethodOptions) {
-    return request(path, { ...callOptions, method: 'GET' });
-  }
-
-  function post(path: string, body?: unknown, callOptions?: ApiMethodOptions) {
-    const headers = new Headers(callOptions?.headers);
-    if (body !== undefined) headers.set('Content-Type', 'application/json');
-
-    return request(path, {
-      ...callOptions,
-      method: 'POST',
-      headers,
-      body: body === undefined ? undefined : JSON.stringify(body),
-    });
-  }
-
-  return { get, post, request };
+  return ky.create({
+    prefix: options.baseUrl,
+    timeout: REQUEST_TIMEOUT,
+    retry: { limit: 0 },
+    hooks: {
+      beforeError: [
+        ({ error }) => {
+          const apiError = apiErrorFromHttpError(error);
+          if (apiError) return apiError;
+          if (isTimeoutError(error)) {
+            return new ApiError('请求超时，请稍后再试', 408);
+          }
+          return error;
+        },
+      ],
+    },
+  });
 }
 
 export type ApiClient = ReturnType<typeof createApiClient>;
+
+export function createAuthenticatedApiClient(
+  client: ApiClient,
+  accessToken: AccessTokenProvider,
+) {
+  return client.extend({
+    retry: {
+      limit: 1,
+      methods: ['get', 'post'],
+      delay: () => 0,
+      shouldRetry: ({ error }) =>
+        isHTTPError(error) && error.response.status === 401,
+    },
+    hooks: {
+      beforeRequest: [
+        ({ request }) => {
+          const token = accessToken.get();
+          if (!token) throw new ApiError(SESSION_EXPIRED_MESSAGE, 401);
+          request.headers.set('Authorization', `Bearer ${token}`);
+        },
+      ],
+      beforeRetry: [
+        async ({ request }) => {
+          const token = await accessToken.refresh();
+          if (!token) throw new ApiError(SESSION_EXPIRED_MESSAGE, 401);
+          request.headers.set('Authorization', `Bearer ${token}`);
+        },
+      ],
+    },
+  });
+}
