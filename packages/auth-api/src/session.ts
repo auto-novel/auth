@@ -1,4 +1,4 @@
-import { ApiError, type AccessTokenProvider } from './endpoint/client';
+import { isHTTPError, type AccessTokenProvider } from './endpoint/client';
 
 export interface AuthUser {
   id: number;
@@ -168,7 +168,7 @@ export function createAuthSession(options: AuthSessionOptions) {
         setAccessToken(token);
         return token;
       } catch (error) {
-        if (error instanceof ApiError && error.status === 401) {
+        if (isHTTPError(error) && error.response.status === 401) {
           setAccessToken();
         }
         throw error;

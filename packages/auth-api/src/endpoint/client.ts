@@ -1,5 +1,7 @@
 import ky, { isHTTPError, isTimeoutError } from 'ky';
 
+export { isHTTPError };
+
 export interface AccessTokenProvider {
   get(): string | undefined;
   refresh(): Promise<string | undefined>;
@@ -8,57 +10,32 @@ export interface AccessTokenProvider {
 const REQUEST_TIMEOUT = 5000;
 const SESSION_EXPIRED_MESSAGE = '登录状态已失效，请重新登录';
 
-interface ApiRequestOptions {
-  baseUrl: string;
-}
-
-export class ApiError extends Error {
-  readonly status: number;
-
-  constructor(message: string, status: number) {
-    super(message);
-    this.name = 'ApiError';
-    this.status = status;
-  }
-
-  override toString() {
-    return this.message;
-  }
-}
-
-function apiErrorFromHttpError(error: unknown) {
-  if (!isHTTPError(error)) return;
-
-  let message: string | undefined;
-  if (typeof error.data === 'string') message = error.data;
-  else if (error.data !== undefined) {
-    try {
-      message = JSON.stringify(error.data);
-    } catch {
-      // Fall back to the status-based message below.
-    }
-  }
-
-  return new ApiError(
-    message || `请求失败（${error.response.status}）`,
-    error.response.status,
-  );
-}
-
-export function createApiClient(options: ApiRequestOptions) {
-  if (!options.baseUrl.trim()) throw new Error('必须配置 baseUrl');
+export function createApiClient(baseUrl: string) {
+  if (!baseUrl.trim()) throw new Error('必须配置 baseUrl');
 
   return ky.create({
-    prefix: options.baseUrl,
+    prefix: baseUrl,
     timeout: REQUEST_TIMEOUT,
     retry: { limit: 0 },
     hooks: {
       beforeError: [
         ({ error }) => {
-          const apiError = apiErrorFromHttpError(error);
-          if (apiError) return apiError;
-          if (isTimeoutError(error)) {
-            return new ApiError('请求超时，请稍后再试', 408);
+          if (isHTTPError(error)) {
+            const status = error.response.status;
+            let detail: string | undefined;
+            if (typeof error.data === 'string') detail = error.data.trim();
+            else if (error.data !== undefined) {
+              try {
+                detail = JSON.stringify(error.data);
+              } catch {
+                // Fall back to the status-based message below.
+              }
+            }
+            error.message = detail
+              ? `请求失败[${status}] ${detail}`
+              : `请求失败[${status}]`;
+          } else if (isTimeoutError(error)) {
+            error.message = '请求超时，请稍后再试';
           }
           return error;
         },
@@ -85,14 +62,14 @@ export function createAuthenticatedApiClient(
       beforeRequest: [
         ({ request }) => {
           const token = accessToken.get();
-          if (!token) throw new ApiError(SESSION_EXPIRED_MESSAGE, 401);
+          if (!token) throw new Error(SESSION_EXPIRED_MESSAGE);
           request.headers.set('Authorization', `Bearer ${token}`);
         },
       ],
       beforeRetry: [
         async ({ request }) => {
           const token = await accessToken.refresh();
-          if (!token) throw new ApiError(SESSION_EXPIRED_MESSAGE, 401);
+          if (!token) throw new Error(SESSION_EXPIRED_MESSAGE);
           request.headers.set('Authorization', `Bearer ${token}`);
         },
       ],

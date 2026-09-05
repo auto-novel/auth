@@ -1,6 +1,6 @@
 import type { NavigationGuard } from 'vue-router';
 
-import { ApiError } from '@novelia/auth-api';
+import { isHTTPError } from '@novelia/auth-api';
 
 import type { AdminKit } from './types';
 
@@ -23,7 +23,7 @@ export function createAdminAuthGuard(kit: AdminKit): NavigationGuard {
       .catch((error: unknown) => {
         // Anonymous visits are initialized too; transient failures are retried
         // on the next navigation.
-        if (error instanceof ApiError && error.status === 401) {
+        if (isHTTPError(error) && error.response.status === 401) {
           initialized = true;
         }
       })

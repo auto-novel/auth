@@ -19,7 +19,7 @@ export interface AuthApiOptions {
 }
 
 export function createAuthApi(options: AuthApiOptions) {
-  const authClient = createApiClient({ baseUrl: options.baseUrl });
+  const authClient = createApiClient(options.baseUrl);
   const authEndpoints = createAuthEndpoints(authClient);
   const session = createAuthSession({
     app: options.app,

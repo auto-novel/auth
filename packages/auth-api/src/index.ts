@@ -21,8 +21,8 @@ export type {
   UserRoleRequest,
 } from './endpoint/admin';
 export {
-  ApiError,
   createAuthenticatedApiClient,
+  isHTTPError,
   type AccessTokenProvider,
   type ApiClient,
 } from './endpoint/client';
