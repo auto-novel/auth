@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { useAdminKit } from '@novelia/admin-kit';
-import type { Event } from '@novelia/auth-api';
 import { NAlert, NButton, NSpace, NText } from 'naive-ui';
 import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter, type LocationQueryRaw } from 'vue-router';
@@ -14,11 +12,12 @@ import {
   writeCreatedRange,
   writePagination,
 } from '@/utils/listQuery';
+import { useAdminApi, type Event } from '@/api';
 
 import EventFilters from './EventFilters.vue';
 import EventList from './EventList.vue';
 
-const { api } = useAdminKit();
+const api = useAdminApi();
 const route = useRoute();
 const router = useRouter();
 const events = ref<Event[]>([]);

@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { useAdminKit } from '@novelia/admin-kit';
-import type { AuthSettings } from '@novelia/auth-api';
 import {
   NAlert,
   NButton,
@@ -13,7 +11,9 @@ import {
 } from 'naive-ui';
 import { computed, onMounted, ref } from 'vue';
 
-const { api } = useAdminKit();
+import { useAdminApi, type AuthSettings } from '@/api';
+
+const api = useAdminApi();
 const settings = ref<AuthSettings | null>(null);
 const registerEnabled = ref(true);
 const resetPasswordEnabled = ref(true);

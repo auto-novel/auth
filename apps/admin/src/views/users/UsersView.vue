@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { useAdminKit } from '@novelia/admin-kit';
-import type { User, UserAction } from '@novelia/auth-api';
 import { NAlert, NButton, NSpace, NText } from 'naive-ui';
 import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter, type LocationQueryRaw } from 'vue-router';
@@ -13,12 +11,13 @@ import {
   writeCreatedRange,
   writePagination,
 } from '@/utils/listQuery';
+import { useAdminApi, type User, type UserAction } from '@/api';
 
 import UserActionModal from './UserActionModal.vue';
 import UserFilters from './UserFilters.vue';
 import UserList from './UserList.vue';
 
-const { api } = useAdminKit();
+const api = useAdminApi();
 const route = useRoute();
 const router = useRouter();
 const users = ref<User[]>([]);

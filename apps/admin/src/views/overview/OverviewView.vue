@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import { useAdminKit } from '@novelia/admin-kit';
 import type {
   AuthActivitySummary,
   AuthSettings,
   DailyAuthStat,
   OverviewUserSummary as UserSummary,
-} from '@novelia/auth-api';
+} from '@/api';
 import { NAlert, NButton, NSpin, NText } from 'naive-ui';
 import { onMounted, ref } from 'vue';
+
+import { useAdminApi } from '@/api';
 
 import OverviewMetrics from './OverviewMetrics.vue';
 import OverviewSystemStatus from './OverviewSystemStatus.vue';
@@ -17,7 +18,7 @@ import OverviewUserSummary from './OverviewUserSummary.vue';
 const DAYS = 7;
 const TIME_ZONE = 'Asia/Shanghai';
 
-const { api } = useAdminKit();
+const api = useAdminApi();
 const authActivity = ref<DailyAuthStat[]>([]);
 const activitySummary = ref<AuthActivitySummary>({
   loginCount: 0,

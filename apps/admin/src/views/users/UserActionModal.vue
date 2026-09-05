@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { useAdminKit } from '@novelia/admin-kit';
-import type { User, UserAction } from '@novelia/auth-api';
 import { NAlert, NButton, NInput, NModal, NSpace, NText } from 'naive-ui';
 import { computed, ref, watch } from 'vue';
+
+import { useAdminApi, type User, type UserAction } from '@/api';
 
 interface UserActionTarget {
   action: UserAction;
@@ -15,7 +15,7 @@ const emit = defineEmits<{
   success: [message: string];
 }>();
 
-const { api } = useAdminKit();
+const api = useAdminApi();
 const reason = ref('');
 const inProgress = ref(false);
 const errorMessage = ref('');

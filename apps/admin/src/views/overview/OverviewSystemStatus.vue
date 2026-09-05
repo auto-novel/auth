@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import type { AuthSettings } from '@novelia/auth-api';
 import { NButton, NCard, NTag, NText } from 'naive-ui';
 import { computed } from 'vue';
 import { RouterLink } from 'vue-router';
+
+import type { AuthSettings } from '@/api';
 
 const props = defineProps<{ settings: AuthSettings }>();
 

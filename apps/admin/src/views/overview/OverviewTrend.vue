@@ -2,7 +2,7 @@
 import { NCard, NTag } from 'naive-ui';
 import { computed } from 'vue';
 
-import type { DailyAuthStat } from '@novelia/auth-api';
+import type { DailyAuthStat } from '@/api';
 
 const props = defineProps<{
   activity: DailyAuthStat[];

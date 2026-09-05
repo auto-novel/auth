@@ -30,6 +30,7 @@ export function createAuthApi(options: AuthApiOptions) {
   const client = createAuthenticatedApiClient(authClient, session.accessToken);
 
   return {
+    client,
     auth: {
       refresh: session.accessToken.refresh,
       logout: session.logout,

@@ -14,7 +14,7 @@ import {
 } from 'naive-ui';
 import { computed } from 'vue';
 
-import type { User, UserAction } from '@novelia/auth-api';
+import type { User, UserAction } from '@/api';
 
 import UserListItem from './UserListItem.vue';
 

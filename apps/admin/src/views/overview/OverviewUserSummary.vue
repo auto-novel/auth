@@ -4,9 +4,10 @@ import {
   PeopleOutlined,
   ReportProblemOutlined,
 } from '@vicons/material';
-import type { OverviewUserSummary } from '@novelia/auth-api';
 import { NCard, NIcon, NText } from 'naive-ui';
 import { computed } from 'vue';
+
+import type { OverviewUserSummary } from '@/api';
 
 const props = defineProps<{ summary: OverviewUserSummary }>();
 

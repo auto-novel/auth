@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { NButton, NTag, NText } from 'naive-ui';
 
-import type { User, UserAction } from '@novelia/auth-api';
+import type { User, UserAction } from '@/api';
 
 const props = defineProps<{ user: User; total: number }>();
 const emit = defineEmits<{

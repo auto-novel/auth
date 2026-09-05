@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { LockOpenOutlined, PersonAddAltOutlined } from '@vicons/material';
-import type { AuthActivitySummary } from '@novelia/auth-api';
 import { NCard, NIcon, NText } from 'naive-ui';
+
+import type { AuthActivitySummary } from '@/api';
 
 const props = defineProps<{
   summary: AuthActivitySummary;

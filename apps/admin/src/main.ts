@@ -3,6 +3,7 @@ import App from './App.vue';
 
 import { createAdminAuthGuard, createAdminKit } from '@novelia/admin-kit';
 
+import { adminApiKey, createAdminApi } from './api';
 import router from './router';
 
 const adminKit = createAdminKit({
@@ -20,4 +21,8 @@ const adminKit = createAdminKit({
 
 router.beforeEach(createAdminAuthGuard(adminKit));
 
-createApp(App).use(adminKit).use(router).mount('#app');
+createApp(App)
+  .provide(adminApiKey, createAdminApi(adminKit.api))
+  .use(adminKit)
+  .use(router)
+  .mount('#app');

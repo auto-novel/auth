@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useAdminKit } from '@novelia/admin-kit';
 import type { Strike } from '@novelia/auth-api';
 import {
   NAlert,
@@ -15,6 +14,8 @@ import {
 import { computed, reactive, ref, watch } from 'vue';
 import { useRoute, useRouter, type LocationQueryRaw } from 'vue-router';
 
+import { useAdminApi } from '@/api';
+
 import {
   readCreatedRange,
   readPage,
@@ -27,7 +28,7 @@ import {
 import StrikeFilters from './StrikeFilters.vue';
 import StrikeList from './StrikeList.vue';
 
-const { api } = useAdminKit();
+const api = useAdminApi();
 const route = useRoute();
 const router = useRouter();
 const strikes = ref<Strike[]>([]);
