@@ -14,7 +14,7 @@ import {
 } from 'naive-ui';
 import { computed } from 'vue';
 
-import type { Strike } from '@novelia/auth-api';
+import type { Strike } from '@/api';
 
 import StrikeListItem from './StrikeListItem.vue';
 

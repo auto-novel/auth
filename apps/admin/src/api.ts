@@ -1,10 +1,11 @@
-import type {
-  AuthApi,
-  Page,
-  Strike,
-  UserRoleReasonRequest,
-} from '@novelia/auth-api';
 import { inject, type InjectionKey } from 'vue';
+
+import type { AuthApi } from '@novelia/auth-api';
+
+interface Page<T> {
+  total: number;
+  items: T[];
+}
 
 export interface User {
   id: number;
@@ -30,6 +31,10 @@ export type UserAction =
 
 interface UserRoleRequest {
   username: string;
+}
+
+interface UserRoleReasonRequest extends UserRoleRequest {
+  reason: string;
 }
 
 export interface DailyAuthStat {
@@ -92,6 +97,26 @@ interface StrikeListParams {
   operatorUsername?: string;
 }
 
+interface CreateStrikeRequest {
+  username: string;
+  reason: string;
+  evidence: string;
+  point: number;
+}
+
+export interface Strike {
+  id: number;
+  username: string | null;
+  operatorUsername?: string;
+  reason: string;
+  evidence: string;
+  point: number;
+  createdAt: string;
+  revokedAt?: string;
+  revokedByUsername?: string;
+  attr: Record<string, unknown>;
+}
+
 export function createAdminApi(authApi: AuthApi) {
   const client = authApi.client;
 
@@ -123,7 +148,9 @@ export function createAdminApi(authApi: AuthApi) {
       unrestrictUser(request: UserRoleReasonRequest) {
         return client.post('admin/user/unrestrict', { json: request }).text();
       },
-      banUser: authApi.admin.banUser,
+      banUser(request: UserRoleReasonRequest) {
+        return client.post('admin/user/ban', { json: request }).text();
+      },
       unbanUser(request: UserRoleReasonRequest) {
         return client.post('admin/user/unban', { json: request }).text();
       },
@@ -184,7 +211,9 @@ export function createAdminApi(authApi: AuthApi) {
           })
           .json<Page<Strike>>();
       },
-      createStrike: authApi.admin.createStrike,
+      createStrike(request: CreateStrikeRequest) {
+        return client.post('admin/strikes', { json: request }).json<Strike>();
+      },
       revokeStrike(strikeId: number) {
         return client.post(`admin/strikes/${strikeId}/revoke`).json<Strike>();
       },

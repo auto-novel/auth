@@ -1,5 +1,4 @@
 import type { ApiClient } from './client';
-import type { Page } from './types';
 
 export interface MyStrike {
   id: number;
@@ -8,6 +7,11 @@ export interface MyStrike {
   point: number;
   createdAt: string;
   revokedAt?: string;
+}
+
+export interface MyStrikePage {
+  total: number;
+  items: MyStrike[];
 }
 
 export interface MyStrikeListParams {
@@ -29,7 +33,7 @@ export function createMeEndpoints(client: ApiClient) {
             created_before: params.createdBefore,
           },
         })
-        .json<Page<MyStrike>>();
+        .json<MyStrikePage>();
     },
   };
 }

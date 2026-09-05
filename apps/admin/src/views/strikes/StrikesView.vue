@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { Strike } from '@novelia/auth-api';
 import {
   NAlert,
   NButton,
@@ -14,7 +13,7 @@ import {
 import { computed, reactive, ref, watch } from 'vue';
 import { useRoute, useRouter, type LocationQueryRaw } from 'vue-router';
 
-import { useAdminApi } from '@/api';
+import { useAdminApi, type Strike } from '@/api';
 
 import {
   readCreatedRange,

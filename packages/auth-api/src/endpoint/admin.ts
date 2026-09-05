@@ -1,11 +1,11 @@
 import type { ApiClient } from './client';
 
-export interface UserRoleReasonRequest {
+export interface BanUserRequest {
   username: string;
   reason: string;
 }
 
-export interface Strike {
+export interface CreateStrikeResponse {
   id: number;
   username: string | null;
   operatorUsername?: string;
@@ -27,11 +27,13 @@ export interface CreateStrikeRequest {
 
 export function createAdminEndpoints(client: ApiClient) {
   return {
-    banUser(request: UserRoleReasonRequest) {
+    banUser(request: BanUserRequest) {
       return client.post('admin/user/ban', { json: request }).text();
     },
     createStrike(request: CreateStrikeRequest) {
-      return client.post('admin/strikes', { json: request }).json<Strike>();
+      return client
+        .post('admin/strikes', { json: request })
+        .json<CreateStrikeResponse>();
     },
   };
 }
