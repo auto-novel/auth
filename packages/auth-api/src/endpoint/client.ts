@@ -1,7 +1,5 @@
 import ky, { isHTTPError, isTimeoutError } from 'ky';
 
-export { isHTTPError };
-
 export interface AccessTokenProvider {
   get(): string | undefined;
   refresh(): Promise<string | undefined>;

@@ -1,4 +1,6 @@
-import { isHTTPError, type AccessTokenProvider } from './endpoint/client';
+import { isHTTPError } from 'ky';
+
+import type { AccessTokenProvider } from './endpoint/client';
 
 export interface AuthUser {
   id: number;
@@ -124,7 +126,7 @@ export function createAuthSession(options: AuthSessionOptions) {
   const storage = createAuthStorage(options.storage);
   const listeners = new Set<(user?: AuthUser) => void>();
   let profile = storage?.get();
-  let refreshRequest: Promise<string> | undefined;
+  let refreshRequest: Promise<string | undefined> | undefined;
 
   function notify(listener: (user?: AuthUser) => void) {
     try {
@@ -158,7 +160,7 @@ export function createAuthSession(options: AuthSessionOptions) {
     };
   }
 
-  function refreshAccessToken(): Promise<string> {
+  function refreshAccessToken(): Promise<string | undefined> {
     if (refreshRequest) return refreshRequest;
     const app = options.app;
 
@@ -170,6 +172,7 @@ export function createAuthSession(options: AuthSessionOptions) {
       } catch (error) {
         if (isHTTPError(error) && error.response.status === 401) {
           setAccessToken();
+          return;
         }
         throw error;
       } finally {

@@ -22,7 +22,6 @@ export type {
 } from './endpoint/admin';
 export {
   createAuthenticatedApiClient,
-  isHTTPError,
   type AccessTokenProvider,
   type ApiClient,
 } from './endpoint/client';

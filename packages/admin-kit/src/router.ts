@@ -1,7 +1,5 @@
 import type { NavigationGuard } from 'vue-router';
 
-import { isHTTPError } from '@novelia/auth-api';
-
 import type { AdminKit } from './types';
 
 export const ADMIN_HOME_ROUTE = '/';
@@ -20,12 +18,8 @@ export function createAdminAuthGuard(kit: AdminKit): NavigationGuard {
       .then(() => {
         initialized = true;
       })
-      .catch((error: unknown) => {
-        // Anonymous visits are initialized too; transient failures are retried
-        // on the next navigation.
-        if (isHTTPError(error) && error.response.status === 401) {
-          initialized = true;
-        }
+      .catch(() => {
+        // Transient failures are retried on the next navigation.
       })
       .finally(() => {
         initializeRequest = undefined;
