@@ -14,7 +14,7 @@ export default defineConfig(({ mode }) => {
     if (apiMode === 'remote') {
       return 'https://n.novelia.cc';
     } else if (apiMode === 'local') {
-      return 'http://localhost:3000';
+      return 'http://localhost:4000';
     } else if (apiMode === 'native') {
       return 'http://localhost:8080';
     }
