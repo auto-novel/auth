@@ -43,6 +43,7 @@
 		import cors 1 https://books.fishhawk.top
 		import cors 2 https://books1.fishhawk.top
 		import cors 3 https://n.novelia.cc
-		import cors 4 http://localhost:5173
+		import cors 4 https://forum.novelia.cc
+		import cors 5 http://localhost:5173
 	}
 }
