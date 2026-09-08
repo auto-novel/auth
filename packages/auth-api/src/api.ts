@@ -28,6 +28,7 @@ export function createAuthApi(options: AuthApiOptions) {
 
   return {
     client,
+    accessToken: session.accessToken,
     auth: {
       refresh: session.accessToken.refresh,
       logout: session.logout,

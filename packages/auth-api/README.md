@@ -19,4 +19,5 @@ const page = await api.me.getStrikes({ page: 1, pageSize: 50 });
 必须通过 `createAuthApi` 显式配置 `baseUrl` 和 `app`。接口按 `auth`、`admin`、`me`
 分组；客户端会等待初始会话恢复，并在请求携带的访问令牌被服务端标记为无效时刷新并重试
 一次，同时定时刷新已签发满一小时的令牌。配置 `storage` 后访问令牌会持久化到指定存储；可通过
-`api.subscribeUser()` 订阅不含令牌的用户身份。
+`api.subscribeUser()` 订阅不含令牌的用户身份。需要访问其他服务时，可将 `api.accessToken`
+传给 `createAuthAwareApiClient` 复用同一登录会话。
