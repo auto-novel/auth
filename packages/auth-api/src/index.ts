@@ -5,6 +5,7 @@ export type {
   CreateStrikeResponse,
 } from './endpoint/admin';
 export {
+  createApiClient,
   createAuthAwareApiClient,
   type AccessTokenProvider,
   type ApiClient,
