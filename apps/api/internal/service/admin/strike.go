@@ -96,7 +96,7 @@ func (s *adminStrikeService) createStrike(
 	point int16,
 ) (repository.StrikeRecord, error) {
 	if target.Role != repository.RoleMember {
-		return repository.StrikeRecord{}, httpx.Unauthorized("没有权限对非普通用户进行操作")
+		return repository.StrikeRecord{}, httpx.Conflict("没有权限对非普通用户进行操作")
 	}
 	operator, err := s.userRepo.FindByUsername(adminUsername)
 	if err != nil {

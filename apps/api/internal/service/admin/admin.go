@@ -292,7 +292,7 @@ func (s *adminService) TrustUser(w http.ResponseWriter, r *http.Request) error {
 	}
 	if user.Role != repository.RoleMember {
 		slog.Error("Unauthorized role change attempt", "username", req.Username, "current_role", user.Role)
-		return httpx.Unauthorized("只能将普通用户设为可信用户")
+		return httpx.Conflict("只能将普通用户设为可信用户")
 	}
 
 	user.Role = repository.RoleTrusted
@@ -339,7 +339,7 @@ func (s *adminService) UntrustUser(w http.ResponseWriter, r *http.Request) error
 	}
 	if user.Role != repository.RoleTrusted {
 		slog.Error("Unauthorized role change attempt", "username", req.Username, "current_role", user.Role)
-		return httpx.Unauthorized("只能取消可信用户的可信状态")
+		return httpx.Conflict("只能取消可信用户的可信状态")
 	}
 
 	user.Role = repository.RoleMember
@@ -384,7 +384,7 @@ func (s *adminService) RestrictUser(w http.ResponseWriter, r *http.Request) erro
 	}
 	if user.Role != repository.RoleMember {
 		slog.Error("Unauthorized role change attempt", "username", req.Username, "current_role", user.Role)
-		return httpx.Unauthorized("没有权限对非普通用户进行操作")
+		return httpx.Conflict("没有权限对非普通用户进行操作")
 	}
 
 	user.Role = repository.RoleRestricted
@@ -432,7 +432,7 @@ func (s *adminService) BanUser(w http.ResponseWriter, r *http.Request) error {
 	}
 	if user.Role != repository.RoleMember {
 		slog.Error("Unauthorized role change attempt", "username", req.Username, "current_role", user.Role)
-		return httpx.Unauthorized("没有权限对非普通用户进行操作")
+		return httpx.Conflict("没有权限对非普通用户进行操作")
 	}
 
 	user.Role = repository.RoleBanned
@@ -480,7 +480,7 @@ func (s *adminService) UnrestrictUser(w http.ResponseWriter, r *http.Request) er
 	}
 	if user.Role != repository.RoleRestricted {
 		slog.Error("Unauthorized role change attempt", "username", req.Username, "current_role", user.Role)
-		return httpx.Unauthorized("只能取消受限用户的限制")
+		return httpx.Conflict("只能取消受限用户的限制")
 	}
 
 	user.Role = repository.RoleMember
@@ -527,7 +527,7 @@ func (s *adminService) UnbanUser(w http.ResponseWriter, r *http.Request) error {
 	}
 	if user.Role != repository.RoleBanned {
 		slog.Error("Unauthorized role change attempt", "username", req.Username, "current_role", user.Role)
-		return httpx.Unauthorized("只能取消已封禁用户的封禁")
+		return httpx.Conflict("只能取消已封禁用户的封禁")
 	}
 
 	user.Role = repository.RoleMember

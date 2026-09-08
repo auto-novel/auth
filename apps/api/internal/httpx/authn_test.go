@@ -17,13 +17,14 @@ func TestRequireAdmin(t *testing.T) {
 	t.Cleanup(func() { AccessTokenSecret = previousSecret })
 
 	tests := []struct {
-		name       string
-		token      string
-		wantStatus int
-		wantBody   string
+		name          string
+		token         string
+		wantStatus    int
+		wantBody      string
+		wantChallenge string
 	}{
-		{name: "missing token", wantStatus: http.StatusUnauthorized, wantBody: "缺少访问令牌"},
-		{name: "missing subject", token: testAccessToken(t, "", repository.RoleAdmin), wantStatus: http.StatusUnauthorized, wantBody: "无效的访问令牌"},
+		{name: "missing token", wantStatus: http.StatusUnauthorized, wantBody: "缺少访问令牌", wantChallenge: bearerChallenge},
+		{name: "missing subject", token: testAccessToken(t, "", repository.RoleAdmin), wantStatus: http.StatusUnauthorized, wantBody: "无效的访问令牌", wantChallenge: invalidAccessTokenChallenge},
 		{name: "member token", token: testAccessToken(t, "member", repository.RoleMember), wantStatus: http.StatusForbidden, wantBody: "权限不足"},
 		{name: "admin token", token: testAccessToken(t, "admin", repository.RoleAdmin), wantStatus: http.StatusOK, wantBody: "admin"},
 	}
@@ -48,6 +49,10 @@ func TestRequireAdmin(t *testing.T) {
 
 			if response.Code != tt.wantStatus || response.Body.String() != tt.wantBody {
 				t.Fatalf("RequireAdmin returned (%d, %q), want (%d, %q)", response.Code, response.Body.String(), tt.wantStatus, tt.wantBody)
+			}
+			challenge := response.Header().Get("WWW-Authenticate")
+			if challenge != tt.wantChallenge {
+				t.Fatalf("WWW-Authenticate = %q, want %q", challenge, tt.wantChallenge)
 			}
 		})
 	}
@@ -76,6 +81,45 @@ func TestRequireAccessTokenStoresPrincipal(t *testing.T) {
 
 	if response.Code != http.StatusOK || response.Body.String() != "member:member" {
 		t.Fatalf("RequireAccessToken returned (%d, %q)", response.Code, response.Body.String())
+	}
+}
+
+func TestRequireRoleUsesMinimumLevel(t *testing.T) {
+	previousSecret := AccessTokenSecret
+	AccessTokenSecret = "role-level-test-secret"
+	t.Cleanup(func() { AccessTokenSecret = previousSecret })
+
+	tests := []struct {
+		name         string
+		requiredRole string
+		actualRole   string
+		wantStatus   int
+	}{
+		{name: "admin meets admin", requiredRole: roleAdmin, actualRole: roleAdmin, wantStatus: http.StatusOK},
+		{name: "trusted below admin", requiredRole: roleAdmin, actualRole: roleTrusted, wantStatus: http.StatusForbidden},
+		{name: "admin exceeds trusted", requiredRole: roleTrusted, actualRole: roleAdmin, wantStatus: http.StatusOK},
+		{name: "trusted meets trusted", requiredRole: roleTrusted, actualRole: roleTrusted, wantStatus: http.StatusOK},
+		{name: "member below trusted", requiredRole: roleTrusted, actualRole: roleMember, wantStatus: http.StatusForbidden},
+		{name: "trusted exceeds member", requiredRole: roleMember, actualRole: roleTrusted, wantStatus: http.StatusOK},
+		{name: "restricted below member", requiredRole: roleMember, actualRole: roleRestricted, wantStatus: http.StatusForbidden},
+		{name: "unknown role rejected", requiredRole: roleMember, actualRole: "unknown", wantStatus: http.StatusForbidden},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			handler := requireRole(tt.requiredRole)(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusOK)
+			}))
+			req := httptest.NewRequest(http.MethodGet, "/", nil)
+			req.Header.Set("Authorization", "Bearer "+testAccessToken(t, "user", tt.actualRole))
+			response := httptest.NewRecorder()
+
+			handler.ServeHTTP(response, req)
+
+			if response.Code != tt.wantStatus {
+				t.Fatalf("status = %d, want %d", response.Code, tt.wantStatus)
+			}
+		})
 	}
 }
 

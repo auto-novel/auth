@@ -9,11 +9,13 @@ import (
 )
 
 const (
-	roleAdmin      string = "admin"
-	roleTrusted    string = "trusted"
-	roleMember     string = "member"
-	roleRestricted string = "restricted"
-	roleBanned     string = "banned"
+	bearerChallenge             string = "Bearer"
+	invalidAccessTokenChallenge string = `Bearer error="invalid_token"`
+	roleAdmin                   string = "admin"
+	roleTrusted                 string = "trusted"
+	roleMember                  string = "member"
+	roleRestricted              string = "restricted"
+	roleBanned                  string = "banned"
 )
 
 var AccessTokenSecret string
@@ -33,52 +35,66 @@ type Principal struct {
 
 type principalContextKey struct{}
 
-func parseAccessClaim(tokenString string) (*accessClaim, error) {
+func verifyAccessToken(tokenString string) (Principal, error) {
 	claims := &accessClaim{}
 	token, err := jwt.ParseWithClaims(tokenString, claims,
 		func(token *jwt.Token) (interface{}, error) {
 			return []byte(AccessTokenSecret), nil
 		},
 	)
-	if err != nil || !token.Valid {
-		return nil, err
+	if err != nil {
+		return Principal{}, err
+	}
+	if !token.Valid {
+		return Principal{}, jwt.ErrTokenInvalidClaims
 	}
 
 	validClaims, ok := token.Claims.(*accessClaim)
-	if !ok {
-		return nil, jwt.ErrTokenInvalidClaims
-	}
-	return validClaims, nil
-}
-
-func verifyAccessToken(r *http.Request) (Principal, error) {
-	tokenString := r.Header.Get("Authorization")
-
-	if tokenString == "" || !strings.HasPrefix(tokenString, "Bearer ") {
-		return Principal{}, Unauthorized("缺少访问令牌")
+	if !ok || validClaims.Subject == "" {
+		return Principal{}, jwt.ErrTokenInvalidClaims
 	}
 
-	claims, err := parseAccessClaim(tokenString[len("Bearer "):])
-	if err != nil {
-		return Principal{}, Unauthorized("无效的访问令牌")
-	}
-	if claims.Subject == "" {
-		return Principal{}, Unauthorized("无效的访问令牌")
-	}
-
-	return Principal{UserID: claims.UserID, Username: claims.Subject, Role: claims.Role}, nil
+	return Principal{
+		UserID:   validClaims.UserID,
+		Username: validClaims.Subject,
+		Role:     validClaims.Role,
+	}, nil
 }
 
 func RequireAccessToken(next http.Handler) http.Handler {
 	return EH(func(w http.ResponseWriter, r *http.Request) error {
-		principal, err := verifyAccessToken(r)
+		authorization := r.Header.Get("Authorization")
+		tokenString, ok := strings.CutPrefix(authorization, "Bearer ")
+		if !ok {
+			w.Header().Set("WWW-Authenticate", bearerChallenge)
+			return Unauthorized("缺少访问令牌")
+		}
+		principal, err := verifyAccessToken(tokenString)
 		if err != nil {
-			return err
+			w.Header().Set("WWW-Authenticate", invalidAccessTokenChallenge)
+			return Unauthorized("无效的访问令牌")
 		}
 		ctx := context.WithValue(r.Context(), principalContextKey{}, principal)
 		next.ServeHTTP(w, r.WithContext(ctx))
 		return nil
 	})
+}
+
+func roleLevel(role string) (int, bool) {
+	switch role {
+	case roleBanned:
+		return 0, true
+	case roleRestricted:
+		return 1, true
+	case roleMember:
+		return 2, true
+	case roleTrusted:
+		return 3, true
+	case roleAdmin:
+		return 4, true
+	default:
+		return 0, false
+	}
 }
 
 func requireRole(role string) func(http.Handler) http.Handler {
@@ -88,7 +104,9 @@ func requireRole(role string) func(http.Handler) http.Handler {
 			if err != nil {
 				return err
 			}
-			if principal.Role != role {
+			principalLevel, principalRoleExists := roleLevel(principal.Role)
+			requiredLevel, requiredRoleExists := roleLevel(role)
+			if !principalRoleExists || !requiredRoleExists || principalLevel < requiredLevel {
 				return Forbidden("权限不足")
 			}
 			next.ServeHTTP(w, r)
