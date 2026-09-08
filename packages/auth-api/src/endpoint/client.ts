@@ -2,11 +2,13 @@ import ky, { isHTTPError, isTimeoutError } from 'ky';
 
 export interface AccessTokenProvider {
   get(): string | undefined;
+  ready?(): Promise<void>;
   refresh(): Promise<string | undefined>;
 }
 
 const REQUEST_TIMEOUT = 5000;
 const SESSION_EXPIRED_MESSAGE = '登录状态已失效，请重新登录';
+const INVALID_ACCESS_TOKEN_CHALLENGE = 'Bearer error="invalid_token"';
 
 export function createApiClient(baseUrl: string) {
   if (!baseUrl.trim()) throw new Error('必须配置 baseUrl');
@@ -44,7 +46,7 @@ export function createApiClient(baseUrl: string) {
 
 export type ApiClient = ReturnType<typeof createApiClient>;
 
-export function createAuthenticatedApiClient(
+export function createAuthAwareApiClient(
   client: ApiClient,
   accessToken: AccessTokenProvider,
 ) {
@@ -54,14 +56,19 @@ export function createAuthenticatedApiClient(
       methods: ['get', 'post'],
       delay: () => 0,
       shouldRetry: ({ error }) =>
-        isHTTPError(error) && error.response.status === 401,
+        isHTTPError(error) &&
+        error.response.status === 401 &&
+        error.request.headers.has('Authorization') &&
+        error.response.headers
+          .get('WWW-Authenticate')
+          ?.includes(INVALID_ACCESS_TOKEN_CHALLENGE) === true,
     },
     hooks: {
       beforeRequest: [
-        ({ request }) => {
+        async ({ request }) => {
+          await accessToken.ready?.();
           const token = accessToken.get();
-          if (!token) throw new Error(SESSION_EXPIRED_MESSAGE);
-          request.headers.set('Authorization', `Bearer ${token}`);
+          if (token) request.headers.set('Authorization', `Bearer ${token}`);
         },
       ],
       beforeRetry: [

@@ -3,10 +3,7 @@ import {
   createAuthEndpoints,
   createMeEndpoints,
 } from './endpoint';
-import {
-  createApiClient,
-  createAuthenticatedApiClient,
-} from './endpoint/client';
+import { createApiClient, createAuthAwareApiClient } from './endpoint/client';
 import { createAuthSession, type AuthUser } from './session';
 
 export interface AuthApiOptions {
@@ -27,7 +24,7 @@ export function createAuthApi(options: AuthApiOptions) {
     requestLogout: () => authEndpoints.logout(),
     requestRefresh: (app) => authEndpoints.refresh(app),
   });
-  const client = createAuthenticatedApiClient(authClient, session.accessToken);
+  const client = createAuthAwareApiClient(authClient, session.accessToken);
 
   return {
     client,

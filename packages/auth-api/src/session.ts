@@ -127,6 +127,7 @@ export function createAuthSession(options: AuthSessionOptions) {
   const listeners = new Set<(user?: AuthUser) => void>();
   let profile = storage?.get();
   let refreshRequest: Promise<string | undefined> | undefined;
+  let readyRequest: Promise<void> | undefined;
 
   function notify(listener: (user?: AuthUser) => void) {
     try {
@@ -183,12 +184,22 @@ export function createAuthSession(options: AuthSessionOptions) {
     return request;
   }
 
+  function waitUntilReady() {
+    readyRequest ??= refreshAccessToken()
+      .catch(() => undefined)
+      .then(() => undefined);
+    return readyRequest;
+  }
+
   const accessToken = {
     get() {
       return profile?.token;
     },
+    ready: waitUntilReady,
     refresh: refreshAccessToken,
   } satisfies AccessTokenProvider;
+
+  void waitUntilReady();
 
   const refreshTimer = globalThis.setInterval(() => {
     if (

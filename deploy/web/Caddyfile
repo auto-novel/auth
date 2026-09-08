@@ -6,6 +6,7 @@
 		Access-Control-Allow-Credentials "true"
 		Access-Control-Max-Age "3600"
 		Access-Control-Allow-Headers "Content-Type, Authorization"
+		Access-Control-Expose-Headers "WWW-Authenticate"
 	}
 }
 
