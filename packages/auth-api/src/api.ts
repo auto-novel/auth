@@ -73,17 +73,15 @@ export function createAuthApi(options: AuthApiOptions) {
         .text(),
   });
 
-  function createClient(baseUrl?: string) {
-    return createAuthAwareApiClient(
-      baseUrl === undefined ? authClient : createApiClient(baseUrl),
-      session.accessToken,
-    );
-  }
-
-  const client = createClient();
+  const client = createAuthAwareApiClient(authClient, session.accessToken);
 
   return {
-    createClient,
+    createClient(baseUrl: string) {
+      return createAuthAwareApiClient(
+        createApiClient(baseUrl),
+        session.accessToken,
+      );
+    },
     createLoginUrl(theme: 'dark' | 'light') {
       const url = new URL(authUrl);
       url.searchParams.set('app', options.app);

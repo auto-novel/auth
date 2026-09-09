@@ -22,7 +22,13 @@ const adminKit = createAdminKit({
 router.beforeEach(createAdminAuthGuard(adminKit));
 
 createApp(App)
-  .provide(adminApiKey, createAdminApi(adminKit.api))
+  .provide(
+    adminApiKey,
+    createAdminApi(
+      adminKit.api,
+      new URL('api/v1/', adminKit.options.auth.url).toString(),
+    ),
+  )
   .use(adminKit)
   .use(router)
   .mount('#app');

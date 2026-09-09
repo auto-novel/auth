@@ -117,8 +117,8 @@ export interface Strike {
   attr: Record<string, unknown>;
 }
 
-export function createAdminApi(authApi: AuthApi) {
-  const client = authApi.createClient();
+export function createAdminApi(authApi: AuthApi, baseUrl: string) {
+  const client = authApi.createClient(baseUrl);
 
   return {
     admin: {
