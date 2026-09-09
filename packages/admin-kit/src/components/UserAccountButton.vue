@@ -9,10 +9,8 @@ import {
   type MenuOption,
 } from 'naive-ui';
 import { computed, h } from 'vue';
-import { useRouter } from 'vue-router';
 
 import { useAdminKit } from '../context';
-import { ADMIN_LOGIN_ROUTE_NAME } from '../router';
 
 const roleLabels: Record<string, string> = {
   admin: '管理员',
@@ -23,7 +21,6 @@ const roleLabels: Record<string, string> = {
 };
 
 const { api, profile, isSignedIn } = useAdminKit();
-const router = useRouter();
 
 const dropdownOptions = computed<MenuOption[]>(() => [
   {
@@ -71,7 +68,6 @@ async function handleSelect(key: string | number) {
   } catch {
     // Local logout succeeds even if the server session has expired.
   }
-  await router.replace({ name: ADMIN_LOGIN_ROUTE_NAME });
 }
 </script>
 
@@ -79,15 +75,12 @@ async function handleSelect(key: string | number) {
   <div class="user-account-button">
     <n-dropdown
       v-if="isSignedIn"
-      trigger="hover"
+      trigger="click"
       placement="bottom-end"
-      :keyboard="false"
       :options="dropdownOptions"
       @select="handleSelect"
     >
-      <n-button quaternary :focusable="false">
-        @{{ profile?.username }}
-      </n-button>
+      <n-button quaternary>@{{ profile?.username }}</n-button>
     </n-dropdown>
   </div>
 </template>

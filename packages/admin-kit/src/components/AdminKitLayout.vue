@@ -25,6 +25,7 @@ import { computed, h, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { RouterView, useRoute, useRouter } from 'vue-router';
 
 import { useAdminKit, useAdminTheme } from '../context';
+import { ADMIN_HOME_ROUTE, ADMIN_LOGIN_ROUTE_NAME } from '../router';
 import SidebarNavigation from './SidebarNavigation.vue';
 import UserAccountButton from './UserAccountButton.vue';
 
@@ -47,9 +48,25 @@ const viewportMode = ref<ViewportMode>(getViewportMode());
 const isMobile = computed(() => viewportMode.value === 'mobile');
 const collapsed = ref(viewportMode.value === 'tablet');
 const { isDark, toggleTheme } = useAdminTheme();
-const { options, isAuthorized } = useAdminKit();
+const { options, isSignedIn, isAuthorized } = useAdminKit();
 const route = useRoute();
 const router = useRouter();
+
+watch(
+  isSignedIn,
+  (signedIn) => {
+    if (!signedIn && route.meta.requiresAuth) {
+      void router.replace({
+        name: ADMIN_LOGIN_ROUTE_NAME,
+        query:
+          route.fullPath === ADMIN_HOME_ROUTE
+            ? undefined
+            : { redirect: route.fullPath },
+      });
+    }
+  },
+  { immediate: true },
+);
 
 const allMenuOptions = computed<Array<MenuOption | MenuDividerOption>>(() => [
   ...props.menuOptions,
@@ -186,13 +203,9 @@ watch(
         class="page-content"
         content-style="padding: var(--page-content-padding)"
       >
-        <router-view v-if="isAuthorized" v-slot="{ Component }">
-          <keep-alive>
-            <component :is="Component" />
-          </keep-alive>
-        </router-view>
+        <router-view v-if="isAuthorized" />
         <n-result
-          v-else
+          v-else-if="isSignedIn"
           status="403"
           title="需要管理员权限"
           description="当前账号没有访问管理后台的权限。"

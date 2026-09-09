@@ -22,13 +22,18 @@ export function createAdminKit(options: AdminKitOptions): AdminKit {
       ? Object.freeze({ ...options.repository })
       : undefined,
   });
+  let storage: Storage | undefined;
+  try {
+    storage = window.localStorage;
+  } catch {
+    // Keep the session in memory when browser storage is blocked.
+  }
   const api = createAuthApi({
     app: normalizedOptions.auth.app,
-    baseUrl: new URL('api/v1/', normalizedOptions.auth.url).toString(),
-    storage: {
-      key: `${normalizedOptions.auth.app}-admin-session`,
-      target: localStorage,
-    },
+    url: normalizedOptions.auth.url,
+    storage: storage
+      ? { key: `${normalizedOptions.auth.app}-admin-session`, target: storage }
+      : undefined,
   });
   const profile = ref<AuthUser>();
   api.watchUser((user) => {

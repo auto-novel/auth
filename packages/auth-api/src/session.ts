@@ -128,6 +128,7 @@ export function createAuthSession(options: AuthSessionOptions) {
   let profile = storage?.get();
   let initialized = profile !== undefined;
   let refreshRequest: Promise<string | undefined> | undefined;
+  let sessionVersion = 0;
 
   function notify(listener: (user?: AuthUser) => void) {
     try {
@@ -164,14 +165,17 @@ export function createAuthSession(options: AuthSessionOptions) {
   function refreshAccessToken(): Promise<string | undefined> {
     if (refreshRequest) return refreshRequest;
     const app = options.app;
+    const version = sessionVersion;
 
     const request = (async () => {
       try {
         const token = await options.requestRefresh(app);
+        if (version !== sessionVersion) return;
         setAccessToken(token);
         initialized = true;
         return token;
       } catch (error) {
+        if (version !== sessionVersion) return;
         if (isHTTPError(error) && error.response.status === 401) {
           setAccessToken();
           initialized = true;
@@ -179,7 +183,7 @@ export function createAuthSession(options: AuthSessionOptions) {
         }
         throw error;
       } finally {
-        refreshRequest = undefined;
+        if (version === sessionVersion) refreshRequest = undefined;
       }
     })();
     refreshRequest = request;
@@ -223,10 +227,15 @@ export function createAuthSession(options: AuthSessionOptions) {
     accessToken,
     checkSignedIn,
     logout() {
+      // Ignore refreshes started before logout, including their errors.
+      sessionVersion++;
+      refreshRequest = undefined;
+      initialized = true;
       setAccessToken();
       return options.requestLogout();
     },
     dispose() {
+      sessionVersion++;
       globalThis.clearInterval(refreshTimer);
       listeners.clear();
     },

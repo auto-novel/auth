@@ -6,47 +6,28 @@ import { useRoute, useRouter } from 'vue-router';
 import { useAdminKit, useAdminTheme } from '../context';
 import { ADMIN_HOME_ROUTE } from '../router';
 
-const { options, api } = useAdminKit();
+const { api } = useAdminKit();
 const { isDark } = useAdminTheme();
 const route = useRoute();
 const router = useRouter();
 const iframe = ref<HTMLIFrameElement>();
 const completingLogin = ref(false);
 const loginError = ref<string>();
-const authUrl = options.auth.url;
-const authOrigin = new URL(authUrl).origin;
 let disposed = false;
 
-function isLoginSuccessMessage(data: unknown) {
-  return (
-    typeof data === 'object' &&
-    data !== null &&
-    'type' in data &&
-    data.type === 'login_success'
-  );
-}
-
-const iframeSrc = computed(() => {
-  const url = new URL(authUrl);
-  url.searchParams.set('app', options.auth.app);
-  url.searchParams.set('theme', isDark.value ? 'dark' : 'light');
-  return url.toString();
-});
+const iframeSrc = computed(() =>
+  api.createLoginUrl(isDark.value ? 'dark' : 'light'),
+);
 
 async function handleMessage(event: MessageEvent) {
-  if (
-    event.origin !== authOrigin ||
-    event.source !== iframe.value?.contentWindow ||
-    !isLoginSuccessMessage(event.data) ||
-    completingLogin.value
-  ) {
-    return;
-  }
+  if (completingLogin.value) return;
+  const completion = api.handleLoginMessage(event, iframe.value?.contentWindow);
+  if (!completion) return;
 
   completingLogin.value = true;
   loginError.value = undefined;
   try {
-    await api.refresh();
+    await completion;
     if (disposed) return;
 
     const redirect = route.query.redirect;

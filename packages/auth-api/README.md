@@ -7,7 +7,7 @@ Auth API 的浏览器端 TypeScript 接口包，不依赖具体 UI 框架。各�
 import { createAuthApi } from '@novelia/auth-api';
 
 const api = createAuthApi({
-  baseUrl: 'https://auth.example.com/api/v1',
+  url: 'https://auth.example.com/',
   app: 'example',
   storage: { key: 'example-session', target: localStorage },
 });

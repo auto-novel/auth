@@ -49,7 +49,7 @@ export interface MyStrikeListParams {
 
 export interface AuthApiOptions {
   app: string;
-  baseUrl: string;
+  url: string;
   storage?: {
     key: string;
     target: Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
@@ -57,7 +57,8 @@ export interface AuthApiOptions {
 }
 
 export function createAuthApi(options: AuthApiOptions) {
-  const authClient = createApiClient(options.baseUrl);
+  const authUrl = new URL(options.url);
+  const authClient = createApiClient(new URL('api/v1/', authUrl).toString());
   const session = createAuthSession({
     app: options.app,
     storage: options.storage,
@@ -83,8 +84,34 @@ export function createAuthApi(options: AuthApiOptions) {
 
   return {
     createClient,
+    createLoginUrl(theme: 'dark' | 'light') {
+      const url = new URL(authUrl);
+      url.searchParams.set('app', options.app);
+      url.searchParams.set('theme', theme);
+      return url.toString();
+    },
+    /** Returns undefined for unrelated messages, or a login completion promise. */
+    handleLoginMessage(
+      event: MessageEvent<unknown>,
+      source: Window | null | undefined,
+    ): Promise<void> | undefined {
+      if (
+        !source ||
+        event.origin !== authUrl.origin ||
+        event.source !== source ||
+        typeof event.data !== 'object' ||
+        event.data === null ||
+        !('type' in event.data) ||
+        event.data.type !== 'login_success'
+      ) {
+        return;
+      }
+
+      return session.accessToken.refresh().then((token) => {
+        if (!token) throw new Error('登录状态同步失败，请重试');
+      });
+    },
     checkSignedIn: session.checkSignedIn,
-    refresh: session.accessToken.refresh,
     logout: session.logout,
     banUser(request: BanUserRequest) {
       return client.post('admin/user/ban', { json: request }).text();
