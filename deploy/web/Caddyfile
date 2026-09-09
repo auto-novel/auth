@@ -13,7 +13,6 @@
 :80 {
 	encode gzip
 
-	# The admin site is a separate static application, published under /admin.
 	redir /admin /admin/
 	handle_path /admin/* {
 		root * /admin
@@ -41,10 +40,8 @@
 			method OPTIONS
 		}
 		respond @options 204
-		import cors 1 https://books.fishhawk.top
-		import cors 2 https://books1.fishhawk.top
-		import cors 3 https://n.novelia.cc
-		import cors 4 https://forum.novelia.cc
-		import cors 5 http://localhost:5173
+		import cors 1 http://localhost:5173
+		import cors 2 https://n.novelia.cc
+		import cors 3 https://forum.novelia.cc
 	}
 }
