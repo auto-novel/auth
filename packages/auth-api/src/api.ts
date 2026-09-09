@@ -83,6 +83,7 @@ export function createAuthApi(options: AuthApiOptions) {
 
   return {
     createClient,
+    checkSignedIn: session.checkSignedIn,
     refresh: session.accessToken.refresh,
     logout: session.logout,
     banUser(request: BanUserRequest) {

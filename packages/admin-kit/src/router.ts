@@ -6,31 +6,10 @@ export const ADMIN_HOME_ROUTE = '/';
 export const ADMIN_LOGIN_ROUTE_NAME = 'login';
 
 export function createAdminAuthGuard(kit: AdminKit): NavigationGuard {
-  let initialized = false;
-  let initializeRequest: Promise<void> | undefined;
-
-  function initialize() {
-    if (initialized) return Promise.resolve();
-    if (initializeRequest) return initializeRequest;
-
-    initializeRequest = kit.api
-      .refresh()
-      .then(() => {
-        initialized = true;
-      })
-      .catch(() => {
-        // Transient failures are retried on the next navigation.
-      })
-      .finally(() => {
-        initializeRequest = undefined;
-      });
-    return initializeRequest;
-  }
-
   return async (to) => {
-    await initialize();
+    const isSignedIn = await kit.api.checkSignedIn();
 
-    if (to.meta.requiresAuth && !kit.isSignedIn.value) {
+    if (to.meta.requiresAuth && !isSignedIn) {
       return {
         name: ADMIN_LOGIN_ROUTE_NAME,
         query:
@@ -40,7 +19,7 @@ export function createAdminAuthGuard(kit: AdminKit): NavigationGuard {
       };
     }
 
-    if (to.meta.guestOnly && kit.isSignedIn.value) {
+    if (to.meta.guestOnly && isSignedIn) {
       return ADMIN_HOME_ROUTE;
     }
   };

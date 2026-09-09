@@ -12,8 +12,6 @@ const api = createAuthApi({
   storage: { key: 'example-session', target: localStorage },
 });
 
-await api.refresh();
+const isSignedIn = await api.checkSignedIn();
 const page = await api.getMyStrikes({ page: 1, pageSize: 50 });
 ```
-
-必须通过 `createAuthApi` 显式配置 `baseUrl` 和 `app`。客户端会等待初始会话恢复，并在请求携带的访问令牌被服务端标记为无效时刷新并重试一次，同时定时刷新已签发满一小时的令牌。配置 `storage` 后访问令牌会持久化到指定存储；可通过 `api.watchUser()` 观察不含令牌的用户身份。需要访问其他服务时，可通过 `api.createClient(baseUrl)` 创建复用同一登录会话的请求客户端；省略 `baseUrl` 时使用认证服务地址。

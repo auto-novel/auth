@@ -126,8 +126,8 @@ export function createAuthSession(options: AuthSessionOptions) {
   const storage = createAuthStorage(options.storage);
   const listeners = new Set<(user?: AuthUser) => void>();
   let profile = storage?.get();
+  let initialized = profile !== undefined;
   let refreshRequest: Promise<string | undefined> | undefined;
-  let readyRequest: Promise<void> | undefined;
 
   function notify(listener: (user?: AuthUser) => void) {
     try {
@@ -169,10 +169,12 @@ export function createAuthSession(options: AuthSessionOptions) {
       try {
         const token = await options.requestRefresh(app);
         setAccessToken(token);
+        initialized = true;
         return token;
       } catch (error) {
         if (isHTTPError(error) && error.response.status === 401) {
           setAccessToken();
+          initialized = true;
           return;
         }
         throw error;
@@ -184,22 +186,29 @@ export function createAuthSession(options: AuthSessionOptions) {
     return request;
   }
 
-  function waitUntilReady() {
-    readyRequest ??= refreshAccessToken()
-      .catch(() => undefined)
-      .then(() => undefined);
-    return readyRequest;
+  async function checkSignedIn() {
+    if (!initialized) {
+      try {
+        await refreshAccessToken();
+      } catch {
+        // A transient failure leaves the session uninitialized so the next
+        // check can retry while preserving any locally available profile.
+      }
+    }
+    return profile !== undefined;
   }
 
   const accessToken = {
     get() {
       return profile?.token;
     },
-    ready: waitUntilReady,
+    async ready() {
+      await checkSignedIn();
+    },
     refresh: refreshAccessToken,
   } satisfies AccessTokenProvider;
 
-  void waitUntilReady();
+  void checkSignedIn();
 
   const refreshTimer = globalThis.setInterval(() => {
     if (
@@ -212,6 +221,7 @@ export function createAuthSession(options: AuthSessionOptions) {
 
   return {
     accessToken,
+    checkSignedIn,
     logout() {
       setAccessToken();
       return options.requestLogout();
