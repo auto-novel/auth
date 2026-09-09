@@ -1,10 +1,51 @@
-import {
-  createAdminEndpoints,
-  createAuthEndpoints,
-  createMeEndpoints,
-} from './endpoint';
-import { createApiClient, createAuthAwareApiClient } from './endpoint/client';
-import { createAuthSession, type AuthUser } from './session';
+import { createApiClient, createAuthAwareApiClient } from './client';
+import { createAuthSession } from './session';
+
+export interface BanUserRequest {
+  username: string;
+  reason: string;
+}
+
+export interface CreateStrikeResponse {
+  id: number;
+  username: string | null;
+  operatorUsername?: string;
+  reason: string;
+  evidence: string;
+  point: number;
+  createdAt: string;
+  revokedAt?: string;
+  revokedByUsername?: string;
+  attr: Record<string, unknown>;
+}
+
+export interface CreateStrikeRequest {
+  username: string;
+  reason: string;
+  evidence: string;
+  point: number;
+}
+
+export interface MyStrike {
+  id: number;
+  reason: string;
+  evidence: string;
+  point: number;
+  createdAt: string;
+  revokedAt?: string;
+}
+
+export interface MyStrikePage {
+  total: number;
+  items: MyStrike[];
+}
+
+export interface MyStrikeListParams {
+  page: number;
+  pageSize: number;
+  createdAfter?: number;
+  createdBefore?: number;
+}
 
 export interface AuthApiOptions {
   app: string;
@@ -17,28 +58,55 @@ export interface AuthApiOptions {
 
 export function createAuthApi(options: AuthApiOptions) {
   const authClient = createApiClient(options.baseUrl);
-  const authEndpoints = createAuthEndpoints(authClient);
   const session = createAuthSession({
     app: options.app,
     storage: options.storage,
-    requestLogout: () => authEndpoints.logout(),
-    requestRefresh: (app) => authEndpoints.refresh(app),
+    requestLogout: () =>
+      authClient.post('auth/logout', { credentials: 'include' }).text(),
+    requestRefresh: (app) =>
+      authClient
+        .post('auth/refresh', {
+          credentials: 'include',
+          searchParams: { app },
+        })
+        .text(),
   });
-  const client = createAuthAwareApiClient(authClient, session.accessToken);
+
+  function createClient(baseUrl?: string) {
+    return createAuthAwareApiClient(
+      baseUrl === undefined ? authClient : createApiClient(baseUrl),
+      session.accessToken,
+    );
+  }
+
+  const client = createClient();
 
   return {
-    client,
-    accessToken: session.accessToken,
-    auth: {
-      refresh: session.accessToken.refresh,
-      logout: session.logout,
+    createClient,
+    refresh: session.accessToken.refresh,
+    logout: session.logout,
+    banUser(request: BanUserRequest) {
+      return client.post('admin/user/ban', { json: request }).text();
     },
-    admin: createAdminEndpoints(client),
-    me: createMeEndpoints(client),
+    createStrike(request: CreateStrikeRequest) {
+      return client
+        .post('admin/strikes', { json: request })
+        .json<CreateStrikeResponse>();
+    },
+    getMyStrikes(params: MyStrikeListParams) {
+      return client
+        .get('me/strikes', {
+          searchParams: {
+            page: params.page,
+            page_size: params.pageSize,
+            created_after: params.createdAfter,
+            created_before: params.createdBefore,
+          },
+        })
+        .json<MyStrikePage>();
+    },
     dispose: session.dispose,
-    subscribeUser(listener: (user?: AuthUser) => void) {
-      return session.subscribe(listener);
-    },
+    watchUser: session.subscribe,
   };
 }
 

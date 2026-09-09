@@ -31,7 +31,7 @@ export function createAdminKit(options: AdminKitOptions): AdminKit {
     },
   });
   const profile = ref<AuthUser>();
-  api.subscribeUser((user) => {
+  api.watchUser((user) => {
     profile.value = user;
   });
   const isSignedIn = computed(() => profile.value !== undefined);

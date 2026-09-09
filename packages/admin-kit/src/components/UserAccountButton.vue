@@ -67,7 +67,7 @@ const dropdownOptions = computed<MenuOption[]>(() => [
 async function handleSelect(key: string | number) {
   if (key !== 'logout') return;
   try {
-    await api.auth.logout();
+    await api.logout();
   } catch {
     // Local logout succeeds even if the server session has expired.
   }

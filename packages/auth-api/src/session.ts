@@ -1,6 +1,6 @@
 import { isHTTPError } from 'ky';
 
-import type { AccessTokenProvider } from './endpoint/client';
+import type { AccessTokenProvider } from './client';
 
 export interface AuthUser {
   id: number;

@@ -1,14 +1,12 @@
-export { createAuthApi, type AuthApi, type AuthApiOptions } from './api';
-export type {
-  BanUserRequest,
-  CreateStrikeRequest,
-  CreateStrikeResponse,
-} from './endpoint/admin';
 export {
-  createApiClient,
-  createAuthAwareApiClient,
-  type AccessTokenProvider,
-  type ApiClient,
-} from './endpoint/client';
+  createAuthApi,
+  type AuthApi,
+  type AuthApiOptions,
+  type BanUserRequest,
+  type CreateStrikeRequest,
+  type CreateStrikeResponse,
+  type MyStrike,
+  type MyStrikeListParams,
+  type MyStrikePage,
+} from './api';
 export type { AuthUser } from './session';
-export type { MyStrike, MyStrikeListParams, MyStrikePage } from './endpoint/me';

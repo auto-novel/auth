@@ -13,7 +13,7 @@ export function createAdminAuthGuard(kit: AdminKit): NavigationGuard {
     if (initialized) return Promise.resolve();
     if (initializeRequest) return initializeRequest;
 
-    initializeRequest = kit.api.auth
+    initializeRequest = kit.api
       .refresh()
       .then(() => {
         initialized = true;

@@ -46,7 +46,7 @@ async function handleMessage(event: MessageEvent) {
   completingLogin.value = true;
   loginError.value = undefined;
   try {
-    await api.auth.refresh();
+    await api.refresh();
     if (disposed) return;
 
     const redirect = route.query.redirect;

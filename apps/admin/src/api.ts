@@ -118,7 +118,7 @@ export interface Strike {
 }
 
 export function createAdminApi(authApi: AuthApi) {
-  const client = authApi.client;
+  const client = authApi.createClient();
 
   return {
     admin: {
