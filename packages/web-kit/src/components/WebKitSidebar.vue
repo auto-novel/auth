@@ -3,6 +3,7 @@ import { DarkModeOutlined, LightModeOutlined } from '@vicons/material';
 
 import { useWebKit, useWebTheme } from '../context';
 import type { WebKitMenuOption } from '../types';
+import SidebarFooter from './SidebarFooter.vue';
 import SidebarNavigation from './SidebarNavigation.vue';
 
 defineProps<{
@@ -72,6 +73,13 @@ const { isDark, toggleTheme } = useWebTheme();
         </span>
       </button>
     </div>
+    <SidebarFooter
+      v-if="kitOptions.repository"
+      :collapsed="collapsed"
+      :repo-url="kitOptions.repository.url"
+      :build-time="kitOptions.repository.buildTime"
+      :commit-sha="kitOptions.repository.commitSha"
+    />
   </aside>
 </template>
 

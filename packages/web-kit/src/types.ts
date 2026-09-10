@@ -11,6 +11,11 @@ export interface WebKitOptions {
     storageKey?: string;
   };
   brand: string;
+  repository?: {
+    url: string;
+    buildTime: string;
+    commitSha: string;
+  };
   themeStorageKey?: string;
 }
 
