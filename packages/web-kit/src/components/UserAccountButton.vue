@@ -7,7 +7,7 @@ import {
 import { computed, nextTick, onBeforeUnmount, ref, useTemplateRef } from 'vue';
 import { RouterLink } from 'vue-router';
 
-import { useWebKit } from '../context';
+import { useWebKit, useWebTheme } from '../context';
 import type { WebKitMenuOption } from '../types';
 
 defineProps<{ options: WebKitMenuOption[] }>();
@@ -41,7 +41,8 @@ const createdAt = computed(() => {
   );
 });
 
-const loginFrameSrc = authApi.createLoginUrl('light');
+const { theme } = useWebTheme();
+const loginFrameSrc = computed(() => authApi.createLoginUrl(theme.value));
 
 function handleDocumentClick(event: MouseEvent) {
   if (accountRoot.value?.contains(event.target as Node)) return;
@@ -126,7 +127,7 @@ async function focusLoginFrame() {
       aria-haspopup="menu"
       @click="openMenu"
     >
-      <span class="max-w-20 truncate sm:max-w-none">
+      <span class="max-w-24 truncate sm:max-w-48">
         @{{ authUser.username }}
       </span>
       <KeyboardArrowDownOutlined class="size-4 flex-none" aria-hidden="true" />

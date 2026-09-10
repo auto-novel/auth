@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {
-  ChevronLeftOutlined,
+  KeyboardDoubleArrowLeftOutlined,
+  KeyboardDoubleArrowRightOutlined,
   CloseOutlined,
   MenuOutlined,
 } from '@vicons/material';
@@ -107,7 +108,7 @@ watch(mobileMenuOpen, (open) => {
 </script>
 
 <template>
-  <div class="flex h-dvh overflow-hidden bg-paper">
+  <div class="web-kit-layout flex h-dvh overflow-hidden bg-paper">
     <WebKitSidebar
       v-if="!isMobile"
       :options="navigationOptions"
@@ -167,7 +168,7 @@ watch(mobileMenuOpen, (open) => {
 
     <div class="flex min-w-0 flex-1 flex-col">
       <header
-        class="z-30 flex h-16 flex-none items-center border-b border-divider bg-surface px-4 sm:px-6"
+        class="z-30 flex h-16 flex-none items-center gap-3 border-b border-divider bg-surface px-4 sm:px-6"
       >
         <button
           v-if="isMobile"
@@ -175,6 +176,7 @@ watch(mobileMenuOpen, (open) => {
           class="layout-toggle"
           aria-label="打开导航菜单"
           title="打开导航菜单"
+          :aria-expanded="mobileMenuOpen"
           @click="openMobileMenu"
         >
           <MenuOutlined class="size-5" aria-hidden="true" />
@@ -185,15 +187,20 @@ watch(mobileMenuOpen, (open) => {
           class="layout-toggle"
           :aria-label="sidebarCollapsed ? '展开侧边栏' : '收起侧边栏'"
           :title="sidebarCollapsed ? '展开侧边栏' : '收起侧边栏'"
+          :aria-expanded="!sidebarCollapsed"
           @click="sidebarCollapsed = !sidebarCollapsed"
         >
-          <ChevronLeftOutlined
-            class="size-5 transition-transform duration-300"
-            :class="sidebarCollapsed ? 'rotate-180' : ''"
+          <component
+            :is="
+              sidebarCollapsed
+                ? KeyboardDoubleArrowRightOutlined
+                : KeyboardDoubleArrowLeftOutlined
+            "
+            class="size-[18px]"
             aria-hidden="true"
           />
         </button>
-        <span class="ml-2 truncate text-sm font-semibold text-ink sm:text-base">
+        <span class="min-w-0 truncate text-lg font-medium text-ink">
           {{ currentTitle }}
         </span>
         <UserAccountButton :options="accountOptions" />
@@ -209,19 +216,19 @@ watch(mobileMenuOpen, (open) => {
 <style scoped>
 .layout-toggle {
   display: grid;
-  width: 2.5rem;
-  height: 2.5rem;
+  width: 2.125rem;
+  height: 2.125rem;
   flex: none;
   place-items: center;
   border-radius: 9999px;
-  color: var(--color-muted);
+  color: var(--color-ink);
   transition:
     color 150ms ease,
     background-color 150ms ease;
 }
 
 .layout-toggle:hover {
-  background: var(--color-paper);
+  background: var(--color-hover);
   color: var(--color-ink);
 }
 
