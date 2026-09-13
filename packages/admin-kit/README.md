@@ -56,3 +56,15 @@ const routes = [
 ```
 
 登录路由名称固定为 `login`，`/` 应重定向到默认首页。侧边栏菜单由 `menuOptions` 提供。
+
+导航菜单项使用 `AdminKitMenuOption`，并通过 `to` 指定 Vue Router
+目标。带有 `to` 的菜单项会渲染为原生链接，支持浏览器右键菜单、中键以及
+Ctrl/Cmd 点击打开新标签页；不带 `to` 的项仍作为普通动作处理：
+
+```ts
+import type { AdminKitMenuOption } from '@novelia/admin-kit';
+
+const menuOptions: AdminKitMenuOption[] = [
+  { label: '概览', key: '/overview', to: { name: 'overview' } },
+];
+```

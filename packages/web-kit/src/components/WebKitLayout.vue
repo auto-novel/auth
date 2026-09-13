@@ -14,7 +14,7 @@ import {
   useTemplateRef,
   watch,
 } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { useRoute } from 'vue-router';
 
 import type { WebKitMenuOption } from '../types';
 import UserAccountButton from './UserAccountButton.vue';
@@ -29,7 +29,6 @@ defineProps<{
 }>();
 
 const route = useRoute();
-const router = useRouter();
 const mobileDrawer = useTemplateRef<HTMLElement>('mobileDrawer');
 const pageContent = useTemplateRef<HTMLElement>('pageContent');
 const mobileMediaQuery = window.matchMedia('(max-width: 767px)');
@@ -49,9 +48,9 @@ const sidebarCollapsed = ref(viewportMode.value === 'tablet');
 const isMobile = computed(() => viewportMode.value === 'mobile');
 const currentTitle = computed(() => String(route.meta.title ?? ''));
 
-async function selectNavigation(option: WebKitMenuOption) {
+async function selectNavigation() {
   mobileMenuOpen.value = false;
-  await router.push(option.to);
+  await nextTick();
   pageContent.value?.scrollTo({ top: 0, behavior: 'smooth' });
 }
 

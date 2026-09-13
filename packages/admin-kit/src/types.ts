@@ -1,5 +1,7 @@
 import type { AuthApi, AuthUser } from '@novelia/auth-api';
 import type { App, ComputedRef, DeepReadonly, Ref } from 'vue';
+import type { MenuOption } from 'naive-ui';
+import type { RouteLocationRaw } from 'vue-router';
 
 import type { AdminTheme } from './theme';
 
@@ -15,6 +17,12 @@ export interface AdminKitOptions {
     commitSha: string;
   };
 }
+
+export type AdminKitMenuOption = MenuOption & {
+  /** Route target for navigational items. Omit it for actions. */
+  to?: RouteLocationRaw;
+  children?: AdminKitMenuOption[];
+};
 
 export interface AdminKitContext {
   options: DeepReadonly<AdminKitOptions>;

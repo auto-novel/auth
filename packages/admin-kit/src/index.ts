@@ -65,4 +65,4 @@ export {
   useAdminKit,
   useAdminTheme,
 };
-export type { AdminKitOptions } from './types';
+export type { AdminKitMenuOption, AdminKitOptions } from './types';

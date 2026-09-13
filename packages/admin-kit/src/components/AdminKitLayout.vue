@@ -19,19 +19,19 @@ import {
   NResult,
   NSpace,
   type MenuDividerOption,
-  type MenuOption,
 } from 'naive-ui';
 import { computed, h, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { RouterView, useRoute, useRouter } from 'vue-router';
 
 import { useAdminKit, useAdminTheme } from '../context';
 import { ADMIN_HOME_ROUTE, ADMIN_LOGIN_ROUTE_NAME } from '../router';
+import type { AdminKitMenuOption } from '../types';
 import SidebarNavigation from './SidebarNavigation.vue';
 import UserAccountButton from './UserAccountButton.vue';
 
 type ViewportMode = 'mobile' | 'tablet' | 'desktop';
 
-const props = defineProps<{ menuOptions: MenuOption[] }>();
+const props = defineProps<{ menuOptions: AdminKitMenuOption[] }>();
 const mobileMenuOpen = ref(false);
 const mobileMediaQuery = window.matchMedia('(max-width: 767px)');
 const tabletMediaQuery = window.matchMedia(
@@ -68,18 +68,20 @@ watch(
   { immediate: true },
 );
 
-const allMenuOptions = computed<Array<MenuOption | MenuDividerOption>>(() => [
-  ...props.menuOptions,
-  { type: 'divider', key: 'admin-kit-theme-divider' },
-  {
-    label: '切换主题',
-    key: 'admin-kit-theme-toggle',
-    icon: () =>
-      h(NIcon, null, {
-        default: () => h(isDark.value ? DarkModeOutlined : LightModeOutlined),
-      }),
-  },
-]);
+const allMenuOptions = computed<Array<AdminKitMenuOption | MenuDividerOption>>(
+  () => [
+    ...props.menuOptions,
+    { type: 'divider', key: 'admin-kit-theme-divider' },
+    {
+      label: '切换主题',
+      key: 'admin-kit-theme-toggle',
+      icon: () =>
+        h(NIcon, null, {
+          default: () => h(isDark.value ? DarkModeOutlined : LightModeOutlined),
+        }),
+    },
+  ],
+);
 const activeKey = computed(() => route.path);
 const currentTitle = computed(() => String(route.meta.title ?? ''));
 
