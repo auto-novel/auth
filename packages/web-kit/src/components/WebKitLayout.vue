@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {
-  KeyboardDoubleArrowLeftOutlined,
-  KeyboardDoubleArrowRightOutlined,
+  ChevronLeftOutlined,
+  ChevronRightOutlined,
   CloseOutlined,
   MenuOutlined,
 } from '@vicons/material';
@@ -108,14 +108,29 @@ watch(mobileMenuOpen, (open) => {
 
 <template>
   <div class="web-kit-layout flex h-dvh overflow-hidden bg-paper">
-    <WebKitSidebar
-      v-if="!isMobile"
-      :options="navigationOptions"
-      :selected="selectedNavigationKey"
-      :collapsed="sidebarCollapsed"
-      class="flex-none"
-      @select="selectNavigation"
-    />
+    <div v-if="!isMobile" class="sidebar-shell">
+      <WebKitSidebar
+        :options="navigationOptions"
+        :selected="selectedNavigationKey"
+        :collapsed="sidebarCollapsed"
+        class="flex-none"
+        @select="selectNavigation"
+      />
+      <button
+        type="button"
+        class="sidebar-collapse"
+        :aria-label="sidebarCollapsed ? '展开侧边栏' : '收起侧边栏'"
+        :title="sidebarCollapsed ? '展开侧边栏' : '收起侧边栏'"
+        :aria-expanded="!sidebarCollapsed"
+        @click="sidebarCollapsed = !sidebarCollapsed"
+      >
+        <component
+          :is="sidebarCollapsed ? ChevronRightOutlined : ChevronLeftOutlined"
+          class="size-[18px]"
+          aria-hidden="true"
+        />
+      </button>
+    </div>
 
     <Teleport to="body">
       <Transition
@@ -180,25 +195,6 @@ watch(mobileMenuOpen, (open) => {
         >
           <MenuOutlined class="size-5" aria-hidden="true" />
         </button>
-        <button
-          v-else
-          type="button"
-          class="layout-toggle"
-          :aria-label="sidebarCollapsed ? '展开侧边栏' : '收起侧边栏'"
-          :title="sidebarCollapsed ? '展开侧边栏' : '收起侧边栏'"
-          :aria-expanded="!sidebarCollapsed"
-          @click="sidebarCollapsed = !sidebarCollapsed"
-        >
-          <component
-            :is="
-              sidebarCollapsed
-                ? KeyboardDoubleArrowRightOutlined
-                : KeyboardDoubleArrowLeftOutlined
-            "
-            class="size-[18px]"
-            aria-hidden="true"
-          />
-        </button>
         <span class="min-w-0 truncate text-lg font-medium text-ink">
           {{ currentTitle }}
         </span>
@@ -213,6 +209,41 @@ watch(mobileMenuOpen, (open) => {
 </template>
 
 <style scoped>
+.sidebar-shell {
+  position: relative;
+  z-index: 40;
+  flex: none;
+}
+
+.sidebar-collapse {
+  position: absolute;
+  right: -12px;
+  bottom: 48px;
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  background: var(--color-surface);
+  color: var(--color-muted);
+  box-shadow: 0 2px 4px rgb(0 0 0 / 6%);
+  cursor: pointer;
+  transition:
+    color 150ms ease,
+    border-color 150ms ease;
+}
+
+.sidebar-collapse:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.sidebar-collapse:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
 .layout-toggle {
   display: grid;
   width: 2.125rem;

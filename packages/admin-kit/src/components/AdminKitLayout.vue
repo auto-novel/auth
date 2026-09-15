@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import {
+  ChevronLeftOutlined,
+  ChevronRightOutlined,
   DarkModeOutlined,
-  KeyboardDoubleArrowLeftOutlined,
-  KeyboardDoubleArrowRightOutlined,
   LightModeOutlined,
   MenuOutlined,
 } from '@vicons/material';
@@ -18,6 +18,7 @@ import {
   NPageHeader,
   NResult,
   NSpace,
+  useThemeVars,
   type MenuDividerOption,
 } from 'naive-ui';
 import { computed, h, onBeforeUnmount, onMounted, ref, watch } from 'vue';
@@ -48,6 +49,7 @@ const viewportMode = ref<ViewportMode>(getViewportMode());
 const isMobile = computed(() => viewportMode.value === 'mobile');
 const collapsed = ref(viewportMode.value === 'tablet');
 const { isDark, toggleTheme } = useAdminTheme();
+const themeVars = useThemeVars();
 const { options, isSignedIn, isAuthorized } = useAdminKit();
 const route = useRoute();
 const router = useRouter();
@@ -121,23 +123,47 @@ watch(
 
 <template>
   <n-layout :has-sider="!isMobile" class="app-layout">
-    <n-layout-sider
-      v-if="!isMobile"
-      bordered
-      collapse-mode="width"
-      :width="200"
-      :collapsed-width="64"
-      :collapsed="collapsed"
-    >
-      <SidebarNavigation
-        :active-key="activeKey"
+    <div v-if="!isMobile" class="sidebar-shell">
+      <n-layout-sider
+        bordered
+        collapse-mode="width"
+        :width="200"
+        :collapsed-width="64"
         :collapsed="collapsed"
-        :options="allMenuOptions"
-        :brand="options.brand"
-        :repository="options.repository"
-        @select="handleMenuSelect"
-      />
-    </n-layout-sider>
+      >
+        <SidebarNavigation
+          :active-key="activeKey"
+          :collapsed="collapsed"
+          :options="allMenuOptions"
+          :brand="options.brand"
+          :repository="options.repository"
+          @select="handleMenuSelect"
+        />
+      </n-layout-sider>
+      <n-button
+        class="sidebar-collapse"
+        :theme-overrides="{
+          color: themeVars.bodyColor,
+          colorHover: themeVars.bodyColor,
+          colorPressed: themeVars.bodyColor,
+          colorFocus: themeVars.bodyColor,
+        }"
+        :aria-expanded="!collapsed"
+        size="tiny"
+        circle
+        :aria-label="collapsed ? '展开侧边栏' : '收起侧边栏'"
+        :title="collapsed ? '展开侧边栏' : '收起侧边栏'"
+        @click="collapsed = !collapsed"
+      >
+        <template #icon>
+          <n-icon>
+            <component
+              :is="collapsed ? ChevronRightOutlined : ChevronLeftOutlined"
+            />
+          </n-icon>
+        </template>
+      </n-button>
+    </div>
 
     <n-drawer
       v-if="isMobile"
@@ -175,27 +201,6 @@ watch(
             >
               <template #icon><n-icon :component="MenuOutlined" /></template>
             </n-button>
-            <n-button
-              v-else
-              class="sidebar-toggle"
-              quaternary
-              circle
-              :aria-label="collapsed ? '展开侧边栏' : '收起侧边栏'"
-              :title="collapsed ? '展开侧边栏' : '收起侧边栏'"
-              @click="collapsed = !collapsed"
-            >
-              <template #icon>
-                <n-icon>
-                  <component
-                    :is="
-                      collapsed
-                        ? KeyboardDoubleArrowRightOutlined
-                        : KeyboardDoubleArrowLeftOutlined
-                    "
-                  />
-                </n-icon>
-              </template>
-            </n-button>
             <n-page-header :title="currentTitle" />
           </n-space>
           <UserAccountButton />
@@ -220,6 +225,21 @@ watch(
 <style scoped>
 .app-layout {
   height: 100dvh;
+}
+.sidebar-shell {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex: none;
+}
+.sidebar-collapse {
+  position: absolute;
+  z-index: 2;
+  right: -12px;
+  bottom: 48px;
+  width: 24px;
+  height: 24px;
+  box-shadow: 0 2px 4px rgb(0 0 0 / 6%);
 }
 .page-layout {
   min-width: 0;
