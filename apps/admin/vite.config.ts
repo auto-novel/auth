@@ -85,6 +85,17 @@ export default defineConfig(({ command, mode }) => {
       __COMMIT_SHA__: JSON.stringify(commitSha),
     },
     plugins: [vue()],
+    build: {
+      cssCodeSplit: false,
+      rolldownOptions: {
+        output: {
+          manualChunks: (id) =>
+            id.replaceAll('\\', '/').includes('/node_modules/')
+              ? 'vendor'
+              : undefined,
+        },
+      },
+    },
     server: {
       port: 5174,
       proxy: {
