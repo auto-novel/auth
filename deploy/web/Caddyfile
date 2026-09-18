@@ -11,26 +11,39 @@
 }
 
 :80 {
-	encode gzip
+	encode
 
 	redir /admin /admin/
 	handle_path /admin/* {
 		root * /admin
-		try_files {path} /index.html
-		file_server
+		handle /assets/* {
+			header {
+				Cache-Control "public, max-age=31536000, immutable"
+				match status 2xx
+			}
+			file_server
+		}
+		handle {
+			try_files {path} /index.html
+			header Cache-Control "no-cache"
+			file_server
+		}
 	}
 
 	handle {
 		root * /dist
-		file_server
-		route {
-			try_files {path} /
-			header / Cache-Control "no-cache,no-store,max-age=0,must-revalidate"
+		handle /assets/* {
+			header {
+				Cache-Control "public, max-age=31536000, immutable"
+				match status 2xx
+			}
+			file_server
 		}
-		header /assets/* Cache-Control "public, max-age=7776000"
-		header /*.png Cache-Control "public, max-age=7776000"
-		header /*.svg Cache-Control "public, max-age=7776000"
-		header /*.webp Cache-Control "public, max-age=7776000"
+		handle {
+			try_files {path} /index.html
+			header Cache-Control "no-cache"
+			file_server
+		}
 	}
 
 	handle_path /api* {
