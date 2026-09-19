@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { roleLabels } from '@novelia/auth-api';
 import { NButton, NTag, NText } from 'naive-ui';
 
 import type { User, UserAction } from '@/api';
@@ -7,14 +8,6 @@ const props = defineProps<{ user: User; total: number }>();
 const emit = defineEmits<{
   action: [action: UserAction, user: User];
 }>();
-
-const roleLabels: Record<string, string> = {
-  admin: '管理员',
-  trusted: '可信用户',
-  member: '普通用户',
-  restricted: '受限用户',
-  banned: '已封禁',
-};
 
 const roleTypes: Record<
   string,

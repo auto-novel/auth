@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { roles } from '@novelia/auth-api';
 import { NAlert, NButton, NSpace, NText } from 'naive-ui';
 import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter, type LocationQueryRaw } from 'vue-router';
@@ -35,7 +36,7 @@ const createdRange = ref<[number, number] | null>(null);
 const pendingAction = ref<{ action: UserAction; user: User } | null>(null);
 const actionSucceeded = ref('');
 let requestId = 0;
-const roles = new Set(['admin', 'trusted', 'member', 'restricted', 'banned']);
+const validRoles = new Set(roles);
 const hasFilters = computed(() =>
   Boolean(query.value || role.value || createdRange.value),
 );
@@ -76,7 +77,7 @@ function syncFromRoute() {
   pageSize.value = readPageSize(route.query);
   query.value = readQueryString(route.query, 'query').trim();
   const routeRole = readQueryString(route.query, 'role');
-  role.value = roles.has(routeRole) ? routeRole : '';
+  role.value = validRoles.has(routeRole) ? routeRole : '';
   createdRange.value = readCreatedRange(route.query);
 
   queryInput.value = query.value;

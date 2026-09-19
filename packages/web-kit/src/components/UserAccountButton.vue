@@ -4,6 +4,7 @@ import {
   ExitToAppOutlined,
   KeyboardArrowDownOutlined,
 } from '@vicons/material';
+import { roleLabels } from '@novelia/auth-api';
 import { computed, nextTick, onBeforeUnmount, ref, useTemplateRef } from 'vue';
 import { RouterLink } from 'vue-router';
 
@@ -11,14 +12,6 @@ import { useWebKit, useWebTheme } from '../context';
 import type { WebKitMenuOption } from '../types';
 
 defineProps<{ options: WebKitMenuOption[] }>();
-
-const roleLabels: Record<string, string> = {
-  admin: '管理员',
-  trusted: '受信任用户',
-  member: '成员',
-  restricted: '受限用户',
-  banned: '已封禁用户',
-};
 
 const { api: authApi, profile: authUser } = useWebKit();
 const accountRoot = useTemplateRef('accountRoot');

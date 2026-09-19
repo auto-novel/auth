@@ -9,4 +9,5 @@ export {
   type MyStrikeListParams,
   type MyStrikePage,
 } from './api';
+export { roleLabels, roles } from './role';
 export type { AuthUser } from './session';

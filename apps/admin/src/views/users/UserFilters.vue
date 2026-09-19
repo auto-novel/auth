@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { roleLabels, roles } from '@novelia/auth-api';
 import { SearchOutlined } from '@vicons/material';
 import { NIcon, NInput } from 'naive-ui';
 
@@ -18,11 +19,7 @@ const createdRange = defineModel<[number, number] | null>('createdRange', {
 
 const roleOptions = [
   { label: '全部', value: '' },
-  { label: '管理员', value: 'admin' },
-  { label: '可信用户', value: 'trusted' },
-  { label: '普通用户', value: 'member' },
-  { label: '受限用户', value: 'restricted' },
-  { label: '已封禁', value: 'banned' },
+  ...roles.map((value) => ({ label: roleLabels[value] ?? value, value })),
 ];
 
 function changeRole(value: string) {

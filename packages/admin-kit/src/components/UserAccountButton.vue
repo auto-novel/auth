@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { roleLabels } from '@novelia/auth-api';
 import { LogOutOutlined } from '@vicons/material';
 import {
   NButton,
@@ -11,14 +12,6 @@ import {
 import { computed, h } from 'vue';
 
 import { useAdminKit } from '../context';
-
-const roleLabels: Record<string, string> = {
-  admin: '管理员',
-  trusted: '受信任用户',
-  member: '成员',
-  restricted: '受限用户',
-  banned: '已封禁用户',
-};
 
 const { api, profile, isSignedIn } = useAdminKit();
 
