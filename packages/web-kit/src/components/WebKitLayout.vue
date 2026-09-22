@@ -46,7 +46,6 @@ const viewportMode = ref<ViewportMode>(getViewportMode());
 const mobileMenuOpen = ref(false);
 const sidebarCollapsed = ref(viewportMode.value === 'tablet');
 const isMobile = computed(() => viewportMode.value === 'mobile');
-const currentTitle = computed(() => String(route.meta.title ?? ''));
 
 async function selectNavigation() {
   mobileMenuOpen.value = false;
@@ -195,9 +194,6 @@ watch(mobileMenuOpen, (open) => {
         >
           <MenuOutlined class="size-5" aria-hidden="true" />
         </button>
-        <span class="min-w-0 truncate text-lg font-medium text-ink">
-          {{ currentTitle }}
-        </span>
         <UserAccountButton :options="accountOptions" />
       </header>
 
