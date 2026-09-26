@@ -17,5 +17,4 @@ export {
   roles,
   type UserRole,
 } from './role';
-export { isAccountAtLeastDaysOld } from './account';
 export { AuthUser } from './user';

@@ -1,14 +1,8 @@
 import { isHTTPError } from 'ky';
 
 import type { AccessTokenProvider } from './client';
-import { isKnownRole, type UserRole } from './role';
-
-export interface AuthUser {
-  id: number;
-  username: string;
-  role: UserRole;
-  createdAt: number;
-}
+import { isKnownRole } from './role';
+import type { AuthUser } from './user';
 
 interface AccessTokenProfile extends AuthUser {
   token: string;

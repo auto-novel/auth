@@ -1,11 +1,32 @@
-import { isAccountAtLeastDaysOld } from './account.ts';
-import { isRoleAtLeast } from './role.ts';
-import type { AuthUser as AuthUserProfile } from './session';
+import { isRoleAtLeast, type UserRole } from './role.ts';
 
-export type AuthUser = AuthUserProfile;
+const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
 
-type UserWithCreatedAt = Pick<AuthUserProfile, 'createdAt'> | null | undefined;
-type UserWithRole = Pick<AuthUserProfile, 'role'> | null | undefined;
+export interface AuthUser {
+  id: number;
+  username: string;
+  role: UserRole;
+  createdAt: number;
+}
+
+type UserWithCreatedAt = Pick<AuthUser, 'createdAt'> | null | undefined;
+type UserWithRole = Pick<AuthUser, 'role'> | null | undefined;
+
+/** Account creation time is expressed in Unix seconds. */
+function isAccountAtLeastDaysOld(
+  user: UserWithCreatedAt,
+  days: number,
+  now = Date.now(),
+): boolean {
+  return (
+    user != null &&
+    Number.isFinite(user.createdAt) &&
+    Number.isFinite(days) &&
+    days >= 0 &&
+    Number.isFinite(now) &&
+    now - user.createdAt * 1000 >= days * MILLISECONDS_PER_DAY
+  );
+}
 
 /** User-focused predicates for session profiles and optional users. */
 export const AuthUser = {

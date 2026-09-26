@@ -33,8 +33,7 @@ import { AuthUser } from '@novelia/auth-api';
 const oldEnough = AuthUser.isAtLeastDaysOld(user, 30);
 ```
 
-`AuthUser.isAdmin(user)` 可用于管理员界面判断。现有的
-`isAccountAtLeastDaysOld` 仍作为兼容的独立导出保留。
+`AuthUser.isAdmin(user)` 可用于管理员界面判断。
 
 管理模式是当前账号的界面状态，仅管理员能开启。订阅会立即收到当前值；切换方法返回实际状态。开启后会随会话存储和跨标签页同步，退出或切换账号时自动关闭：
 
