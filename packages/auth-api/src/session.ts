@@ -88,7 +88,7 @@ function createAuthStorage(options?: AuthStorageOptions) {
     }
   }
 
-  function get() {
+  function get(clearInvalid = true) {
     try {
       const stored = target.getItem(key);
       if (!stored) return;
@@ -100,13 +100,13 @@ function createAuthStorage(options?: AuthStorageOptions) {
 
       const profile = parseAccessToken(storedProfile.token);
       if (Date.now() >= profile.expiredAt * 1000) {
-        clear();
+        if (clearInvalid) clear();
         return;
       }
 
       return profile;
     } catch {
-      clear();
+      if (clearInvalid) clear();
       return;
     }
   }
@@ -129,6 +129,7 @@ export function createAuthSession(options: AuthSessionOptions) {
   let initialized = profile !== undefined;
   let refreshRequest: Promise<string | undefined> | undefined;
   let sessionVersion = 0;
+  let disposed = false;
 
   function notify(listener: (user?: AuthUser) => void) {
     try {
@@ -162,6 +163,32 @@ export function createAuthSession(options: AuthSessionOptions) {
     };
   }
 
+  function onStorage(event: StorageEvent) {
+    if (
+      !storage ||
+      event.storageArea !== options.storage?.target ||
+      (event.key !== null && event.key !== options.storage.key)
+    ) {
+      return;
+    }
+
+    // Read the current value rather than a potentially stale queued event.
+    // Never write it back or let an older refresh overwrite the external session.
+    sessionVersion++;
+    refreshRequest = undefined;
+    initialized = true;
+    profile = storage.get(false);
+    for (const listener of listeners) notify(listener);
+  }
+
+  const eventTarget =
+    storage &&
+    typeof window !== 'undefined' &&
+    typeof window.addEventListener === 'function'
+      ? window
+      : undefined;
+  eventTarget?.addEventListener('storage', onStorage);
+
   function refreshAccessToken(): Promise<string | undefined> {
     if (refreshRequest) return refreshRequest;
     const app = options.app;
@@ -170,12 +197,15 @@ export function createAuthSession(options: AuthSessionOptions) {
     const request = (async () => {
       try {
         const token = await options.requestRefresh(app);
-        if (version !== sessionVersion) return;
+        // A storage event may have replaced this refresh with a valid session.
+        if (version !== sessionVersion)
+          return disposed ? undefined : profile?.token;
         setAccessToken(token);
         initialized = true;
         return token;
       } catch (error) {
-        if (version !== sessionVersion) return;
+        if (version !== sessionVersion)
+          return disposed ? undefined : profile?.token;
         if (isHTTPError(error) && error.response.status === 401) {
           setAccessToken();
           initialized = true;
@@ -235,8 +265,10 @@ export function createAuthSession(options: AuthSessionOptions) {
       return options.requestLogout();
     },
     dispose() {
+      disposed = true;
       sessionVersion++;
       globalThis.clearInterval(refreshTimer);
+      eventTarget?.removeEventListener('storage', onStorage);
       listeners.clear();
     },
     subscribe,

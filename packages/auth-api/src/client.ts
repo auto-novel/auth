@@ -53,7 +53,7 @@ export function createAuthAwareApiClient(
   return client.extend({
     retry: {
       limit: 1,
-      methods: ['get', 'post'],
+      methods: ['get', 'head', 'post', 'put', 'patch', 'delete', 'options'],
       delay: () => 0,
       shouldRetry: ({ error }) =>
         isHTTPError(error) &&
