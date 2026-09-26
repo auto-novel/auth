@@ -16,21 +16,25 @@ const isSignedIn = await api.checkSignedIn();
 const page = await api.getMyStrikes({ page: 1, pageSize: 50 });
 ```
 
-角色判断使用 `isKnownRole` 和 `isRoleAtLeast`。未知角色不会获得权限：
+角色值判断使用 `isKnownRole` 和 `isRoleAtLeast`。对用户资料的常用判断则收敛在
+`AuthUser` 下；未登录用户和未知角色均不会获得权限：
 
 ```ts
-import { isRoleAtLeast } from '@novelia/auth-api';
+import { AuthUser } from '@novelia/auth-api';
 
-const canPost = isRoleAtLeast(user?.role, 'member');
+const canPost = AuthUser.hasRoleAtLeast(user, 'member');
 ```
 
 账号创建时间使用 Unix 秒。需要判断账号是否满指定天数时，可传入当前时间（毫秒）；恰好达到天数时返回 `true`：
 
 ```ts
-import { isAccountAtLeastDaysOld } from '@novelia/auth-api';
+import { AuthUser } from '@novelia/auth-api';
 
-const oldEnough = isAccountAtLeastDaysOld(user, 30);
+const oldEnough = AuthUser.isAtLeastDaysOld(user, 30);
 ```
+
+`AuthUser.isAdmin(user)` 可用于管理员界面判断。现有的
+`isAccountAtLeastDaysOld` 仍作为兼容的独立导出保留。
 
 管理模式是当前账号的界面状态，仅管理员能开启。订阅会立即收到当前值；切换方法返回实际状态。开启后会随会话存储和跨标签页同步，退出或切换账号时自动关闭：
 

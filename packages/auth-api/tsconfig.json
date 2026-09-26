@@ -4,6 +4,7 @@
     "target": "ES2020",
     "module": "ESNext",
     "moduleResolution": "Bundler",
+    "allowImportingTsExtensions": true,
     "lib": ["dom", "ES2020"],
     "noEmit": true,
     "skipLibCheck": true,
