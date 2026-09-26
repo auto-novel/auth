@@ -10,12 +10,19 @@ const REQUEST_TIMEOUT = 5000;
 const SESSION_EXPIRED_MESSAGE = '登录状态已失效，请重新登录';
 const INVALID_ACCESS_TOKEN_CHALLENGE = 'Bearer error="invalid_token"';
 
-export function createApiClient(baseUrl: string) {
+export interface ApiClientOptions {
+  timeout?: number | false;
+}
+
+export function createApiClient(
+  baseUrl: string,
+  options: ApiClientOptions = {},
+) {
   if (!baseUrl.trim()) throw new Error('必须配置 baseUrl');
 
   return ky.create({
     prefix: baseUrl,
-    timeout: REQUEST_TIMEOUT,
+    timeout: options.timeout ?? REQUEST_TIMEOUT,
     retry: { limit: 0 },
     hooks: {
       beforeError: [

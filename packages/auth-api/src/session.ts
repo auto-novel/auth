@@ -1,11 +1,12 @@
 import { isHTTPError } from 'ky';
 
 import type { AccessTokenProvider } from './client';
+import { isKnownRole, type UserRole } from './role';
 
 export interface AuthUser {
   id: number;
   username: string;
-  role: string;
+  role: UserRole;
   createdAt: number;
 }
 
@@ -56,7 +57,7 @@ function parseAccessToken(token: string): AccessTokenProfile {
     !Number.isSafeInteger(claims.uid) ||
     claims.uid <= 0 ||
     !claims.sub ||
-    !claims.role ||
+    !isKnownRole(claims.role) ||
     !Number.isFinite(claims.crat) ||
     !Number.isFinite(claims.iat) ||
     !Number.isFinite(claims.exp)

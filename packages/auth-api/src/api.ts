@@ -56,6 +56,10 @@ export interface AuthApiOptions {
   };
 }
 
+export interface AuthClientOptions {
+  timeout?: number | false;
+}
+
 export function createAuthApi(options: AuthApiOptions) {
   const authUrl = new URL(options.url);
   const authClient = createApiClient(new URL('api/v1/', authUrl).toString());
@@ -76,9 +80,9 @@ export function createAuthApi(options: AuthApiOptions) {
   const client = createAuthAwareApiClient(authClient, session.accessToken);
 
   return {
-    createClient(baseUrl: string) {
+    createClient(baseUrl: string, options: AuthClientOptions = {}) {
       return createAuthAwareApiClient(
-        createApiClient(baseUrl),
+        createApiClient(baseUrl, options),
         session.accessToken,
       );
     },

@@ -2,6 +2,7 @@ export {
   createAuthApi,
   type AuthApi,
   type AuthApiOptions,
+  type AuthClientOptions,
   type BanUserRequest,
   type CreateStrikeRequest,
   type CreateStrikeResponse,
@@ -9,5 +10,12 @@ export {
   type MyStrikeListParams,
   type MyStrikePage,
 } from './api';
-export { roleLabels, roles } from './role';
+export {
+  isKnownRole,
+  isRoleAtLeast,
+  roleLabels,
+  roles,
+  type UserRole,
+} from './role';
+export { isAccountAtLeastDaysOld } from './account';
 export type { AuthUser } from './session';

@@ -15,3 +15,25 @@ const api = createAuthApi({
 const isSignedIn = await api.checkSignedIn();
 const page = await api.getMyStrikes({ page: 1, pageSize: 50 });
 ```
+
+角色判断使用 `isKnownRole` 和 `isRoleAtLeast`。未知角色不会获得权限：
+
+```ts
+import { isRoleAtLeast } from '@novelia/auth-api';
+
+const canPost = isRoleAtLeast(user?.role, 'member');
+```
+
+账号创建时间使用 Unix 秒。需要判断账号是否满指定天数时，可传入当前时间（毫秒）；恰好达到天数时返回 `true`：
+
+```ts
+import { isAccountAtLeastDaysOld } from '@novelia/auth-api';
+
+const oldEnough = isAccountAtLeastDaysOld(user, 30);
+```
+
+业务 API 可单独设置超时；认证 API 仍使用默认超时：
+
+```ts
+const novelClient = api.createClient('/api/', { timeout: 60_000 });
+```

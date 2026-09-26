@@ -6,7 +6,8 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "build": "tsc -b"
+    "build": "tsc -b",
+    "test": "node --test tests/*.test.mjs"
   },
   "dependencies": {
     "ky": "^2.1.0",
