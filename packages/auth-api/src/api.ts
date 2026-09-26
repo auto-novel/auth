@@ -116,7 +116,6 @@ export function createAuthApi(options: AuthApiOptions) {
     checkSignedIn: session.checkSignedIn,
     setAdminMode: session.setAdminMode,
     toggleAdminMode: session.toggleAdminMode,
-    watchAdminMode: session.subscribeAdminMode,
     logout: session.logout,
     banUser(request: BanUserRequest) {
       return client.post('admin/user/ban', { json: request }).text();

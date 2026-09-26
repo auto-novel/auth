@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import { registerHooks } from 'node:module';
 import test from 'node:test';
 
+import { AuthUser } from '../src/user.ts';
+
 registerHooks({
   resolve(specifier, context, nextResolve) {
     if (
@@ -52,23 +54,32 @@ test('admin mode persists only for the same administrator account', async () => 
     requestRefresh: async () => nextToken,
   });
   const observed = [];
-  const unsubscribe = session.subscribeAdminMode((enabled) =>
-    observed.push(enabled),
+  const unsubscribe = session.subscribe((user) =>
+    observed.push(user && [user.adminMode, AuthUser.asAdmin(user)]),
   );
 
   try {
-    assert.deepEqual(observed, [false]);
+    assert.deepEqual(observed, [[false, false]]);
     assert.equal(session.setAdminMode(true), false);
     assert.equal(session.toggleAdminMode(), false);
 
     await session.accessToken.refresh();
     assert.equal(session.setAdminMode(true), true);
     assert.equal(JSON.parse(storage.getItem('session')).adminMode, true);
-    assert.deepEqual(observed, [false, true]);
+    assert.deepEqual(observed, [
+      [false, false],
+      [false, false],
+      [true, true],
+    ]);
 
     nextToken = makeToken('admin');
     await session.accessToken.refresh();
-    assert.deepEqual(observed, [false, true]);
+    assert.deepEqual(observed, [
+      [false, false],
+      [false, false],
+      [true, true],
+      [true, true],
+    ]);
 
     const restored = createAuthSession({
       app: 'test',
@@ -78,27 +89,47 @@ test('admin mode persists only for the same administrator account', async () => 
     });
     try {
       const restoredValues = [];
-      restored.subscribeAdminMode((enabled) => restoredValues.push(enabled));
-      assert.deepEqual(restoredValues, [true]);
+      restored.subscribe((user) =>
+        restoredValues.push(user && [user.adminMode, AuthUser.asAdmin(user)]),
+      );
+      assert.deepEqual(restoredValues, [[true, true]]);
     } finally {
       restored.dispose();
     }
 
     nextToken = makeToken('admin', 2);
     await session.accessToken.refresh();
-    assert.deepEqual(observed, [false, true, false]);
+    assert.deepEqual(observed, [
+      [false, false],
+      [false, false],
+      [true, true],
+      [true, true],
+      [false, false],
+    ]);
     assert.equal(JSON.parse(storage.getItem('session')).adminMode, false);
 
     session.setAdminMode(true);
     nextToken = makeToken('member', 2);
     await session.accessToken.refresh();
-    assert.deepEqual(observed, [false, true, false, true, false]);
+    assert.deepEqual(observed, [
+      [false, false],
+      [false, false],
+      [true, true],
+      [true, true],
+      [false, false],
+      [true, true],
+      [false, false],
+    ]);
 
     nextToken = makeToken('admin', 2);
     await session.accessToken.refresh();
     assert.equal(session.toggleAdminMode(), true);
     await session.logout();
-    assert.deepEqual(observed.slice(-2), [true, false]);
+    assert.deepEqual(observed.slice(-3), [
+      [false, false],
+      [true, true],
+      undefined,
+    ]);
     assert.equal(storage.getItem('session'), null);
   } finally {
     unsubscribe();
@@ -117,7 +148,9 @@ test('admin mode follows storage changes from another tab', () => {
     requestRefresh: async () => makeToken('admin'),
   });
   const observed = [];
-  session.subscribeAdminMode((enabled) => observed.push(enabled));
+  session.subscribe((user) =>
+    observed.push(user && [user.adminMode, AuthUser.asAdmin(user)]),
+  );
 
   function dispatchStorageChange() {
     const event = new Event('storage');
@@ -134,11 +167,14 @@ test('admin mode follows storage changes from another tab', () => {
       JSON.stringify({ token: makeToken('admin'), adminMode: true }),
     );
     dispatchStorageChange();
-    assert.deepEqual(observed, [false, true]);
+    assert.deepEqual(observed, [
+      [false, false],
+      [true, true],
+    ]);
 
     storage.removeItem('session');
     dispatchStorageChange();
-    assert.deepEqual(observed, [false, true, false]);
+    assert.deepEqual(observed, [[false, false], [true, true], undefined]);
   } finally {
     session.dispose();
     delete globalThis.window;

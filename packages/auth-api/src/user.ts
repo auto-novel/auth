@@ -7,10 +7,13 @@ export interface AuthUser {
   username: string;
   role: UserRole;
   createdAt: number;
+  adminMode: boolean;
 }
 
 type UserWithCreatedAt = Pick<AuthUser, 'createdAt'> | null | undefined;
 type UserWithRole = Pick<AuthUser, 'role'> | null | undefined;
+type UserWithAdminMode =
+  Pick<AuthUser, 'role' | 'adminMode'> | null | undefined;
 
 /** Account creation time is expressed in Unix seconds. */
 function isAccountAtLeastDaysOld(
@@ -38,5 +41,8 @@ export const AuthUser = {
   },
   isAdmin(user: UserWithRole) {
     return isRoleAtLeast(user?.role, 'admin');
+  },
+  asAdmin(user: UserWithAdminMode) {
+    return user?.adminMode === true && isRoleAtLeast(user.role, 'admin');
   },
 };

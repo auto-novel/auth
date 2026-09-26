@@ -19,6 +19,10 @@ test('AuthUser groups optional-user predicates', () => {
   assert.equal(AuthUser.hasRoleAtLeast(undefined, 'member'), false);
   assert.equal(AuthUser.isAdmin({ role: 'admin' }), true);
   assert.equal(AuthUser.isAdmin({ role: 'trusted' }), false);
+  assert.equal(AuthUser.asAdmin({ role: 'admin', adminMode: true }), true);
+  assert.equal(AuthUser.asAdmin({ role: 'admin', adminMode: false }), false);
+  assert.equal(AuthUser.asAdmin({ role: 'member', adminMode: true }), false);
+  assert.equal(AuthUser.asAdmin(undefined), false);
 });
 
 test('account age reaches its threshold at the exact boundary', () => {

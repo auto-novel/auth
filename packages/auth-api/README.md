@@ -35,11 +35,12 @@ const oldEnough = AuthUser.isAtLeastDaysOld(user, 30);
 
 `AuthUser.isAdmin(user)` 可用于管理员界面判断。
 
-管理模式是当前账号的界面状态，仅管理员能开启。订阅会立即收到当前值；切换方法返回实际状态。开启后会随会话存储和跨标签页同步，退出或切换账号时自动关闭：
+管理模式是 `AuthUser` 的 `adminMode` 属性；`AuthUser.asAdmin(user)` 可判断当前是否以管理员模式使用界面。仅管理员能开启。`watchUser` 会立即提供当前用户，并在管理模式变化时再次通知；开启后会随会话存储和跨标签页同步，退出或切换账号时自动关闭：
 
 ```ts
-const stopWatching = api.watchAdminMode((enabled) => {
-  console.log('管理模式：', enabled);
+const stopWatching = api.watchUser((user) => {
+  console.log('管理模式：', user?.adminMode);
+  console.log('以管理员身份使用：', AuthUser.asAdmin(user));
 });
 
 api.setAdminMode(true);

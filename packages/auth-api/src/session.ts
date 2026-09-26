@@ -4,7 +4,7 @@ import type { AccessTokenProvider } from './client';
 import { isKnownRole } from './role';
 import type { AuthUser } from './user';
 
-interface AccessTokenProfile extends AuthUser {
+interface AccessTokenProfile extends Omit<AuthUser, 'adminMode'> {
   token: string;
   issuedAt: number;
   expiredAt: number;
@@ -126,7 +126,6 @@ function createAuthStorage(options?: AuthStorageOptions) {
 export function createAuthSession(options: AuthSessionOptions) {
   const storage = createAuthStorage(options.storage);
   const listeners = new Set<(user?: AuthUser) => void>();
-  const adminModeListeners = new Set<(enabled: boolean) => void>();
   const storedSession = storage?.get();
   let profile = storedSession?.profile;
   let adminMode = storedSession?.adminMode ?? false;
@@ -144,6 +143,7 @@ export function createAuthSession(options: AuthSessionOptions) {
               username: profile.username,
               role: profile.role,
               createdAt: profile.createdAt,
+              adminMode,
             }
           : undefined,
       );
@@ -152,43 +152,23 @@ export function createAuthSession(options: AuthSessionOptions) {
     }
   }
 
-  function notifyAdminMode(listener: (enabled: boolean) => void) {
-    try {
-      listener(adminMode);
-    } catch {
-      // Subscribers must not change the result of session operations.
-    }
-  }
-
   function setAdminMode(enabled: boolean): boolean {
     const nextMode = enabled === true && profile?.role === 'admin';
     if (adminMode === nextMode) return adminMode;
     adminMode = nextMode;
     if (profile) storage?.save(profile, adminMode);
-    for (const listener of adminModeListeners) notifyAdminMode(listener);
+    for (const listener of listeners) notify(listener);
     return adminMode;
-  }
-
-  function subscribeAdminMode(listener: (enabled: boolean) => void) {
-    adminModeListeners.add(listener);
-    notifyAdminMode(listener);
-    return () => {
-      adminModeListeners.delete(listener);
-    };
   }
 
   function setAccessToken(token?: string) {
     const previousUserId = profile?.id;
-    const previousAdminMode = adminMode;
     profile = token ? parseAccessToken(token) : undefined;
     adminMode =
       profile?.role === 'admin' && profile.id === previousUserId && adminMode;
     if (profile) storage?.save(profile, adminMode);
     else storage?.clear();
     for (const listener of listeners) notify(listener);
-    if (adminMode !== previousAdminMode) {
-      for (const listener of adminModeListeners) notifyAdminMode(listener);
-    }
   }
 
   function subscribe(listener: (user?: AuthUser) => void) {
@@ -213,14 +193,10 @@ export function createAuthSession(options: AuthSessionOptions) {
     sessionVersion++;
     refreshRequest = undefined;
     initialized = true;
-    const previousAdminMode = adminMode;
     const storedSession = storage.get(false);
     profile = storedSession?.profile;
     adminMode = storedSession?.adminMode ?? false;
     for (const listener of listeners) notify(listener);
-    if (adminMode !== previousAdminMode) {
-      for (const listener of adminModeListeners) notifyAdminMode(listener);
-    }
   }
 
   const eventTarget =
@@ -316,9 +292,7 @@ export function createAuthSession(options: AuthSessionOptions) {
       globalThis.clearInterval(refreshTimer);
       eventTarget?.removeEventListener('storage', onStorage);
       listeners.clear();
-      adminModeListeners.clear();
     },
     subscribe,
-    subscribeAdminMode,
   };
 }
