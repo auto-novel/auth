@@ -94,27 +94,33 @@ function createAuthStorage(options?: AuthStorageOptions) {
       const stored = target.getItem(key);
       if (!stored) return;
 
-      const storedProfile = JSON.parse(stored) as { token?: unknown };
-      if (typeof storedProfile.token !== 'string') {
+      const storedSession = JSON.parse(stored) as {
+        token?: unknown;
+        adminMode?: unknown;
+      };
+      if (typeof storedSession.token !== 'string') {
         throw new Error('存储的访问令牌无效');
       }
 
-      const profile = parseAccessToken(storedProfile.token);
+      const profile = parseAccessToken(storedSession.token);
       if (Date.now() >= profile.expiredAt * 1000) {
         if (clearInvalid) clear();
         return;
       }
 
-      return profile;
+      return {
+        profile,
+        adminMode: profile.role === 'admin' && storedSession.adminMode === true,
+      };
     } catch {
       if (clearInvalid) clear();
       return;
     }
   }
 
-  function save(profile: AccessTokenProfile) {
+  function save(profile: AccessTokenProfile, adminMode: boolean) {
     try {
-      target.setItem(key, JSON.stringify({ token: profile.token }));
+      target.setItem(key, JSON.stringify({ token: profile.token, adminMode }));
     } catch {
       // A successful refresh remains usable even if persistence fails.
     }
@@ -126,7 +132,10 @@ function createAuthStorage(options?: AuthStorageOptions) {
 export function createAuthSession(options: AuthSessionOptions) {
   const storage = createAuthStorage(options.storage);
   const listeners = new Set<(user?: AuthUser) => void>();
-  let profile = storage?.get();
+  const adminModeListeners = new Set<(enabled: boolean) => void>();
+  const storedSession = storage?.get();
+  let profile = storedSession?.profile;
+  let adminMode = storedSession?.adminMode ?? false;
   let initialized = profile !== undefined;
   let refreshRequest: Promise<string | undefined> | undefined;
   let sessionVersion = 0;
@@ -149,11 +158,43 @@ export function createAuthSession(options: AuthSessionOptions) {
     }
   }
 
+  function notifyAdminMode(listener: (enabled: boolean) => void) {
+    try {
+      listener(adminMode);
+    } catch {
+      // Subscribers must not change the result of session operations.
+    }
+  }
+
+  function setAdminMode(enabled: boolean): boolean {
+    const nextMode = enabled === true && profile?.role === 'admin';
+    if (adminMode === nextMode) return adminMode;
+    adminMode = nextMode;
+    if (profile) storage?.save(profile, adminMode);
+    for (const listener of adminModeListeners) notifyAdminMode(listener);
+    return adminMode;
+  }
+
+  function subscribeAdminMode(listener: (enabled: boolean) => void) {
+    adminModeListeners.add(listener);
+    notifyAdminMode(listener);
+    return () => {
+      adminModeListeners.delete(listener);
+    };
+  }
+
   function setAccessToken(token?: string) {
+    const previousUserId = profile?.id;
+    const previousAdminMode = adminMode;
     profile = token ? parseAccessToken(token) : undefined;
-    if (profile) storage?.save(profile);
+    adminMode =
+      profile?.role === 'admin' && profile.id === previousUserId && adminMode;
+    if (profile) storage?.save(profile, adminMode);
     else storage?.clear();
     for (const listener of listeners) notify(listener);
+    if (adminMode !== previousAdminMode) {
+      for (const listener of adminModeListeners) notifyAdminMode(listener);
+    }
   }
 
   function subscribe(listener: (user?: AuthUser) => void) {
@@ -178,8 +219,14 @@ export function createAuthSession(options: AuthSessionOptions) {
     sessionVersion++;
     refreshRequest = undefined;
     initialized = true;
-    profile = storage.get(false);
+    const previousAdminMode = adminMode;
+    const storedSession = storage.get(false);
+    profile = storedSession?.profile;
+    adminMode = storedSession?.adminMode ?? false;
     for (const listener of listeners) notify(listener);
+    if (adminMode !== previousAdminMode) {
+      for (const listener of adminModeListeners) notifyAdminMode(listener);
+    }
   }
 
   const eventTarget =
@@ -257,6 +304,10 @@ export function createAuthSession(options: AuthSessionOptions) {
   return {
     accessToken,
     checkSignedIn,
+    setAdminMode,
+    toggleAdminMode() {
+      return setAdminMode(!adminMode);
+    },
     logout() {
       // Ignore refreshes started before logout, including their errors.
       sessionVersion++;
@@ -271,7 +322,9 @@ export function createAuthSession(options: AuthSessionOptions) {
       globalThis.clearInterval(refreshTimer);
       eventTarget?.removeEventListener('storage', onStorage);
       listeners.clear();
+      adminModeListeners.clear();
     },
     subscribe,
+    subscribeAdminMode,
   };
 }

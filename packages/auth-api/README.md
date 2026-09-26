@@ -32,6 +32,20 @@ import { isAccountAtLeastDaysOld } from '@novelia/auth-api';
 const oldEnough = isAccountAtLeastDaysOld(user, 30);
 ```
 
+管理模式是当前账号的界面状态，仅管理员能开启。订阅会立即收到当前值；切换方法返回实际状态。开启后会随会话存储和跨标签页同步，退出或切换账号时自动关闭：
+
+```ts
+const stopWatching = api.watchAdminMode((enabled) => {
+  console.log('管理模式：', enabled);
+});
+
+api.setAdminMode(true);
+api.toggleAdminMode();
+stopWatching();
+```
+
+管理模式不会改变服务端权限；业务操作仍须由服务端校验。
+
 业务 API 可单独设置超时；认证 API 仍使用默认超时：
 
 ```ts
