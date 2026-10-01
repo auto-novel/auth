@@ -1,5 +1,6 @@
 @source './components';
 @source './ui';
+@source './views';
 
 @theme {
   --color-paper: #f7f7f8;

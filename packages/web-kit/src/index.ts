@@ -2,6 +2,7 @@ import { createAuthApi, type AuthUser } from '@novelia/auth-api';
 import { computed, readonly, ref, type App } from 'vue';
 
 import WebKitLayout from './components/WebKitLayout.vue';
+import MyStrikeListView from './views/MyStrikeListView.vue';
 import XActionMenu from './ui/XActionMenu.vue';
 import XActionMenuItem from './ui/XActionMenuItem.vue';
 import XAsyncContent from './ui/XAsyncContent.vue';
@@ -72,6 +73,7 @@ export function createWebKit(options: WebKitOptions): WebKit {
 }
 
 export {
+  MyStrikeListView,
   WebKitLayout,
   XActionMenu,
   XActionMenuItem,
