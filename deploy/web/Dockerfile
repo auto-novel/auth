@@ -8,7 +8,8 @@ COPY apps/admin/package.json ./apps/admin/package.json
 COPY apps/login/package.json ./apps/login/package.json
 COPY packages/admin-kit/package.json ./packages/admin-kit/package.json
 COPY packages/auth-api/package.json ./packages/auth-api/package.json
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --prod --frozen-lockfile
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
+    pnpm --filter 'auth-login...' --filter 'auth-admin...' install --prod --frozen-lockfile
 
 FROM deps AS builder
 WORKDIR /app
@@ -20,7 +21,7 @@ COPY packages/admin-kit/. ./packages/admin-kit/
 COPY packages/auth-api/. ./packages/auth-api/
 RUN VITE_COMMIT_SHA="${VITE_COMMIT_SHA}" \
     VITE_BUILD_TIME="${VITE_BUILD_TIME}" \
-    pnpm run build
+    pnpm --filter auth-login --filter auth-admin build
 
 FROM caddy:2.7.4
 COPY --from=builder /app/apps/login/dist /dist
