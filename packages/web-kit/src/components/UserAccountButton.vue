@@ -14,7 +14,7 @@ import type { WebKitMenuOption } from '../types';
 
 defineProps<{ options: WebKitMenuOption[] }>();
 
-const { api: authApi, profile: authUser, options: kitOptions } = useWebKit();
+const { api: authApi, profile: authUser } = useWebKit();
 const accountRoot = useTemplateRef('accountRoot');
 const loginFrame = useTemplateRef('loginFrame');
 const menuOpen = ref(false);
@@ -37,9 +37,6 @@ const createdAt = computed(() => {
 
 const { theme } = useWebTheme();
 const loginFrameSrc = computed(() => authApi.createLoginUrl(theme.value));
-const strikesUrl = computed(() =>
-  new URL('my/strikes', kitOptions.forum.url).toString(),
-);
 
 function handleDocumentClick(event: MouseEvent) {
   if (accountRoot.value?.contains(event.target as Node)) return;
@@ -151,15 +148,15 @@ async function focusLoginFrame() {
           <component :is="option.icon" class="size-4" aria-hidden="true" />
           {{ option.label }}
         </RouterLink>
-        <a
-          :href="strikesUrl"
+        <RouterLink
+          to="/strikes"
           class="account-menu-item"
           role="menuitem"
           @click="menuOpen = false"
         >
           <GavelOutlined class="size-4" aria-hidden="true" />
           处罚记录
-        </a>
+        </RouterLink>
         <button
           type="button"
           class="account-menu-item"

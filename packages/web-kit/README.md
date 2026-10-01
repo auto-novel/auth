@@ -8,7 +8,6 @@
 const webKit = createWebKit({
   auth: { app: 'f', url: '/auth' },
   brand: '论坛',
-  forum: { url: 'https://forum.novelia.cc' },
   repository: {
     url: 'https://github.com/auto-novel/forum',
     buildTime: '2026-09-10T12:00:00Z',
@@ -17,7 +16,7 @@ const webKit = createWebKit({
 });
 ```
 
-`forum.url` 是论坛根地址，账号菜单会使用它生成“处罚记录”链接。相对地址会基于当前页面地址解析。
+使用 `WebKitLayout` 的应用应注册 `/strikes` 路由，并使用 `MyStrikeListView` 作为页面组件。
 
 `buildTime` 应由应用的构建配置提供 ISO 时间字符串，`commitSha` 应为对应的 Git 提交哈希。页脚使用浏览器本地时区显示时间，提交哈希缩短为 12 位并链接至仓库的提交页面。提交哈希为 `unknown` 或空字符串时不生成链接，无效时间显示为“未知时间”。
 

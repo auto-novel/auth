@@ -21,10 +21,6 @@ export function createWebKit(options: WebKitOptions): WebKit {
       url: new URL(options.auth.url, window.location.origin).toString(),
     }),
     brand: options.brand,
-    forum: Object.freeze({
-      ...options.forum,
-      url: new URL(options.forum.url, window.location.origin).toString(),
-    }),
     repository: options.repository
       ? Object.freeze({ ...options.repository })
       : undefined,
