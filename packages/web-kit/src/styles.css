@@ -1,4 +1,5 @@
 @source './components';
+@source './ui';
 
 @theme {
   --color-paper: #f7f7f8;

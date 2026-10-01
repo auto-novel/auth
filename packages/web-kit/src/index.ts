@@ -2,6 +2,13 @@ import { createAuthApi, type AuthUser } from '@novelia/auth-api';
 import { computed, readonly, ref, type App } from 'vue';
 
 import WebKitLayout from './components/WebKitLayout.vue';
+import XActionMenu from './ui/XActionMenu.vue';
+import XActionMenuItem from './ui/XActionMenuItem.vue';
+import XAsyncContent from './ui/XAsyncContent.vue';
+import XButton from './ui/XButton.vue';
+import XConfirmDialog from './ui/XConfirmDialog.vue';
+import XPagination from './ui/XPagination.vue';
+import XSelect from './ui/XSelect.vue';
 import { useWebKit, useWebTheme, webKitKey } from './context';
 import { createWebTheme } from './theme';
 import type { WebKit, WebKitOptions } from './types';
@@ -64,5 +71,16 @@ export function createWebKit(options: WebKitOptions): WebKit {
   return kit;
 }
 
-export { WebKitLayout, useWebKit, useWebTheme };
+export {
+  WebKitLayout,
+  XActionMenu,
+  XActionMenuItem,
+  XAsyncContent,
+  XButton,
+  XConfirmDialog,
+  XPagination,
+  XSelect,
+  useWebKit,
+  useWebTheme,
+};
 export type { WebKitMenuOption, WebKitOptions } from './types';
