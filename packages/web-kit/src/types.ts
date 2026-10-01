@@ -11,6 +11,9 @@ export interface WebKitOptions {
     storageKey?: string;
   };
   brand: string;
+  forum: {
+    url: string;
+  };
   repository?: {
     url: string;
     buildTime: string;
