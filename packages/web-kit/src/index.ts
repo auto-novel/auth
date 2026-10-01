@@ -12,6 +12,7 @@ import XPagination from './ui/XPagination.vue';
 import XSelect from './ui/XSelect.vue';
 import { useWebKit, useWebTheme, webKitKey } from './context';
 import { createWebTheme } from './theme';
+import { Notify } from './notifications';
 import type { WebKit, WebKitOptions } from './types';
 
 export function createWebKit(options: WebKitOptions): WebKit {
@@ -78,6 +79,7 @@ export {
   XConfirmDialog,
   XPagination,
   XSelect,
+  Notify,
   useWebKit,
   useWebTheme,
 };

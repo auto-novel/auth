@@ -17,6 +17,7 @@ import {
 import { useRoute } from 'vue-router';
 
 import type { WebKitMenuOption } from '../types';
+import GlobalNotifications from '../notifications/GlobalNotifications.vue';
 import UserAccountButton from './UserAccountButton.vue';
 import WebKitSidebar from './WebKitSidebar.vue';
 
@@ -202,6 +203,7 @@ watch(mobileMenuOpen, (open) => {
       </main>
     </div>
   </div>
+  <GlobalNotifications />
 </template>
 
 <style scoped>
