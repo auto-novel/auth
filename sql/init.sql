@@ -67,4 +67,12 @@ create index if not exists idx_auth_strike_record_user_id
 create index if not exists idx_auth_strike_record_created_at
     on auth_strike_record (created_at);
 
+alter table auth_user
+    add column if not exists last_seen_strike_id bigint not null default 0;
+
+comment on column auth_user.last_seen_strike_id is '用户已确认查看的处罚 ID，0 表示全部未读';
+
+create index if not exists idx_auth_strike_record_user_id_id
+    on auth_strike_record (user_id, id);
+
 commit;

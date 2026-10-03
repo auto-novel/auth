@@ -12,12 +12,13 @@ import (
 )
 
 type AuthUser struct {
-	ID        int64 `sql:"primary_key"`
-	Username  string
-	Email     string
-	Role      string
-	Password  string
-	CreatedAt time.Time
-	LastLogin time.Time
-	Attr      string
+	ID               int64 `sql:"primary_key"`
+	Username         string
+	Email            string
+	Role             string
+	Password         string
+	CreatedAt        time.Time
+	LastLogin        time.Time
+	Attr             string
+	LastSeenStrikeID int64 // 用户已确认查看的处罚 ID，0 表示全部未读
 }

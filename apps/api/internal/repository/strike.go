@@ -3,6 +3,7 @@ package repository
 import (
 	"auth/.gen/main/public/model"
 	. "auth/.gen/main/public/table"
+	"context"
 	"database/sql"
 	"fmt"
 	"time"
@@ -29,6 +30,9 @@ type StrikeFilter struct {
 }
 
 type StrikeRepository interface {
+	ListMyStrikes(ctx context.Context, filter StrikeFilter, size, skip int64) (MyStrikePage, error)
+	HasUnreadStrikes(ctx context.Context, userID int64) (bool, error)
+	MarkStrikesRead(ctx context.Context, userID, throughID int64) (bool, error)
 	List(filter StrikeFilter, size int64, skip int64) ([]StrikeRecord, error)
 	ListDetails(filter StrikeFilter, size int64, skip int64) ([]StrikeDetails, error)
 	Count(filter StrikeFilter) (int64, error)
@@ -117,6 +121,10 @@ func (filter StrikeFilter) exp() BoolExpression {
 }
 
 func (r *strikeRepository) List(filter StrikeFilter, size int64, skip int64) ([]StrikeRecord, error) {
+	return listStrikes(context.Background(), r.db, filter, size, skip)
+}
+
+func listStrikes(ctx context.Context, db qrm.DB, filter StrikeFilter, size, skip int64) ([]StrikeRecord, error) {
 	stmt := SELECT(AuthStrikeRecord.AllColumns).
 		FROM(AuthStrikeRecord).
 		WHERE(filter.exp()).
@@ -125,7 +133,7 @@ func (r *strikeRepository) List(filter StrikeFilter, size int64, skip int64) ([]
 		LIMIT(size)
 
 	var dest []StrikeRecord
-	err := stmt.Query(r.db, &dest)
+	err := stmt.QueryContext(ctx, db, &dest)
 	if err == qrm.ErrNoRows {
 		return nil, nil
 	}
@@ -133,9 +141,13 @@ func (r *strikeRepository) List(filter StrikeFilter, size int64, skip int64) ([]
 }
 
 func (r *strikeRepository) Count(filter StrikeFilter) (int64, error) {
+	return countStrikes(context.Background(), r.db, filter)
+}
+
+func countStrikes(ctx context.Context, db qrm.DB, filter StrikeFilter) (int64, error) {
 	stmt := SELECT(COUNT(STAR)).FROM(AuthStrikeRecord).WHERE(filter.exp())
 	var dest struct{ Count int64 }
-	err := stmt.Query(r.db, &dest)
+	err := stmt.QueryContext(ctx, db, &dest)
 	return dest.Count, err
 }
 

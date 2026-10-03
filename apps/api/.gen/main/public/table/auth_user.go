@@ -17,14 +17,15 @@ type authUserTable struct {
 	postgres.Table
 
 	// Columns
-	ID        postgres.ColumnInteger
-	Username  postgres.ColumnString
-	Email     postgres.ColumnString
-	Role      postgres.ColumnString
-	Password  postgres.ColumnString
-	CreatedAt postgres.ColumnTimestampz
-	LastLogin postgres.ColumnTimestampz
-	Attr      postgres.ColumnString
+	ID               postgres.ColumnInteger
+	Username         postgres.ColumnString
+	Email            postgres.ColumnString
+	Role             postgres.ColumnString
+	Password         postgres.ColumnString
+	CreatedAt        postgres.ColumnTimestampz
+	LastLogin        postgres.ColumnTimestampz
+	Attr             postgres.ColumnString
+	LastSeenStrikeID postgres.ColumnInteger // 用户已确认查看的处罚 ID，0 表示全部未读
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
@@ -66,31 +67,33 @@ func newAuthUserTable(schemaName, tableName, alias string) *AuthUserTable {
 
 func newAuthUserTableImpl(schemaName, tableName, alias string) authUserTable {
 	var (
-		IDColumn        = postgres.IntegerColumn("id")
-		UsernameColumn  = postgres.StringColumn("username")
-		EmailColumn     = postgres.StringColumn("email")
-		RoleColumn      = postgres.StringColumn("role")
-		PasswordColumn  = postgres.StringColumn("password")
-		CreatedAtColumn = postgres.TimestampzColumn("created_at")
-		LastLoginColumn = postgres.TimestampzColumn("last_login")
-		AttrColumn      = postgres.StringColumn("attr")
-		allColumns      = postgres.ColumnList{IDColumn, UsernameColumn, EmailColumn, RoleColumn, PasswordColumn, CreatedAtColumn, LastLoginColumn, AttrColumn}
-		mutableColumns  = postgres.ColumnList{UsernameColumn, EmailColumn, RoleColumn, PasswordColumn, CreatedAtColumn, LastLoginColumn, AttrColumn}
-		defaultColumns  = postgres.ColumnList{CreatedAtColumn, LastLoginColumn, AttrColumn}
+		IDColumn               = postgres.IntegerColumn("id")
+		UsernameColumn         = postgres.StringColumn("username")
+		EmailColumn            = postgres.StringColumn("email")
+		RoleColumn             = postgres.StringColumn("role")
+		PasswordColumn         = postgres.StringColumn("password")
+		CreatedAtColumn        = postgres.TimestampzColumn("created_at")
+		LastLoginColumn        = postgres.TimestampzColumn("last_login")
+		AttrColumn             = postgres.StringColumn("attr")
+		LastSeenStrikeIDColumn = postgres.IntegerColumn("last_seen_strike_id")
+		allColumns             = postgres.ColumnList{IDColumn, UsernameColumn, EmailColumn, RoleColumn, PasswordColumn, CreatedAtColumn, LastLoginColumn, AttrColumn, LastSeenStrikeIDColumn}
+		mutableColumns         = postgres.ColumnList{UsernameColumn, EmailColumn, RoleColumn, PasswordColumn, CreatedAtColumn, LastLoginColumn, AttrColumn, LastSeenStrikeIDColumn}
+		defaultColumns         = postgres.ColumnList{CreatedAtColumn, LastLoginColumn, AttrColumn, LastSeenStrikeIDColumn}
 	)
 
 	return authUserTable{
 		Table: postgres.NewTable(schemaName, tableName, alias, allColumns...),
 
 		//Columns
-		ID:        IDColumn,
-		Username:  UsernameColumn,
-		Email:     EmailColumn,
-		Role:      RoleColumn,
-		Password:  PasswordColumn,
-		CreatedAt: CreatedAtColumn,
-		LastLogin: LastLoginColumn,
-		Attr:      AttrColumn,
+		ID:               IDColumn,
+		Username:         UsernameColumn,
+		Email:            EmailColumn,
+		Role:             RoleColumn,
+		Password:         PasswordColumn,
+		CreatedAt:        CreatedAtColumn,
+		LastLogin:        LastLoginColumn,
+		Attr:             AttrColumn,
+		LastSeenStrikeID: LastSeenStrikeIDColumn,
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,
