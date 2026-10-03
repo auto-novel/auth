@@ -11,6 +11,7 @@ import XConfirmDialog from './ui/XConfirmDialog.vue';
 import XPagination from './ui/XPagination.vue';
 import XSelect from './ui/XSelect.vue';
 import { useWebKit, useWebTheme, webKitKey } from './context';
+import { attentionKey, createAttention } from './attentionContext';
 import { createWebTheme } from './theme';
 import { Notify } from './notifications';
 import type { WebKit, WebKitOptions } from './types';
@@ -49,11 +50,18 @@ export function createWebKit(options: WebKitOptions): WebKit {
   api.watchUser((user) => {
     profile.value = user;
   });
+  const attention = createAttention(api);
   const isSignedIn = computed(() => profile.value !== undefined);
   const theme = createWebTheme(
     normalizedOptions.themeStorageKey ??
       `${normalizedOptions.auth.app}-web-theme`,
   );
+
+  function dispose() {
+    attention.dispose();
+    api.dispose();
+  }
+
   const kit: WebKit = {
     options: normalizedOptions,
     api,
@@ -62,7 +70,8 @@ export function createWebKit(options: WebKitOptions): WebKit {
     theme,
     install(app: App) {
       app.provide(webKitKey, kit);
-      app.onUnmount(api.dispose);
+      app.provide(attentionKey, attention.context);
+      app.onUnmount(dispose);
     },
   };
 

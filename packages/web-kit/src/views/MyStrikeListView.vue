@@ -5,6 +5,7 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 import { useWebKit } from '../context';
+import { useAttention } from '../attentionContext';
 import XAsyncContent from '../ui/XAsyncContent.vue';
 import XPagination from '../ui/XPagination.vue';
 import { getApiErrorMessage } from '../utils/apiError';
@@ -14,6 +15,7 @@ const PAGE_SIZE = 20;
 const route = useRoute();
 const router = useRouter();
 const { api: authApi, profile: authUser } = useWebKit();
+const { updateStrikeReadState } = useAttention();
 const strikes = ref<MyStrike[]>([]);
 const total = ref(0);
 const loading = ref(false);
@@ -59,6 +61,7 @@ async function loadStrikes() {
     if (currentRequestId !== requestId) return;
     strikes.value = result.items;
     total.value = result.total;
+    void updateStrikeReadState(result.latestStrikeId);
   } catch (reason) {
     if (currentRequestId !== requestId) return;
     strikes.value = [];

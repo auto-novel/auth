@@ -38,6 +38,7 @@ export interface MyStrike {
 export interface MyStrikePage {
   total: number;
   items: MyStrike[];
+  latestStrikeId: number;
 }
 
 export interface MyStrikeListParams {
@@ -45,6 +46,14 @@ export interface MyStrikeListParams {
   pageSize: number;
   createdAfter?: number;
   createdBefore?: number;
+}
+
+export interface StrikeReadState {
+  hasUnread: boolean;
+}
+
+export interface AttentionStatus {
+  strikes: StrikeReadState;
 }
 
 export interface AuthApiOptions {
@@ -136,6 +145,14 @@ export function createAuthApi(options: AuthApiOptions) {
           },
         })
         .json<MyStrikePage>();
+    },
+    getAttentionStatus() {
+      return client.get('me/attention-status').json<AttentionStatus>();
+    },
+    updateMyStrikeReadState(throughId: number) {
+      return client
+        .put('me/strikes/read-state', { json: { throughId } })
+        .json<StrikeReadState>();
     },
     dispose: session.dispose,
     watchUser: session.subscribe,

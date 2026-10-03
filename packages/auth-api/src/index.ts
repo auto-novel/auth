@@ -1,5 +1,6 @@
 export {
   createAuthApi,
+  type AttentionStatus,
   type AuthApi,
   type AuthApiOptions,
   type AuthClientOptions,
@@ -9,6 +10,7 @@ export {
   type MyStrike,
   type MyStrikeListParams,
   type MyStrikePage,
+  type StrikeReadState,
 } from './api';
 export {
   isKnownRole,

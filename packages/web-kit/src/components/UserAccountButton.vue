@@ -10,17 +10,29 @@ import { computed, nextTick, onBeforeUnmount, ref, useTemplateRef } from 'vue';
 import { RouterLink } from 'vue-router';
 
 import { useWebKit, useWebTheme } from '../context';
+import { useAttention } from '../attentionContext';
 import type { WebKitMenuOption } from '../types';
 
 defineProps<{ options: WebKitMenuOption[] }>();
 
 const { api: authApi, profile: authUser } = useWebKit();
+const { status: attentionStatus, refresh: refreshAttentionStatus } =
+  useAttention();
 const accountRoot = useTemplateRef('accountRoot');
 const loginFrame = useTemplateRef('loginFrame');
 const menuOpen = ref(false);
 const loginOpen = ref(false);
 const loginError = ref<string>();
 const completingLogin = ref(false);
+const hasUnreadStrikes = computed(
+  () => attentionStatus.value?.strikes.hasUnread === true,
+);
+
+const accountLabel = computed(() => {
+  if (!authUser.value) return '登录/注册';
+  const attention = hasUnreadStrikes.value ? '，有新的处罚记录' : '';
+  return `账号 @${authUser.value.username}${attention}`;
+});
 
 const roleLabel = computed(() => {
   const role = authUser.value?.role;
@@ -46,8 +58,10 @@ function handleDocumentClick(event: MouseEvent) {
 
 function openMenu() {
   menuOpen.value = !menuOpen.value;
-  if (menuOpen.value) document.addEventListener('click', handleDocumentClick);
-  else document.removeEventListener('click', handleDocumentClick);
+  if (menuOpen.value) {
+    document.addEventListener('click', handleDocumentClick);
+    void refreshAttentionStatus();
+  } else document.removeEventListener('click', handleDocumentClick);
 }
 
 function openLogin() {
@@ -117,12 +131,26 @@ async function focusLoginFrame() {
       v-if="authUser"
       type="button"
       class="account-trigger"
+      :aria-label="accountLabel"
       :aria-expanded="menuOpen"
       aria-haspopup="menu"
       @click="openMenu"
     >
       <span class="max-w-24 truncate sm:max-w-48">
         @{{ authUser.username }}
+      </span>
+      <span class="grid size-2 flex-none place-items-center" aria-hidden="true">
+        <Transition
+          enter-active-class="transition-opacity duration-150"
+          enter-from-class="opacity-0"
+          leave-active-class="transition-opacity duration-150"
+          leave-to-class="opacity-0"
+        >
+          <span
+            v-if="hasUnreadStrikes"
+            class="size-1.5 rounded-full bg-red-600 ring-2 ring-surface"
+          />
+        </Transition>
       </span>
       <KeyboardArrowDownOutlined class="size-4 flex-none" aria-hidden="true" />
     </button>
@@ -155,7 +183,15 @@ async function focusLoginFrame() {
           @click="menuOpen = false"
         >
           <GavelOutlined class="size-4" aria-hidden="true" />
-          处罚记录
+          <span class="min-w-0 flex-1">处罚记录</span>
+          <span
+            v-if="hasUnreadStrikes"
+            class="rounded-full bg-red-50 px-1.5 py-0.5 text-[10px] leading-none font-medium text-red-600"
+            aria-hidden="true"
+          >
+            新
+          </span>
+          <span v-if="hasUnreadStrikes" class="sr-only">，有新的处罚记录</span>
         </RouterLink>
         <button
           type="button"
