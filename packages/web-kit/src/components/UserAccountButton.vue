@@ -7,7 +7,7 @@ import {
 } from '@vicons/material';
 import { roleLabels } from '@novelia/auth-api';
 import { computed, nextTick, onBeforeUnmount, ref, useTemplateRef } from 'vue';
-import { RouterLink } from 'vue-router';
+import { RouterLink, type RouteLocationRaw } from 'vue-router';
 
 import { useWebKit, useWebTheme } from '../context';
 import { useAttention } from '../attentionContext';
@@ -15,7 +15,7 @@ import type { WebKitMenuOption } from '../types';
 
 defineProps<{ options: WebKitMenuOption[] }>();
 
-const { api: authApi, profile: authUser } = useWebKit();
+const { api: authApi, options: kitOptions, profile: authUser } = useWebKit();
 const { status: attentionStatus, refresh: refreshAttentionStatus } =
   useAttention();
 const accountRoot = useTemplateRef('accountRoot');
@@ -24,8 +24,11 @@ const menuOpen = ref(false);
 const loginOpen = ref(false);
 const loginError = ref<string>();
 const completingLogin = ref(false);
+const strikesEnabled = computed(() => kitOptions.strikes.enabled);
+const strikesTo = computed(() => kitOptions.strikes.to as RouteLocationRaw);
 const hasUnreadStrikes = computed(
-  () => attentionStatus.value?.strikes.hasUnread === true,
+  () =>
+    strikesEnabled.value && attentionStatus.value?.strikes.hasUnread === true,
 );
 
 const accountLabel = computed(() => {
@@ -177,7 +180,8 @@ async function focusLoginFrame() {
           {{ option.label }}
         </RouterLink>
         <RouterLink
-          to="/strikes"
+          v-if="strikesEnabled"
+          :to="strikesTo"
           class="account-menu-item"
           role="menuitem"
           @click="menuOpen = false"

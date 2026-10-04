@@ -4,6 +4,13 @@ import type { RouteLocationRaw } from 'vue-router';
 
 import type { WebTheme } from './theme';
 
+export interface WebKitStrikeOptions {
+  /** 是否在账号菜单中显示内置的“处罚记录”入口，默认 `true`。 */
+  enabled?: boolean;
+  /** “处罚记录”入口的路由目标，默认 `'/strikes'`。 */
+  to?: RouteLocationRaw;
+}
+
 export interface WebKitOptions {
   auth: {
     app: string;
@@ -16,7 +23,13 @@ export interface WebKitOptions {
     buildTime: string;
     commitSha: string;
   };
+  strikes?: WebKitStrikeOptions;
   themeStorageKey?: string;
+}
+
+/** `createWebKit` 补齐默认值后的配置，供 kit 内部组件依赖。 */
+export interface WebKitResolvedOptions extends Omit<WebKitOptions, 'strikes'> {
+  strikes: Required<WebKitStrikeOptions>;
 }
 
 export interface WebKitMenuOption {
@@ -27,7 +40,7 @@ export interface WebKitMenuOption {
 }
 
 export interface WebKitContext {
-  options: DeepReadonly<WebKitOptions>;
+  options: DeepReadonly<WebKitResolvedOptions>;
   api: AuthApi;
   profile: Readonly<Ref<AuthUser | undefined>>;
   isSignedIn: ComputedRef<boolean>;

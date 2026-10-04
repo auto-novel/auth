@@ -1,6 +1,7 @@
 import { createAuthApi, type AuthUser } from '@novelia/auth-api';
 import { computed, readonly, ref, type App } from 'vue';
 
+import WebKitApp from './components/WebKitApp.vue';
 import WebKitLayout from './components/WebKitLayout.vue';
 import MyStrikeListView from './views/MyStrikeListView.vue';
 import XActionMenu from './ui/XActionMenu.vue';
@@ -26,6 +27,10 @@ export function createWebKit(options: WebKitOptions): WebKit {
     repository: options.repository
       ? Object.freeze({ ...options.repository })
       : undefined,
+    strikes: Object.freeze({
+      enabled: options.strikes?.enabled ?? true,
+      to: options.strikes?.to ?? '/strikes',
+    }),
     themeStorageKey: options.themeStorageKey,
   });
   let storage: Storage | undefined;
@@ -80,6 +85,7 @@ export function createWebKit(options: WebKitOptions): WebKit {
 
 export {
   MyStrikeListView,
+  WebKitApp,
   WebKitLayout,
   XActionMenu,
   XActionMenuItem,
@@ -92,4 +98,8 @@ export {
   useWebKit,
   useWebTheme,
 };
-export type { WebKitMenuOption, WebKitOptions } from './types';
+export type {
+  WebKitMenuOption,
+  WebKitOptions,
+  WebKitStrikeOptions,
+} from './types';
