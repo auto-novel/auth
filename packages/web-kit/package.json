@@ -3,16 +3,20 @@
   "version": "0.1.0",
   "type": "module",
   "sideEffects": [
-    "**/*.css",
-    "**/*.vue"
+    "**/*.css"
   ],
   "exports": {
     ".": "./src/index.ts",
+    "./package.json": "./package.json",
     "./styles.css": "./src/styles.css"
   },
+  "files": [
+    "src"
+  ],
   "scripts": {
-    "build": "vue-tsc -b",
-    "test": "node --test tests/*.test.mjs"
+    "build": "pnpm run typecheck",
+    "test": "node --test tests/*.test.mjs",
+    "typecheck": "vue-tsc -b"
   },
   "peerDependencies": {
     "@vicons/material": "^0.13.0",
@@ -22,8 +26,10 @@
   },
   "dependencies": {
     "@novelia/auth-api": "workspace:*",
+    "reka-ui": "^2.10.5"
+  },
+  "devDependencies": {
     "@vue/tsconfig": "^0.9.1",
-    "reka-ui": "^2.10.5",
     "typescript": "^6.0.0",
     "vue-tsc": "^3.3.10"
   }
