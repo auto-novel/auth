@@ -79,6 +79,8 @@ const accountOptions: WebKitMenuOption[] = [
 
 菜单项的 `to` 是 `RouteLocationRaw`，渲染成原生 `<a>`，右键、中键、Ctrl/Cmd 开新标签页都正常。会话信息用 `useWebKit()` 拿：`{ api, profile, isSignedIn }`。
 
+页面内容区要滚回顶部时用 `useWebKitLayout().scrollToTop()`，别自己去查 DOM；不在布局里它会退化成滚动窗口。
+
 ## 处罚记录
 
 账号菜单里有个内置的“处罚记录”入口，默认指向 `/strikes`，宿主注册这个路由即可：

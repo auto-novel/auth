@@ -6,6 +6,7 @@ import { useRoute, useRouter } from 'vue-router';
 
 import { useWebKit } from '../context';
 import { useAttention } from '../attentionContext';
+import { useWebKitLayout } from '../layoutContext';
 import XAsyncContent from '../ui/XAsyncContent.vue';
 import XPagination from '../ui/XPagination.vue';
 import { getApiErrorMessage } from '../utils/apiError';
@@ -16,6 +17,7 @@ const route = useRoute();
 const router = useRouter();
 const { api: authApi, profile: authUser } = useWebKit();
 const { updateStrikeReadState } = useAttention();
+const { scrollToTop } = useWebKitLayout();
 const strikes = ref<MyStrike[]>([]);
 const total = ref(0);
 const loading = ref(false);
@@ -77,7 +79,7 @@ function changePage(nextPage: number) {
     path: route.path,
     query: nextPage > 1 ? { page: String(nextPage) } : {},
   });
-  document.querySelector('main')?.scrollTo({ top: 0, behavior: 'smooth' });
+  scrollToTop({ behavior: 'smooth' });
 }
 
 watch([authUser, page], loadStrikes, { immediate: true });

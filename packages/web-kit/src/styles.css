@@ -112,9 +112,6 @@
 }
 
 @utility account-menu {
-  position: absolute;
-  top: calc(100% + 0.5rem);
-  right: 0;
   z-index: 40;
   width: 12rem;
   overflow: hidden;
@@ -137,9 +134,11 @@
   color: var(--color-ink);
   font-size: 0.875rem;
   text-align: left;
+  outline: none;
   transition: background-color 150ms ease;
 
-  &:hover {
+  &:hover,
+  &[data-highlighted] {
     background: var(--color-hover);
   }
 

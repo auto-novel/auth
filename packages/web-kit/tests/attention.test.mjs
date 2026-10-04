@@ -16,17 +16,22 @@ function deferred() {
   return { promise, resolve, reject };
 }
 
-function setup(t) {
+function setup(t, { autoStart = true } = {}) {
   const previousDocument = globalThis.document;
   const document = new EventTarget();
   document.visibilityState = 'visible';
   globalThis.document = document;
+  const addListener = t.mock.method(document, 'addEventListener');
   let interval;
-  t.mock.method(globalThis, 'setInterval', (callback, delay) => {
-    assert.equal(delay, 60_000);
-    interval = callback;
-    return 1;
-  });
+  const setInterval = t.mock.method(
+    globalThis,
+    'setInterval',
+    (callback, delay) => {
+      assert.equal(delay, 60_000);
+      interval = callback;
+      return 1;
+    },
+  );
   const clearInterval = t.mock.method(globalThis, 'clearInterval', () => {});
   let listener;
   const reads = [];
@@ -51,6 +56,7 @@ function setup(t) {
     },
   };
   const controller = createAttention(api);
+  if (autoStart) controller.start();
   t.after(() => {
     controller.dispose();
     if (previousDocument === undefined) delete globalThis.document;
@@ -60,7 +66,9 @@ function setup(t) {
     ...controller,
     reads,
     writes,
+    addListener,
     clearInterval,
+    setInterval,
     login(id) {
       listener?.(id === undefined ? undefined : { id });
     },
@@ -224,3 +232,50 @@ for (const operation of ['query', 'write']) {
     assert.equal(h.clearInterval.mock.callCount(), 1);
   });
 }
+
+test('does nothing until start() is called', async (t) => {
+  const h = setup(t, { autoStart: false });
+
+  assert.equal(h.addListener.mock.callCount(), 0);
+  assert.equal(h.setInterval.mock.callCount(), 0);
+  h.login(1);
+  await h.context.refresh();
+  await setImmediate();
+  assert.equal(h.reads.length, 0);
+
+  h.start();
+  assert.equal(h.setInterval.mock.callCount(), 0);
+  assert.equal(
+    h.addListener.mock.calls.some(
+      (call) => call.arguments[0] === 'visibilitychange',
+    ),
+    true,
+  );
+
+  h.login(1);
+  await setImmediate();
+  assert.equal(h.reads.length, 1);
+  assert.equal(h.setInterval.mock.callCount(), 1);
+});
+
+test('polls only while signed in', async (t) => {
+  const h = setup(t);
+  h.login(1);
+  await setImmediate();
+  h.reads[0].resolve(attentionStatus(true));
+  await setImmediate();
+  assert.equal(h.setInterval.mock.callCount(), 1);
+
+  h.login(undefined);
+  assert.equal(h.context.status.value, undefined);
+  assert.equal(h.clearInterval.mock.callCount(), 1);
+
+  const reads = h.reads.length;
+  h.tick();
+  h.visible(true);
+  await setImmediate();
+  assert.equal(h.reads.length, reads);
+
+  h.login(2);
+  assert.equal(h.setInterval.mock.callCount(), 2);
+});

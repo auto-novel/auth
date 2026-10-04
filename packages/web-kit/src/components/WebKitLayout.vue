@@ -10,12 +10,14 @@ import {
   nextTick,
   onBeforeUnmount,
   onMounted,
+  provide,
   ref,
   useTemplateRef,
   watch,
 } from 'vue';
 import { useRoute } from 'vue-router';
 
+import { layoutKey } from '../layoutContext';
 import type { WebKitMenuOption } from '../types';
 import UserAccountButton from './UserAccountButton.vue';
 import WebKitSidebar from './WebKitSidebar.vue';
@@ -31,21 +33,26 @@ defineProps<{
 const route = useRoute();
 const mobileDrawer = useTemplateRef<HTMLElement>('mobileDrawer');
 const pageContent = useTemplateRef<HTMLElement>('pageContent');
-const mobileMediaQuery = window.matchMedia('(max-width: 767px)');
-const tabletMediaQuery = window.matchMedia(
-  '(min-width: 768px) and (max-width: 1023px)',
-);
+// 媒体查询在 onMounted 里创建，setup 阶段不碰 window。
+let mobileMediaQuery: MediaQueryList | undefined;
+let tabletMediaQuery: MediaQueryList | undefined;
 
 function getViewportMode(): ViewportMode {
-  if (mobileMediaQuery.matches) return 'mobile';
-  if (tabletMediaQuery.matches) return 'tablet';
+  if (mobileMediaQuery?.matches) return 'mobile';
+  if (tabletMediaQuery?.matches) return 'tablet';
   return 'desktop';
 }
 
-const viewportMode = ref<ViewportMode>(getViewportMode());
+const viewportMode = ref<ViewportMode>('desktop');
 const mobileMenuOpen = ref(false);
-const sidebarCollapsed = ref(viewportMode.value === 'tablet');
+const sidebarCollapsed = ref(false);
 const isMobile = computed(() => viewportMode.value === 'mobile');
+
+provide(layoutKey, {
+  scrollToTop(options) {
+    pageContent.value?.scrollTo({ top: 0, ...options });
+  },
+});
 
 async function selectNavigation() {
   mobileMenuOpen.value = false;
@@ -73,14 +80,20 @@ async function openMobileMenu() {
 }
 
 onMounted(() => {
+  mobileMediaQuery = window.matchMedia('(max-width: 767px)');
+  tabletMediaQuery = window.matchMedia(
+    '(min-width: 768px) and (max-width: 1023px)',
+  );
+  viewportMode.value = getViewportMode();
+  sidebarCollapsed.value = viewportMode.value === 'tablet';
   mobileMediaQuery.addEventListener('change', updateViewport);
   tabletMediaQuery.addEventListener('change', updateViewport);
   window.addEventListener('keydown', handleKeydown);
 });
 
 onBeforeUnmount(() => {
-  mobileMediaQuery.removeEventListener('change', updateViewport);
-  tabletMediaQuery.removeEventListener('change', updateViewport);
+  mobileMediaQuery?.removeEventListener('change', updateViewport);
+  tabletMediaQuery?.removeEventListener('change', updateViewport);
   window.removeEventListener('keydown', handleKeydown);
   document.body.style.overflow = '';
 });

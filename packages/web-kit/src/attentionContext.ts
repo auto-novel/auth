@@ -1,4 +1,4 @@
-import type { AttentionStatus, AuthApi } from '@novelia/auth-api';
+import type { AttentionStatus, AuthApi, AuthUser } from '@novelia/auth-api';
 import {
   inject,
   readonly,
@@ -25,10 +25,15 @@ type AttentionApi = Pick<
   'watchUser' | 'getAttentionStatus' | 'updateMyStrikeReadState'
 >;
 
+const POLL_INTERVAL = 60 * 1000;
+
 export function createAttention(api: AttentionApi) {
   const status = ref<AttentionStatus>();
   let session: AttentionSession | undefined;
   let disposed = false;
+  let started = false;
+  let timer: number | undefined;
+  let unsubscribe: (() => void) | undefined;
 
   async function synchronize(current: AttentionSession) {
     while (!disposed && session === current) {
@@ -82,19 +87,56 @@ export function createAttention(api: AttentionApi) {
     return refresh();
   }
 
-  const unsubscribe = api.watchUser((user) => {
-    if (disposed || user?.id === session?.userId) return;
-    session = user ? { userId: user.id } : undefined;
-    status.value = undefined;
-    if (session) void refresh();
-  });
+  function stopTimer() {
+    if (timer === undefined) return;
+    globalThis.clearInterval(timer);
+    timer = undefined;
+  }
+
+  /** 只在已登录时保留轮询定时器。 */
+  function syncTimer() {
+    if (started && !disposed && session) {
+      timer ??= globalThis.setInterval(refreshWhenVisible, POLL_INTERVAL);
+      return;
+    }
+    stopTimer();
+  }
 
   function refreshWhenVisible() {
+    if (typeof document === 'undefined') return;
     if (document.visibilityState === 'visible') void refresh();
   }
 
-  document.addEventListener('visibilitychange', refreshWhenVisible);
-  const timer = globalThis.setInterval(refreshWhenVisible, 60 * 1000);
+  function handleUser(user: AuthUser | undefined) {
+    if (disposed || user?.id === session?.userId) return;
+    session = user ? { userId: user.id } : undefined;
+    status.value = undefined;
+    syncTimer();
+    if (session) void refresh();
+  }
+
+  /** 订阅会话并挂上定时器与可见性监听。由 `install` 触发。 */
+  function start() {
+    if (started || disposed) return;
+    started = true;
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', refreshWhenVisible);
+    }
+    unsubscribe = api.watchUser(handleUser);
+    syncTimer();
+  }
+
+  function dispose() {
+    disposed = true;
+    started = false;
+    session = undefined;
+    stopTimer();
+    if (typeof document !== 'undefined') {
+      document.removeEventListener('visibilitychange', refreshWhenVisible);
+    }
+    unsubscribe?.();
+    unsubscribe = undefined;
+  }
 
   const context: AttentionContext = {
     status: readonly(status),
@@ -102,16 +144,7 @@ export function createAttention(api: AttentionApi) {
     updateStrikeReadState,
   };
 
-  return {
-    context,
-    dispose() {
-      disposed = true;
-      session = undefined;
-      globalThis.clearInterval(timer);
-      document.removeEventListener('visibilitychange', refreshWhenVisible);
-      unsubscribe();
-    },
-  };
+  return { context, start, dispose };
 }
 
 export const attentionKey: InjectionKey<AttentionContext> =

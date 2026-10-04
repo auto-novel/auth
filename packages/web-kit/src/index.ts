@@ -24,13 +24,28 @@ import {
   Notify,
 } from './notifications';
 import { getApiErrorMessage } from './utils/apiError';
+import { useWebKitLayout } from './layoutContext';
 import type { WebKit, WebKitOptions } from './types';
+
+/** 相对地址需要浏览器环境；绝对地址在任何环境都能解析。 */
+function resolveAuthUrl(url: string): string {
+  const base =
+    typeof window === 'undefined' ? undefined : window.location.origin;
+  try {
+    return new URL(url, base).toString();
+  } catch {
+    throw new Error(
+      `Web kit cannot resolve auth.url (${JSON.stringify(url)}). ` +
+        'Use an absolute URL outside the browser.',
+    );
+  }
+}
 
 export function createWebKit(options: WebKitOptions): WebKit {
   const normalizedOptions = Object.freeze({
     auth: Object.freeze({
       ...options.auth,
-      url: new URL(options.auth.url, window.location.origin).toString(),
+      url: resolveAuthUrl(options.auth.url),
     }),
     brand: options.brand,
     repository: options.repository
@@ -72,12 +87,14 @@ export function createWebKit(options: WebKitOptions): WebKit {
   const theme = createWebTheme(
     normalizedOptions.themeStorageKey ??
       `${normalizedOptions.auth.app}-web-theme`,
+    storage,
   );
 
   let disposed = false;
   function dispose() {
     if (disposed) return;
     disposed = true;
+    theme.dispose();
     attention.dispose();
     api.dispose();
   }
@@ -95,6 +112,10 @@ export function createWebKit(options: WebKitOptions): WebKit {
       app.provide(webKitKey, kit);
       app.provide(attentionKey, attention.context);
       app.onUnmount(dispose);
+      // 会话订阅、轮询定时器和主题写入都推迟到这里，
+      // 创建 kit 本身不产生全局副作用。
+      theme.start();
+      attention.start();
     },
   };
 
@@ -117,10 +138,12 @@ export {
   getApiErrorMessage,
   useAttention,
   useWebKit,
+  useWebKitLayout,
   useWebTheme,
   webKitKey,
 };
 export type { AttentionContext } from './attentionContext';
+export type { LayoutContext } from './layoutContext';
 export type { AppNotification, Notifications } from './notifications';
 export type { WebTheme } from './theme';
 export type {
