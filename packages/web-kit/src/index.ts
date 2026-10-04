@@ -12,9 +12,18 @@ import XConfirmDialog from './ui/XConfirmDialog.vue';
 import XPagination from './ui/XPagination.vue';
 import XSelect from './ui/XSelect.vue';
 import { useWebKit, useWebTheme, webKitKey } from './context';
-import { attentionKey, createAttention } from './attentionContext';
+import {
+  attentionKey,
+  createAttention,
+  useAttention,
+} from './attentionContext';
 import { createWebTheme } from './theme';
-import { Notify } from './notifications';
+import {
+  activateNotifications,
+  createNotifications,
+  Notify,
+} from './notifications';
+import { getApiErrorMessage } from './utils/apiError';
 import type { WebKit, WebKitOptions } from './types';
 
 export function createWebKit(options: WebKitOptions): WebKit {
@@ -56,13 +65,19 @@ export function createWebKit(options: WebKitOptions): WebKit {
     profile.value = user;
   });
   const attention = createAttention(api);
+  const notifications = createNotifications();
+  // 让独立的 `Notify` 导出写入最近创建的实例。
+  activateNotifications(notifications);
   const isSignedIn = computed(() => profile.value !== undefined);
   const theme = createWebTheme(
     normalizedOptions.themeStorageKey ??
       `${normalizedOptions.auth.app}-web-theme`,
   );
 
+  let disposed = false;
   function dispose() {
+    if (disposed) return;
+    disposed = true;
     attention.dispose();
     api.dispose();
   }
@@ -72,7 +87,10 @@ export function createWebKit(options: WebKitOptions): WebKit {
     api,
     profile: readonly(profile),
     isSignedIn,
+    attention: attention.context,
+    notifications,
     theme,
+    dispose,
     install(app: App) {
       app.provide(webKitKey, kit);
       app.provide(attentionKey, attention.context);
@@ -95,11 +113,33 @@ export {
   XPagination,
   XSelect,
   Notify,
+  attentionKey,
+  getApiErrorMessage,
+  useAttention,
   useWebKit,
   useWebTheme,
+  webKitKey,
 };
+export type { AttentionContext } from './attentionContext';
+export type { AppNotification, Notifications } from './notifications';
+export type { WebTheme } from './theme';
 export type {
+  WebKit,
+  WebKitContext,
   WebKitMenuOption,
   WebKitOptions,
+  WebKitResolvedOptions,
   WebKitStrikeOptions,
 } from './types';
+export type {
+  XActionMenuItemProps,
+  XActionMenuProps,
+  XAsyncContentProps,
+  XButtonProps,
+  XButtonSize,
+  XButtonVariant,
+  XConfirmDialogProps,
+  XPaginationProps,
+  XSelectOption,
+  XSelectProps,
+} from './ui/types';

@@ -98,6 +98,16 @@ createWebKit({ /* ... */ strikes: { to: { name: 'strikes' } } });
 
 关掉入口时，账号按钮上的未读红点也一起关掉。
 
+未读状态和账号按钮同源，想在别处用（比如自己画一个角标）：
+
+```ts
+import { useAttention } from '@novelia/web-kit';
+
+const { status, refresh } = useAttention();
+
+status.value?.strikes.hasUnread;
+```
+
 ## 通知
 
 ```ts
@@ -105,6 +115,31 @@ import { Notify } from '@novelia/web-kit';
 
 Notify.success('已保存');
 Notify.error('保存失败');
+```
+
+通知本身也挂在 kit 上，需要按实例隔离或者手动清空时用它：
+
+```ts
+const { notifications } = useWebKit();
+
+notifications.notify.success('已保存');
+notifications.dismissAll();
+```
+
+`Notify` 只是它的快捷方式，写入的是最近创建的那个 kit。
+
+## 错误文案
+
+自己的请求可以复用同一套解析（认得 ky 抛出的错误，会依次尝试 `message`、`error`、`detail`，再退到响应正文）：
+
+```ts
+import { getApiErrorMessage, Notify } from '@novelia/web-kit';
+
+try {
+  await save();
+} catch (reason) {
+  Notify.error(await getApiErrorMessage(reason, '保存失败'));
+}
 ```
 
 ## 主题

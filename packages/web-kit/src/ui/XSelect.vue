@@ -13,14 +13,9 @@ import {
   type AcceptableValue,
 } from 'reka-ui';
 
-defineProps<{
-  options: { label: string; value: string }[];
-  id?: string;
-  ariaLabel?: string;
-  disabled?: boolean;
-  required?: boolean;
-  rounded?: boolean;
-}>();
+import type { XSelectProps } from './types';
+
+defineProps<XSelectProps>();
 
 const model = defineModel<string>({ required: true });
 const emit = defineEmits<{ change: [] }>();

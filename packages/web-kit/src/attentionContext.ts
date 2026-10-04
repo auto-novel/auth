@@ -8,7 +8,7 @@ import {
   type Ref,
 } from 'vue';
 
-interface AttentionContext {
+export interface AttentionContext {
   status: DeepReadonly<Ref<AttentionStatus | undefined>>;
   refresh(): Promise<void>;
   updateStrikeReadState(throughId: number): Promise<void>;

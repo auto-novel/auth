@@ -9,11 +9,9 @@ import {
 } from 'reka-ui';
 
 import XButton from './XButton.vue';
+import type { XPaginationProps } from './types';
 
-defineProps<{
-  page: number;
-  totalPages: number;
-}>();
+defineProps<XPaginationProps>();
 
 defineEmits<{
   change: [page: number];

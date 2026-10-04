@@ -2,6 +2,8 @@ import type { AuthApi, AuthUser } from '@novelia/auth-api';
 import type { App, Component, ComputedRef, DeepReadonly, Ref } from 'vue';
 import type { RouteLocationRaw } from 'vue-router';
 
+import type { AttentionContext } from './attentionContext';
+import type { Notifications } from './notifications';
 import type { WebTheme } from './theme';
 
 export interface WebKitStrikeOptions {
@@ -44,9 +46,15 @@ export interface WebKitContext {
   api: AuthApi;
   profile: Readonly<Ref<AuthUser | undefined>>;
   isSignedIn: ComputedRef<boolean>;
+  /** 处罚提醒状态，与账号菜单里的未读红点同源。 */
+  attention: AttentionContext;
+  /** 本实例的通知仓库，`Notify` 是它最近一次创建实例的快捷入口。 */
+  notifications: Notifications;
   theme: WebTheme;
 }
 
 export interface WebKit extends WebKitContext {
   install(app: App): void;
+  /** 释放监听器与定时器。重复调用无副作用，`app.onUnmount` 也会调用它。 */
+  dispose(): void;
 }

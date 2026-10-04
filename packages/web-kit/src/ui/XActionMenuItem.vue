@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { DropdownMenuItem } from 'reka-ui';
 
-defineProps<{
-  disabled?: boolean;
-  danger?: boolean;
-}>();
+import type { XActionMenuItemProps } from './types';
+
+defineProps<XActionMenuItemProps>();
 
 defineEmits<{ activate: [] }>();
 </script>

@@ -11,7 +11,12 @@ import {
   ToastViewport,
 } from 'reka-ui';
 
-import { dismissNotification, notifications } from './index';
+import { useWebKit } from '../context';
+
+// `items` 需要解构到顶层，模板才会自动解包这个 ref。
+const {
+  notifications: { items, dismiss },
+} = useWebKit();
 </script>
 
 <template>
@@ -22,12 +27,12 @@ import { dismissNotification, notifications } from './index';
     :swipe-threshold="40"
   >
     <ToastRoot
-      v-for="notification in notifications"
+      v-for="notification in items"
       :key="notification.id"
       class="flex w-full items-center gap-2.5 rounded-md border border-border bg-surface px-4 py-2.5 shadow-lg outline-none data-[swipe=cancel]:translate-y-0 data-[swipe=end]:translate-y-[var(--reka-toast-swipe-end-y)] data-[swipe=move]:translate-y-[var(--reka-toast-swipe-move-y)] data-[swipe=cancel]:transition-transform data-[swipe=end]:transition-transform"
       @update:open="
         (open) => {
-          if (!open) dismissNotification(notification.id);
+          if (!open) dismiss(notification.id);
         }
       "
     >

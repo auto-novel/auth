@@ -8,18 +8,12 @@ import {
 } from 'reka-ui';
 
 import XButton from './XButton.vue';
+import type { XActionMenuProps } from './types';
 
-withDefaults(
-  defineProps<{
-    side?: 'top' | 'right' | 'bottom' | 'left';
-    align?: 'start' | 'center' | 'end';
-    compact?: boolean;
-  }>(),
-  {
-    side: 'bottom',
-    align: 'end',
-  },
-);
+withDefaults(defineProps<XActionMenuProps>(), {
+  side: 'bottom',
+  align: 'end',
+});
 </script>
 
 <template>

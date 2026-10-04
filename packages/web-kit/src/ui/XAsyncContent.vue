@@ -3,33 +3,19 @@ import { Inventory2Outlined } from '@vicons/material';
 import { computed } from 'vue';
 
 import XButton from './XButton.vue';
+import type { XAsyncContentProps } from './types';
 
-const props = withDefaults(
-  defineProps<{
-    loading: boolean;
-    error?: string;
-    empty?: boolean;
-    errorTitle?: string;
-    retryLabel?: string;
-    emptyTitle?: string;
-    emptyDescription?: string;
-    size?: 'compact' | 'default' | 'large';
-    headingTag?: 'h1' | 'h2' | 'p';
-    stateClass?: string;
-    errorIcon?: boolean;
-  }>(),
-  {
-    error: '',
-    empty: false,
-    errorTitle: '加载失败',
-    retryLabel: '再试一次',
-    emptyTitle: '暂无内容',
-    size: 'default',
-    headingTag: 'h2',
-    stateClass: '',
-    errorIcon: true,
-  },
-);
+const props = withDefaults(defineProps<XAsyncContentProps>(), {
+  error: '',
+  empty: false,
+  errorTitle: '加载失败',
+  retryLabel: '再试一次',
+  emptyTitle: '暂无内容',
+  size: 'default',
+  headingTag: 'h2',
+  stateClass: '',
+  errorIcon: true,
+});
 
 defineEmits<{ retry: [] }>();
 

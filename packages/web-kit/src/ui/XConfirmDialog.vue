@@ -10,20 +10,11 @@ import {
 } from 'reka-ui';
 
 import XButton from './XButton.vue';
+import type { XConfirmDialogProps } from './types';
 
-withDefaults(
-  defineProps<{
-    open: boolean;
-    title: string;
-    description: string;
-    confirmLabel?: string;
-    loading?: boolean;
-    danger?: boolean;
-  }>(),
-  {
-    confirmLabel: '确认',
-  },
-);
+withDefaults(defineProps<XConfirmDialogProps>(), {
+  confirmLabel: '确认',
+});
 
 const emit = defineEmits<{
   'update:open': [open: boolean];

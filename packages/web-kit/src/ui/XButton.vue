@@ -1,31 +1,14 @@
 <script setup lang="ts">
-import { computed, type Component } from 'vue';
+import { computed } from 'vue';
 
-type ButtonVariant =
-  | 'primary'
-  | 'outline'
-  | 'danger'
-  | 'ghost'
-  | 'ghost-active'
-  | 'subtle'
-  | 'toolbar'
-  | 'plain';
-type ButtonSize = 'md' | 'sm' | 'xs' | 'icon' | 'icon-sm' | 'icon-xs' | 'none';
+import type { XButtonProps } from './types';
 
-const props = withDefaults(
-  defineProps<{
-    as?: string | Component;
-    type?: 'button' | 'submit' | 'reset';
-    variant?: ButtonVariant;
-    size?: ButtonSize;
-  }>(),
-  {
-    as: 'button',
-    type: 'button',
-    variant: 'primary',
-    size: 'md',
-  },
-);
+const props = withDefaults(defineProps<XButtonProps>(), {
+  as: 'button',
+  type: 'button',
+  variant: 'primary',
+  size: 'md',
+});
 
 const variantClass = computed(
   () =>
