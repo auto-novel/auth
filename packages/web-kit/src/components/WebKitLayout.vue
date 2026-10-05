@@ -181,11 +181,12 @@ watch(mobileMenuOpen, (open) => {
             :options="navigationOptions"
             :selected="selectedNavigationKey"
             full-width
+            mobile-header
             @select="selectNavigation"
           />
           <button
             type="button"
-            class="absolute top-3 right-3 grid size-10 place-items-center rounded-md text-muted transition-colors hover:bg-paper hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            class="absolute top-3 right-3 grid size-10 place-items-center rounded-md text-white transition-colors hover:bg-black/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             aria-label="关闭导航菜单"
             @click="mobileMenuOpen = false"
           >
