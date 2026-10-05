@@ -29,6 +29,7 @@ interface AuthStorageOptions {
 
 interface AuthSessionOptions {
   app: string;
+  autoStart?: boolean;
   storage?: AuthStorageOptions;
   requestLogout(): Promise<string>;
   requestRefresh(app: string): Promise<string>;
@@ -126,13 +127,27 @@ function createAuthStorage(options?: AuthStorageOptions) {
 export function createAuthSession(options: AuthSessionOptions) {
   const storage = createAuthStorage(options.storage);
   const listeners = new Set<(user?: AuthUser) => void>();
-  const storedSession = storage?.get();
-  let profile = storedSession?.profile;
-  let adminMode = storedSession?.adminMode ?? false;
-  let initialized = profile !== undefined;
+  let profile: AccessTokenProfile | undefined;
+  let adminMode = false;
+  let initialized = false;
   let refreshRequest: Promise<string | undefined> | undefined;
   let sessionVersion = 0;
+  let started = false;
   let disposed = false;
+  let refreshTimer: ReturnType<typeof globalThis.setInterval> | undefined;
+  let eventTarget: Window | undefined;
+  let storageListenerAttached = false;
+
+  function assertNotDisposed() {
+    if (disposed) throw new Error('Auth session has been disposed');
+  }
+
+  function assertActive() {
+    assertNotDisposed();
+    if (!started) {
+      throw new Error('Auth session has not started; call start() first');
+    }
+  }
 
   function notify(listener: (user?: AuthUser) => void) {
     try {
@@ -153,6 +168,7 @@ export function createAuthSession(options: AuthSessionOptions) {
   }
 
   function setAdminMode(enabled: boolean): boolean {
+    assertActive();
     const nextMode = enabled === true && profile?.role === 'admin';
     if (adminMode === nextMode) return adminMode;
     adminMode = nextMode;
@@ -172,6 +188,7 @@ export function createAuthSession(options: AuthSessionOptions) {
   }
 
   function subscribe(listener: (user?: AuthUser) => void) {
+    assertNotDisposed();
     listeners.add(listener);
     notify(listener);
     return () => {
@@ -181,6 +198,8 @@ export function createAuthSession(options: AuthSessionOptions) {
 
   function onStorage(event: StorageEvent) {
     if (
+      !started ||
+      disposed ||
       !storage ||
       event.storageArea !== options.storage?.target ||
       (event.key !== null && event.key !== options.storage.key)
@@ -199,15 +218,12 @@ export function createAuthSession(options: AuthSessionOptions) {
     for (const listener of listeners) notify(listener);
   }
 
-  const eventTarget =
-    storage &&
-    typeof window !== 'undefined' &&
-    typeof window.addEventListener === 'function'
-      ? window
-      : undefined;
-  eventTarget?.addEventListener('storage', onStorage);
-
   function refreshAccessToken(): Promise<string | undefined> {
+    try {
+      assertActive();
+    } catch (error) {
+      return Promise.reject(error);
+    }
     if (refreshRequest) return refreshRequest;
     const app = options.app;
     const version = sessionVersion;
@@ -219,6 +235,8 @@ export function createAuthSession(options: AuthSessionOptions) {
         if (version !== sessionVersion)
           return disposed ? undefined : profile?.token;
         setAccessToken(token);
+        if (version !== sessionVersion)
+          return disposed ? undefined : profile?.token;
         initialized = true;
         return token;
       } catch (error) {
@@ -226,7 +244,7 @@ export function createAuthSession(options: AuthSessionOptions) {
           return disposed ? undefined : profile?.token;
         if (isHTTPError(error) && error.response.status === 401) {
           setAccessToken();
-          initialized = true;
+          if (version === sessionVersion) initialized = true;
           return;
         }
         throw error;
@@ -234,11 +252,12 @@ export function createAuthSession(options: AuthSessionOptions) {
         if (version === sessionVersion) refreshRequest = undefined;
       }
     })();
-    refreshRequest = request;
+    if (version === sessionVersion) refreshRequest = request;
     return request;
   }
 
   async function checkSignedIn() {
+    assertActive();
     if (!initialized) {
       try {
         await refreshAccessToken();
@@ -247,6 +266,7 @@ export function createAuthSession(options: AuthSessionOptions) {
         // check can retry while preserving any locally available profile.
       }
     }
+    assertActive();
     return profile !== undefined;
   }
 
@@ -260,16 +280,77 @@ export function createAuthSession(options: AuthSessionOptions) {
     refresh: refreshAccessToken,
   } satisfies AccessTokenProvider;
 
-  void checkSignedIn();
-
-  const refreshTimer = globalThis.setInterval(() => {
-    if (
-      profile &&
-      Date.now() - profile.issuedAt * 1000 >= ACCESS_TOKEN_REFRESH_AGE
-    ) {
-      void refreshAccessToken().catch(() => undefined);
+  function dispose() {
+    if (disposed) return;
+    disposed = true;
+    sessionVersion++;
+    refreshRequest = undefined;
+    listeners.clear();
+    profile = undefined;
+    adminMode = false;
+    initialized = false;
+    try {
+      if (refreshTimer !== undefined) {
+        const timer = refreshTimer;
+        refreshTimer = undefined;
+        globalThis.clearInterval(timer);
+      }
+    } finally {
+      if (storageListenerAttached) {
+        storageListenerAttached = false;
+        eventTarget?.removeEventListener('storage', onStorage);
+      }
+      eventTarget = undefined;
     }
-  }, ACCESS_TOKEN_REFRESH_INTERVAL);
+  }
+
+  function start() {
+    assertNotDisposed();
+    if (started) return;
+    started = true;
+    try {
+      const storedSession = storage?.get();
+      profile = storedSession?.profile;
+      adminMode = storedSession?.adminMode ?? false;
+      initialized = profile !== undefined;
+      for (const listener of listeners) notify(listener);
+      assertActive();
+
+      eventTarget =
+        storage &&
+        typeof window !== 'undefined' &&
+        typeof window.addEventListener === 'function'
+          ? window
+          : undefined;
+      if (eventTarget) {
+        // Mark first so cleanup also handles an attachment that throws.
+        storageListenerAttached = true;
+        eventTarget.addEventListener('storage', onStorage);
+      }
+
+      // Preserve the eager API's initial-check-before-interval timing.
+      void checkSignedIn().catch(() => undefined);
+      assertActive();
+      refreshTimer = globalThis.setInterval(() => {
+        if (
+          !disposed &&
+          profile &&
+          Date.now() - profile.issuedAt * 1000 >= ACCESS_TOKEN_REFRESH_AGE
+        ) {
+          void refreshAccessToken().catch(() => undefined);
+        }
+      }, ACCESS_TOKEN_REFRESH_INTERVAL);
+    } catch (error) {
+      try {
+        dispose();
+      } catch {
+        // Preserve the original startup error after attempting all cleanup.
+      }
+      throw error;
+    }
+  }
+
+  if (options.autoStart !== false) start();
 
   return {
     accessToken,
@@ -278,21 +359,18 @@ export function createAuthSession(options: AuthSessionOptions) {
     toggleAdminMode() {
       return setAdminMode(!adminMode);
     },
-    logout() {
+    async logout() {
+      assertActive();
       // Ignore refreshes started before logout, including their errors.
       sessionVersion++;
       refreshRequest = undefined;
       initialized = true;
       setAccessToken();
+      assertActive();
       return options.requestLogout();
     },
-    dispose() {
-      disposed = true;
-      sessionVersion++;
-      globalThis.clearInterval(refreshTimer);
-      eventTarget?.removeEventListener('storage', onStorage);
-      listeners.clear();
-    },
+    start,
+    dispose,
     subscribe,
   };
 }

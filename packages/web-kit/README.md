@@ -36,11 +36,23 @@ const webKit = createWebKit({
 createApp(App).use(webKit).use(router).mount('#app');
 ```
 
-`createWebKit` 在应用入口只调用一次；同一模块运行环境中再次调用会报错，不会覆盖配置或创建新会话。kit 只安装到一个 Vue 应用，同一应用重复安装无副作用，跨应用安装会报错。组件通过 `useWebKit()` 读取上下文，不取得 `install`/`dispose`。
+`createWebKit` 在应用入口只调用一次；同一模块运行环境中再次调用会报错，不会覆盖配置或创建新会话。`auth.url` 可以是相对地址，按当前页面解析。
 
-`auth.url` 可以是相对地址，按当前页面解析。创建 kit 时认证会话已经开始检查登录并注册监听器/刷新定时器；`app.use(webKit)` 提供上下文、启动主题与处罚提醒，并注册卸载清理，不注册全局组件。组件仍要按需 import，router 在 mount 前安装即可。
+两个 kit 使用相同的生命周期契约：
 
-Vue 应用卸载时会自动调用 `webKit.dispose()`；创建后没有安装的 kit 也必须手动释放。重复释放无副作用，释放后不能重新安装或再次创建，重新启动应用应重载页面。这里的单实例以浏览器中的包模块为边界，不支持 SSR 服务端按请求创建 kit，也不要在应用入口的热更新回调中重复创建。
+- `createWebKit()` 只构造配置与内存状态，不读取会话/主题存储内容、不发请求、不注册监听器或定时器，也不修改页面主题。
+- `webKit.start()` 启动认证会话、主题和处罚提醒。`app.use(webKit)` 会自动调用它，通常不需要手动启动；重复启动无副作用。
+- `install` 提供上下文并注册 `app.onUnmount` 清理。一个 kit 只能安装到一个 Vue 应用，同一应用重复安装无副作用，跨应用安装会报错。不注册全局组件，组件仍要按需 import。
+- `webKit.dispose()` 释放订阅、监听器、定时器及内存用户/提醒状态；已启动时还会清空通知，不清除持久化登录会话。未启动时也可释放，重复释放无副作用。
+
+销毁是终态：之后不能启动或安装，也不重置单实例创建限制。同步启动或安装失败会清理已分配资源并销毁 kit，重新启动应用需要重载页面。
+组件通过 `useWebKit()` 获取上下文，不取得 `start`、`install` 或 `dispose`；会话、主题和提醒的生命周期应统一由 kit 管理。
+
+创建后 `profile` 为 `undefined`，主题使用初始浅色，启动时才恢复存储状态。
+`start()` 只启动同步，不等待网络登录检查；需要等待时，在启动后调用 `await webKit.api.checkSignedIn()`。
+请先安装 kit 再安装 router，确保首次路由守卫使用已启动的会话；创建业务客户端仍可在启动前完成。
+
+这里的单实例以浏览器中的包模块为边界，不支持 SSR 服务端按请求创建 kit，也不要在应用入口的热更新回调中重复创建。
 
 根组件用 `WebKitApp` 包一层，它负责挂载全局通知：
 
@@ -129,7 +141,7 @@ Notify.error('保存失败');
 Notify.dismissAll();
 ```
 
-kit 释放时也会清空通知。原来的 `useWebKit().notifications.notify` 改用 `Notify`，`notifications.dismissAll()` 改用 `Notify.dismissAll()`；不再导出 `Notifications` 类型或 `attentionKey`。`useAttention()` 保持不变，直接读取 kit 上同一份提醒状态。主题上下文只提供状态和 `toggleTheme()`，生命周期由 kit 管理。
+已启动的 kit 释放时也会清空通知。原来的 `useWebKit().notifications.notify` 改用 `Notify`，`notifications.dismissAll()` 改用 `Notify.dismissAll()`；不再导出 `Notifications` 类型或 `attentionKey`。`useAttention()` 保持不变，直接读取 kit 上同一份提醒状态。主题上下文只提供状态和 `toggleTheme()`，生命周期由 kit 管理。
 
 ## 错误文案
 
@@ -147,7 +159,7 @@ try {
 
 ## 主题
 
-主题记在 `<html data-theme>` 上，默认跟随系统，切换后写 `localStorage`（键默认 `<auth.app>-web-theme`，可用 `themeStorageKey` 覆盖）。侧边栏底部的按钮已经接好了，业务里要用就 `useWebTheme()`，拿 `{ isDark, theme, toggleTheme }`。
+主题在启动时写入 `<html data-theme>`，无已保存偏好时采用当时的系统主题，切换后写 `localStorage`（键默认 `<auth.app>-web-theme`，可用 `themeStorageKey` 覆盖）。侧边栏底部的按钮已经接好了，业务里要用就 `useWebTheme()`，拿 `{ isDark, theme, toggleTheme }`。
 
 ## 侧栏构建信息
 

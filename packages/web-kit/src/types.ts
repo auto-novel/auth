@@ -51,7 +51,9 @@ export interface WebKitContext {
 }
 
 export interface WebKit extends WebKitContext {
+  /** 启动会话、主题和提醒；重复调用无副作用，install 也会调用它。 */
+  start(): void;
   install(app: App): void;
-  /** 释放监听器与定时器。重复调用无副作用，`app.onUnmount` 也会调用它。 */
+  /** 释放已启动的资源；重复调用无副作用，释放后不可重新启动。 */
   dispose(): void;
 }

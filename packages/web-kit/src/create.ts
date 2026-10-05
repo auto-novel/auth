@@ -52,6 +52,7 @@ export function createWebKit(options: WebKitOptions): WebKit {
     // Keep the session in memory when browser storage is blocked.
   }
   const api = createAuthApi({
+    autoStart: false,
     app: normalizedOptions.auth.app,
     url: normalizedOptions.auth.url,
     storage: storage
@@ -64,9 +65,7 @@ export function createWebKit(options: WebKitOptions): WebKit {
       : undefined,
   });
   const profile = ref<AuthUser>();
-  const unsubscribe = api.watchUser((user) => {
-    profile.value = user;
-  });
+  let unsubscribe: (() => void) | undefined;
   const attention = createAttention(api);
   const isSignedIn = computed(() => profile.value !== undefined);
   const theme = createWebTheme(
@@ -76,15 +75,36 @@ export function createWebKit(options: WebKitOptions): WebKit {
   );
 
   let owner: App | undefined;
+  let started = false;
   let disposed = false;
+
+  function start() {
+    if (disposed) throw new Error('Cannot start a disposed web kit.');
+    if (started) return;
+    started = true;
+    try {
+      theme.start();
+      unsubscribe = api.watchUser((user) => {
+        profile.value = user;
+      });
+      api.start();
+      attention.start();
+    } catch (error) {
+      dispose();
+      throw error;
+    }
+  }
+
   function dispose() {
     if (disposed) return;
     disposed = true;
     theme.dispose();
     attention.dispose();
-    unsubscribe();
+    unsubscribe?.();
+    unsubscribe = undefined;
     api.dispose();
-    Notify.dismissAll();
+    profile.value = undefined;
+    if (started) Notify.dismissAll();
   }
 
   const context: WebKitContext = {
@@ -97,6 +117,7 @@ export function createWebKit(options: WebKitOptions): WebKit {
   };
   const kit: WebKit = {
     ...context,
+    start,
     dispose,
     install(app: App) {
       if (disposed) throw new Error('Web kit has been disposed.');
@@ -104,11 +125,14 @@ export function createWebKit(options: WebKitOptions): WebKit {
       if (owner)
         throw new Error('Web kit is already installed in another app.');
       owner = app;
-      app.provide(webKitKey, context);
-      app.onUnmount(dispose);
-      // Auth session starts during creation; UI theme and attention start here.
-      theme.start();
-      attention.start();
+      try {
+        start();
+        app.provide(webKitKey, context);
+        app.onUnmount(dispose);
+      } catch (error) {
+        dispose();
+        throw error;
+      }
     },
   };
 

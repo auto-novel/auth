@@ -27,6 +27,7 @@ export function createAttention(api: AttentionApi) {
   let started = false;
   let timer: number | undefined;
   let unsubscribe: (() => void) | undefined;
+  let visibilityTarget: Document | undefined;
 
   async function synchronize(current: AttentionSession) {
     while (!disposed && session === current) {
@@ -108,25 +109,30 @@ export function createAttention(api: AttentionApi) {
     if (session) void refresh();
   }
 
-  /** 订阅会话并挂上定时器与可见性监听。由 `install` 触发。 */
+  /** 订阅会话并挂上定时器与可见性监听。由 kit.start 触发。 */
   function start() {
     if (started || disposed) return;
     started = true;
     if (typeof document !== 'undefined') {
-      document.addEventListener('visibilitychange', refreshWhenVisible);
+      visibilityTarget = document;
+      visibilityTarget.addEventListener('visibilitychange', refreshWhenVisible);
     }
     unsubscribe = api.watchUser(handleUser);
     syncTimer();
   }
 
   function dispose() {
+    if (disposed) return;
     disposed = true;
     started = false;
     session = undefined;
+    status.value = undefined;
     stopTimer();
-    if (typeof document !== 'undefined') {
-      document.removeEventListener('visibilitychange', refreshWhenVisible);
-    }
+    visibilityTarget?.removeEventListener(
+      'visibilitychange',
+      refreshWhenVisible,
+    );
+    visibilityTarget = undefined;
     unsubscribe?.();
     unsubscribe = undefined;
   }

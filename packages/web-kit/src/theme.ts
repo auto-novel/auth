@@ -59,7 +59,7 @@ export function createWebTheme(storageKey: string, storage?: Storage) {
     }
   }
 
-  /** 读取已保存（或系统）主题并写入 `<html>`。由 `install` 触发。 */
+  /** 读取已保存（或系统）主题并写入 `<html>`。由 kit.start 触发。 */
   function start() {
     if (started || disposed) return;
     started = true;
@@ -70,7 +70,7 @@ export function createWebTheme(storageKey: string, storage?: Storage) {
   const isDark = computed(() => currentTheme.value === 'dark');
 
   function toggleTheme() {
-    if (disposed) return;
+    if (!started || disposed) return;
     currentTheme.value = isDark.value ? 'light' : 'dark';
     applyTheme(currentTheme.value, true);
     try {

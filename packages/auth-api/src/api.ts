@@ -59,6 +59,8 @@ export interface AttentionStatus {
 export interface AuthApiOptions {
   app: string;
   url: string;
+  /** 默认自动启动；设为 false 时必须显式调用 start()。 */
+  autoStart?: boolean;
   storage?: {
     key: string;
     target: Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
@@ -74,6 +76,7 @@ export function createAuthApi(options: AuthApiOptions) {
   const authClient = createApiClient(new URL('api/v1/', authUrl).toString());
   const session = createAuthSession({
     app: options.app,
+    autoStart: options.autoStart,
     storage: options.storage,
     requestLogout: () =>
       authClient.post('auth/logout', { credentials: 'include' }).text(),
@@ -154,6 +157,7 @@ export function createAuthApi(options: AuthApiOptions) {
         .put('me/strikes/read-state', { json: { throughId } })
         .json<StrikeReadState>();
     },
+    start: session.start,
     dispose: session.dispose,
     watchUser: session.subscribe,
   };
