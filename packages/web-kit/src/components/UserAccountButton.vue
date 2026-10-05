@@ -4,6 +4,7 @@ import {
   ExitToAppOutlined,
   GavelOutlined,
   KeyboardArrowDownOutlined,
+  OpenInNewOutlined,
 } from '@vicons/material';
 import { roleLabels } from '@novelia/auth-api';
 import {
@@ -189,20 +190,42 @@ async function focusLoginFrame() {
           </DropdownMenuLabel>
           <DropdownMenuSeparator class="border-t border-divider" />
           <div class="p-1">
-            <DropdownMenuItem
-              v-for="option in options"
-              :key="option.key"
-              as-child
-            >
-              <RouterLink :to="option.to" class="account-menu-item">
-                <component
-                  :is="option.icon"
-                  class="size-4"
-                  aria-hidden="true"
-                />
-                {{ option.label }}
-              </RouterLink>
-            </DropdownMenuItem>
+            <template v-for="option in options" :key="option.key">
+              <DropdownMenuSeparator
+                v-if="option.type === 'divider'"
+                class="my-1 border-t border-divider"
+              />
+              <DropdownMenuItem v-else-if="option.type === 'external'" as-child>
+                <a
+                  :href="option.href"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="account-menu-item"
+                  :aria-label="`${option.label}（在新标签页打开）`"
+                >
+                  <component
+                    :is="option.icon"
+                    class="size-4 flex-none"
+                    aria-hidden="true"
+                  />
+                  <span class="min-w-0 truncate">{{ option.label }}</span>
+                  <OpenInNewOutlined
+                    class="size-3 flex-none"
+                    aria-hidden="true"
+                  />
+                </a>
+              </DropdownMenuItem>
+              <DropdownMenuItem v-else as-child>
+                <RouterLink :to="option.to" class="account-menu-item">
+                  <component
+                    :is="option.icon"
+                    class="size-4"
+                    aria-hidden="true"
+                  />
+                  {{ option.label }}
+                </RouterLink>
+              </DropdownMenuItem>
+            </template>
             <DropdownMenuItem v-if="strikesEnabled" as-child>
               <RouterLink :to="strikesTo" class="account-menu-item">
                 <GavelOutlined class="size-4" aria-hidden="true" />

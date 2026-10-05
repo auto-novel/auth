@@ -33,12 +33,26 @@ export interface WebKitResolvedOptions extends Omit<WebKitOptions, 'strikes'> {
   strikes: Required<WebKitStrikeOptions>;
 }
 
-export interface WebKitMenuOption {
-  key: string;
-  label: string;
-  icon: Component;
-  to: RouteLocationRaw;
-}
+/** 宿主注入的菜单项；不指定 type 时兼容原有的站内链接。 */
+export type WebKitMenuOption =
+  | {
+      type?: 'link';
+      key: string;
+      label: string;
+      icon: Component;
+      to: RouteLocationRaw;
+    }
+  | {
+      type: 'divider';
+      key: string;
+    }
+  | {
+      type: 'external';
+      key: string;
+      label: string;
+      icon: Component;
+      href: string;
+    };
 
 export interface WebKitContext {
   readonly options: DeepReadonly<WebKitResolvedOptions>;

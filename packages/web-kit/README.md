@@ -97,7 +97,35 @@ const accountOptions: WebKitMenuOption[] = [
 
 `WebKitApp` 默认渲染 `<RouterView />`，也可以用默认插槽自己写。`Notify` 只在 `WebKitApp` 挂载后才有地方显示，脱离它调用不报错，但什么也看不到；老代码里的通知原来挂在 `WebKitLayout` 上，升级时把 `WebKitApp` 补上就行。
 
-菜单项的 `to` 是 `RouteLocationRaw`，渲染成原生 `<a>`，右键、中键、Ctrl/Cmd 开新标签页都正常。会话信息用 `useWebKit()` 拿：`{ api, profile, isSignedIn }`。
+`navigationOptions` 和 `accountOptions` 都支持三种注入项，每项的 `key` 需在对应菜单内唯一：
+
+```ts
+const options: WebKitMenuOption[] = [
+  {
+    type: 'link',
+    key: 'profile',
+    label: '个人资料',
+    icon: PersonOutlined,
+    to: '/profile',
+  },
+  { type: 'divider', key: 'divider' },
+  {
+    type: 'external',
+    key: 'docs',
+    label: '文档',
+    icon: HomeOutlined,
+    href: 'https://example.com/docs',
+  },
+];
+```
+
+- `link`：站内路由，`to` 是 `RouteLocationRaw`；省略 `type` 时仍按 `link` 处理，兼容原有配置。渲染成原生 `<a>`，右键、中键、Ctrl/Cmd 开新标签页都正常。
+- `divider`：在该数据项的位置渲染分割线，不依赖 CSS 按位置推断。
+- `external`：使用 `href`，在新标签页打开，文案末尾用图标组件显示小的外链标记。
+
+内置菜单及注入位置不变：侧栏注入项在内置分割线和主题切换之前；账号注入项在账号信息及其分割线之后、处罚记录和退出账号之前。宿主只能在这些位置组织自己的菜单，不能通过注入配置重排内置项。
+
+会话信息用 `useWebKit()` 拿：`{ api, profile, isSignedIn }`。
 
 页面内容区要滚回顶部时用 `useWebKitLayout().scrollToTop()`，别自己去查 DOM；不在布局里它会退化成滚动窗口。
 
