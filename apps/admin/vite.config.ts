@@ -97,7 +97,6 @@ export default defineConfig(({ command, mode }) => {
       },
     },
     server: {
-      port: 5174,
       proxy: {
         '/api': {
           target: apiUrl,

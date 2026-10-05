@@ -10,8 +10,4 @@ export default defineConfig({
     __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
     __COMMIT_SHA__: JSON.stringify(''),
   },
-  server: {
-    // 只是起始端口；被占用时 vite 会自行向后找可用端口。
-    port: 5175,
-  },
 });
