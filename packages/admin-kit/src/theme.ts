@@ -1,8 +1,8 @@
 import { readonly, ref, type Ref } from 'vue';
 
 export interface AdminTheme {
-  isDark: Readonly<Ref<boolean>>;
-  toggleTheme(): void;
+  readonly isDark: Readonly<Ref<boolean>>;
+  readonly toggleTheme: () => void;
 }
 
 export function createAdminTheme(storageKey: string, storage?: Storage) {
@@ -40,6 +40,9 @@ export function createAdminTheme(storageKey: string, storage?: Storage) {
     disposed = true;
   }
 
-  const context: AdminTheme = { isDark: readonly(isDark), toggleTheme };
+  const context: AdminTheme = Object.freeze({
+    isDark: readonly(isDark),
+    toggleTheme,
+  });
   return { context, start, dispose };
 }

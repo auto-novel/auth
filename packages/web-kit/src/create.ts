@@ -1,5 +1,6 @@
 import { createAuthApi, type AuthUser } from '@novelia/auth-api';
-import { computed, readonly, ref, type App } from 'vue';
+import { computed, readonly, ref, type App, type DeepReadonly } from 'vue';
+import type { RouteLocationRaw } from 'vue-router';
 
 import { createAttention } from './attentionContext';
 import { webKitKey } from './context';
@@ -23,6 +24,54 @@ function resolveAuthUrl(url: string): string {
   }
 }
 
+/** 按 Router 读取的公开字段取快照，兼容继承属性和 getter。 */
+function snapshotRouteTarget(
+  target: RouteLocationRaw,
+): DeepReadonly<RouteLocationRaw> {
+  if (typeof target === 'string') return target;
+  const route: Record<string, unknown> = {};
+  for (const key of [
+    'path',
+    'name',
+    'params',
+    'query',
+    'hash',
+    'replace',
+    'force',
+    'state',
+  ]) {
+    if (key in target) route[key] = Reflect.get(target, key);
+  }
+  // Router 的 params/query 按 for...in 读取，包括继承的可枚举字段。
+  for (const key of ['params', 'query']) {
+    const record = route[key];
+    if (record && typeof record === 'object') {
+      const entries: [string, unknown][] = [];
+      for (const field in record)
+        entries.push([field, Reflect.get(record, field)]);
+      route[key] = Object.fromEntries(entries);
+    }
+  }
+  const seen = new WeakMap<object, object>();
+  function copy(value: unknown): unknown {
+    if (value === null || typeof value !== 'object') return value;
+    const existing = seen.get(value);
+    if (existing) return existing;
+    const result = Array.isArray(value) ? new Array(value.length) : {};
+    seen.set(value, result);
+    for (const [key, child] of Object.entries(value)) {
+      Object.defineProperty(result, key, {
+        value: copy(child),
+        enumerable: true,
+        configurable: true,
+        writable: true,
+      });
+    }
+    return Object.freeze(result);
+  }
+  return copy(route) as DeepReadonly<RouteLocationRaw>;
+}
+
 /** 每个模块运行环境只创建一次，并且只安装到一个 Vue 应用。 */
 export function createWebKit(options: WebKitOptions): WebKit {
   if (created) {
@@ -41,7 +90,7 @@ export function createWebKit(options: WebKitOptions): WebKit {
       : undefined,
     strikes: Object.freeze({
       enabled: options.strikes?.enabled ?? true,
-      to: options.strikes?.to ?? '/strikes',
+      to: snapshotRouteTarget(options.strikes?.to ?? '/strikes'),
     }),
     themeStorageKey: options.themeStorageKey,
   });
@@ -107,14 +156,14 @@ export function createWebKit(options: WebKitOptions): WebKit {
     if (started) Notify.dismissAll();
   }
 
-  const context: WebKitContext = {
+  const context: WebKitContext = Object.freeze({
     options: normalizedOptions,
     api,
     profile: readonly(profile),
     isSignedIn,
     attention: attention.context,
     theme: theme.context,
-  };
+  });
   const kit: WebKit = {
     ...context,
     start,
@@ -137,5 +186,5 @@ export function createWebKit(options: WebKitOptions): WebKit {
   };
 
   created = true;
-  return kit;
+  return Object.freeze(kit);
 }

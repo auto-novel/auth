@@ -2,9 +2,9 @@ import type { AttentionStatus, AuthApi, AuthUser } from '@novelia/auth-api';
 import { readonly, ref, type DeepReadonly, type Ref } from 'vue';
 
 export interface AttentionContext {
-  status: DeepReadonly<Ref<AttentionStatus | undefined>>;
-  refresh(): Promise<void>;
-  updateStrikeReadState(throughId: number): Promise<void>;
+  readonly status: DeepReadonly<Ref<AttentionStatus | undefined>>;
+  readonly refresh: () => Promise<void>;
+  readonly updateStrikeReadState: (throughId: number) => Promise<void>;
 }
 
 interface AttentionSession {
@@ -137,11 +137,11 @@ export function createAttention(api: AttentionApi) {
     unsubscribe = undefined;
   }
 
-  const context: AttentionContext = {
+  const context: AttentionContext = Object.freeze({
     status: readonly(status),
     refresh,
     updateStrikeReadState,
-  };
+  });
 
   return { context, start, dispose };
 }

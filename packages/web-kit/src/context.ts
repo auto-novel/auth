@@ -1,5 +1,7 @@
 import { inject, type InjectionKey } from 'vue';
 
+import type { AttentionContext } from './attentionContext';
+import type { WebTheme } from './theme';
 import type { WebKitContext } from './types';
 
 export const webKitKey: InjectionKey<WebKitContext> = Symbol('web-kit');
@@ -12,10 +14,10 @@ export function useWebKit(): WebKitContext {
   return kit;
 }
 
-export function useWebTheme() {
+export function useWebTheme(): WebTheme {
   return useWebKit().theme;
 }
 
-export function useAttention() {
+export function useAttention(): AttentionContext {
   return useWebKit().attention;
 }

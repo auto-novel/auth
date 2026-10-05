@@ -19,6 +19,8 @@ Admin Kit 仅用于浏览器。每个浏览器中的已加载模块运行时只�
 销毁是终态：之后不能启动或安装，也不重置单实例创建限制。同步启动或安装失败会清理已分配资源并销毁 kit，重新启动应用需要重载页面。
 组件通过 `useAdminKit()` 获取 `AdminKitContext`，不暴露 `start`、`install` 或 `dispose`；会话与主题的生命周期应统一由 kit 管理。
 
+kit、组件上下文和主题上下文的对象外壳均被冻结，类型中的字段也只读，不能替换 `profile`、`theme`、配置或方法。`profile` 的 Ref 与用户字段深只读，配置是复制后冻结的快照。主题只公开只读的 `isDark` 和 `toggleTheme()`，修改主题必须通过该方法，内部 `start`/`dispose` 不会暴露。冻结对象外壳不会阻止 Ref 随内部状态更新；`api` 只禁止替换引用，其原有接口与调用能力不变。
+
 创建后 `profile` 为 `undefined`，主题使用初始浅色，启动时才恢复存储状态。
 `start()` 只启动同步，不等待网络登录检查；需要等待时，在启动后调用 `await adminKit.api.checkSignedIn()`。
 请先安装 kit 再安装 router，确保首次路由守卫使用已启动的会话；创建业务客户端和注册守卫仍可在启动前完成。

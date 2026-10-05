@@ -41,19 +41,19 @@ export interface WebKitMenuOption {
 }
 
 export interface WebKitContext {
-  options: DeepReadonly<WebKitResolvedOptions>;
-  api: AuthApi;
-  profile: DeepReadonly<Ref<AuthUser | undefined>>;
-  isSignedIn: ComputedRef<boolean>;
+  readonly options: DeepReadonly<WebKitResolvedOptions>;
+  readonly api: AuthApi;
+  readonly profile: DeepReadonly<Ref<AuthUser | undefined>>;
+  readonly isSignedIn: ComputedRef<boolean>;
   /** 处罚提醒状态，与账号菜单里的未读红点同源。 */
-  attention: AttentionContext;
-  theme: WebTheme;
+  readonly attention: AttentionContext;
+  readonly theme: WebTheme;
 }
 
 export interface WebKit extends WebKitContext {
   /** 启动会话、主题和提醒；重复调用无副作用，install 也会调用它。 */
-  start(): void;
-  install(app: App): void;
+  readonly start: () => void;
+  readonly install: (app: App) => void;
   /** 释放已启动的资源；重复调用无副作用，释放后不可重新启动。 */
-  dispose(): void;
+  readonly dispose: () => void;
 }

@@ -48,11 +48,14 @@ const mobileMenuOpen = ref(false);
 const sidebarCollapsed = ref(false);
 const isMobile = computed(() => viewportMode.value === 'mobile');
 
-provide(layoutKey, {
-  scrollToTop(options) {
-    pageContent.value?.scrollTo({ top: 0, ...options });
-  },
-});
+provide(
+  layoutKey,
+  Object.freeze({
+    scrollToTop(options?: ScrollToOptions) {
+      pageContent.value?.scrollTo({ top: 0, ...options });
+    },
+  }),
+);
 
 async function selectNavigation() {
   mobileMenuOpen.value = false;

@@ -28,18 +28,18 @@ export type AdminKitMenuOption = MenuOption & {
   );
 
 export interface AdminKitContext {
-  options: DeepReadonly<AdminKitOptions>;
-  api: AuthApi;
-  profile: DeepReadonly<Ref<AuthUser | undefined>>;
-  isSignedIn: ComputedRef<boolean>;
-  isAuthorized: ComputedRef<boolean>;
-  theme: AdminTheme;
+  readonly options: DeepReadonly<AdminKitOptions>;
+  readonly api: AuthApi;
+  readonly profile: DeepReadonly<Ref<AuthUser | undefined>>;
+  readonly isSignedIn: ComputedRef<boolean>;
+  readonly isAuthorized: ComputedRef<boolean>;
+  readonly theme: AdminTheme;
 }
 
 export interface AdminKit extends AdminKitContext {
   /** 启动会话和主题；重复调用无副作用，install 也会调用它。 */
-  start(): void;
-  install(app: App): void;
+  readonly start: () => void;
+  readonly install: (app: App) => void;
   /** 释放已启动的资源；重复调用无副作用，释放后不可重新启动。 */
-  dispose(): void;
+  readonly dispose: () => void;
 }

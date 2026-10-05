@@ -1,9 +1,9 @@
 import { computed, readonly, ref, type ComputedRef, type Ref } from 'vue';
 
 export interface WebTheme {
-  theme: Readonly<Ref<'light' | 'dark'>>;
-  isDark: ComputedRef<boolean>;
-  toggleTheme(): void;
+  readonly theme: Readonly<Ref<'light' | 'dark'>>;
+  readonly isDark: ComputedRef<boolean>;
+  readonly toggleTheme: () => void;
 }
 
 type Theme = 'light' | 'dark';
@@ -91,10 +91,10 @@ export function createWebTheme(storageKey: string, storage?: Storage) {
     transitionTimer = undefined;
   }
 
-  const context: WebTheme = {
+  const context: WebTheme = Object.freeze({
     theme: readonly(currentTheme),
     isDark,
     toggleTheme,
-  };
+  });
   return { context, start, dispose };
 }

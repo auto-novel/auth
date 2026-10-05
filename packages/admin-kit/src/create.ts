@@ -48,14 +48,14 @@ export function createAdminKit(options: AdminKitOptions): AdminKit {
   });
   const profile = ref<AuthUser>();
   let unsubscribe: (() => void) | undefined;
-  const context: AdminKitContext = {
+  const context: AdminKitContext = Object.freeze({
     options: normalizedOptions,
     api,
     profile: readonly(profile),
     isSignedIn: computed(() => profile.value !== undefined),
     isAuthorized: computed(() => profile.value?.role === 'admin'),
     theme: theme.context,
-  };
+  });
   let owner: App | undefined;
   let started = false;
   let disposed = false;
@@ -109,5 +109,5 @@ export function createAdminKit(options: AdminKitOptions): AdminKit {
   };
 
   created = true;
-  return kit;
+  return Object.freeze(kit);
 }
