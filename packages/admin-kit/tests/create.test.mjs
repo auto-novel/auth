@@ -103,8 +103,18 @@ function fakeBrowser(t) {
 test('only one successful create, including after idempotent disposal', async (t) => {
   const { counts, timers } = fakeBrowser(t);
   const createAdminKit = await freshFactory();
+  const beforeCreate = { ...counts };
   const kit = createAdminKit(options);
   try {
+    assert.deepEqual(counts, beforeCreate);
+    assert.equal(kit.profile.value, undefined);
+    assert.equal(kit.isSignedIn.value, false);
+    assert.equal(kit.isAuthorized.value, false);
+    assert.equal(kit.theme.isDark.value, false);
+    kit.start();
+    const afterStart = { ...counts };
+    kit.start();
+    assert.deepEqual(counts, afterStart);
     assert.equal(kit.options.auth.url, 'https://admin.example/auth/');
     assert.equal(kit.profile.value.username, 'administrator');
     assert.equal(kit.isSignedIn.value, true);
@@ -157,6 +167,9 @@ test('invalid initial URL does not consume the singleton or allocate resources',
   assert.deepEqual(counts, before);
   const kit = createAdminKit(options);
   try {
+    assert.deepEqual(counts, before);
+    assert.equal(kit.isAuthorized.value, false);
+    kit.start();
     assert.equal(kit.isAuthorized.value, true);
     assert.equal(counts.timers, 1);
     assert.equal(counts.added, 1);
@@ -164,6 +177,23 @@ test('invalid initial URL does not consume the singleton or allocate resources',
   } finally {
     kit.dispose();
   }
+  assert.equal(timers.size, 0);
+});
+
+test('disposing before start allocates no resources and is terminal', async (t) => {
+  const { counts, timers } = fakeBrowser(t);
+  const createAdminKit = await freshFactory();
+  const before = { ...counts };
+  const kit = createAdminKit(options);
+  kit.dispose();
+  kit.dispose();
+  assert.equal(kit.profile.value, undefined);
+  assert.equal(kit.isSignedIn.value, false);
+  assert.equal(kit.isAuthorized.value, false);
+  assert.throws(() => kit.start(), /disposed admin kit/);
+  assert.throws(() => kit.install(createApp({})), /disposed admin kit/);
+  assert.throws(() => createAdminKit(options), /even after dispose/);
+  assert.deepEqual(counts, before);
   assert.equal(timers.size, 0);
 });
 
@@ -177,8 +207,18 @@ test('one owner app, harmless same-app install, context only, and unmount dispos
   const onUnmount = t.mock.method(app, 'onUnmount');
   const otherProvide = t.mock.method(otherApp, 'provide');
   try {
+    assert.equal(kit.profile.value, undefined);
+    assert.equal(counts.reads, 0);
     kit.install(app);
+    assert.equal(kit.profile.value.username, 'administrator');
+    assert.equal(kit.isSignedIn.value, true);
+    assert.equal(kit.isAuthorized.value, true);
+    assert.equal(counts.added, 1);
+    assert.equal(counts.timers, 1);
+    const afterInstall = { ...counts };
     kit.install(app);
+    kit.start();
+    assert.deepEqual(counts, afterInstall);
     assert.equal(provide.mock.callCount(), 1);
     assert.equal(onUnmount.mock.callCount(), 1);
     const context = app.runWithContext(useAdminKit);

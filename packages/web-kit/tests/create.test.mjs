@@ -113,14 +113,24 @@ test('one successful create, no notification rebinding, and final idempotent dis
   const { counts, timers } = fakeBrowser(t);
   const createWebKit = await freshFactory();
   Notify.success('before creation');
+  const beforeCreate = { ...counts };
   const kit = createWebKit(options);
   try {
+    assert.deepEqual(counts, beforeCreate);
+    assert.equal(kit.profile.value, undefined);
+    assert.equal(kit.isSignedIn.value, false);
+    assert.equal(kit.theme.theme.value, 'light');
+    kit.start();
+    const afterStart = { ...counts };
+    kit.start();
+    assert.deepEqual(counts, afterStart);
+    assert.equal(kit.theme.theme.value, 'dark');
     assert.equal(kit.options.auth.url, 'https://web.example/auth/');
     assert.equal(kit.profile.value.username, 'member');
     assert.equal(kit.isSignedIn.value, true);
     assert.equal('notifications' in kit, false);
     assert.equal(counts.added, 1);
-    assert.equal(counts.timers, 1);
+    assert.equal(counts.timers, 2); // auth refresh + attention polling
     assert.equal(counts.fetches, 0);
     assert.equal(notifications.items.value[0].message, 'before creation');
 
@@ -147,7 +157,7 @@ test('one successful create, no notification rebinding, and final idempotent dis
 
     kit.dispose();
     assert.equal(counts.removed, 1);
-    assert.equal(counts.cleared, 1);
+    assert.equal(counts.cleared, 2);
     assert.equal(timers.size, 0);
     assert.deepEqual(notifications.items.value, []);
     const after = { ...counts };
@@ -171,12 +181,33 @@ test('invalid initial URL does not consume the singleton or allocate resources',
   assert.deepEqual(counts, before);
   const kit = createWebKit(options);
   try {
+    assert.deepEqual(counts, before);
+    assert.equal(kit.isSignedIn.value, false);
+    kit.start();
     assert.equal(kit.isSignedIn.value, true);
-    assert.equal(counts.timers, 1);
+    assert.equal(counts.timers, 2); // auth refresh + attention polling
     assert.equal(counts.fetches, 0);
   } finally {
     kit.dispose();
   }
+  assert.equal(timers.size, 0);
+});
+
+test('disposing before start preserves notifications and allocates no resources', async (t) => {
+  const { counts, timers } = fakeBrowser(t);
+  const createWebKit = await freshFactory();
+  Notify.success('before creation');
+  const before = { ...counts };
+  const kit = createWebKit(options);
+  kit.dispose();
+  kit.dispose();
+  assert.equal(kit.profile.value, undefined);
+  assert.equal(kit.isSignedIn.value, false);
+  assert.equal(notifications.items.value[0].message, 'before creation');
+  assert.throws(() => kit.start(), /disposed web kit/);
+  assert.throws(() => kit.install(createApp({})), /disposed/);
+  assert.throws(() => createWebKit(options), /even after dispose/);
+  assert.deepEqual(counts, before);
   assert.equal(timers.size, 0);
 });
 
