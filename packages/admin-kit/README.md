@@ -70,14 +70,24 @@ const routes = [
 
 登录路由名称固定为 `login`，`/` 应重定向到默认首页。侧边栏菜单由 `menuOptions` 提供。
 
-导航菜单项使用 `AdminKitMenuOption`，并通过 `to` 指定 Vue Router
-目标。带有 `to` 的菜单项会渲染为原生链接，支持浏览器右键菜单、中键以及
-Ctrl/Cmd 点击打开新标签页；不带 `to` 的项仍作为普通动作处理：
+菜单项使用 `AdminKitMenuOption`，`key` 是必填的唯一字符串或数字标识，
+不作为路由路径使用。菜单项分为三种：
+
+- 导航项通过 `to` 指定 Vue Router 目标，渲染为原生链接，支持右键、中键和 Ctrl/Cmd 开新标签页。
+- 动作项通过 `onSelect` 指定回调，不执行隐式导航。
+- 子菜单通过 `children` 提供嵌套项，自身不指定 `to` 或 `onSelect`。
 
 ```ts
 import type { AdminKitMenuOption } from '@novelia/admin-kit';
 
 const menuOptions: AdminKitMenuOption[] = [
-  { label: '概览', key: '/overview', to: { name: 'overview' } },
+  { label: '概览', key: 'overview', to: { name: 'overview' } },
+  { label: '导出', key: 'export', onSelect: () => exportData() },
 ];
 ```
+
+导航高亮按 `router.resolve(to).path` 与当前路径精确匹配，不比较 query/hash；
+支持命名路由、参数、嵌套菜单和数字 key，无匹配时不选中任何项。
+隐藏项不参与匹配，禁用项不会触发导航或动作。
+所有 key 应唯一，不能使用内置保留值 `admin-kit-theme-divider`、`admin-kit-theme-toggle`。
+原来省略 `to` 的动作项需补上 `onSelect`；导航项必须显式提供 `to`，不再从 key 推导。

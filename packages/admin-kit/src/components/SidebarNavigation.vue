@@ -13,7 +13,7 @@ import SidebarFooter from './SidebarFooter.vue';
 import SidebarHeader from './SidebarHeader.vue';
 
 defineProps<{
-  activeKey: string;
+  activeKey: string | number | null;
   collapsed: boolean;
   options: Array<AdminKitMenuOption | MenuDividerOption>;
   brand: string;
@@ -24,7 +24,11 @@ defineProps<{
   };
 }>();
 
-const emit = defineEmits<{ select: [key: string] }>();
+const emit = defineEmits<{ select: [option: AdminKitMenuOption] }>();
+
+function handleSelect(_key: string | number, option: MenuOption) {
+  emit('select', option as AdminKitMenuOption);
+}
 
 function optionLabel(option: MenuOption | MenuGroupOption): VNodeChild {
   const label = 'label' in option ? option.label : option.title;
@@ -65,7 +69,7 @@ function renderLabel(option: MenuOption | MenuGroupOption): VNodeChild {
       :collapsed-width="64"
       :options="options"
       :render-label="renderLabel"
-      @update:value="emit('select', $event)"
+      @update:value="handleSelect"
     />
     <SidebarFooter
       v-if="repository"

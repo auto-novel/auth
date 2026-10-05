@@ -25,6 +25,7 @@ import { computed, h, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { RouterView, useRoute, useRouter } from 'vue-router';
 
 import { useAdminKit, useAdminTheme } from '../context';
+import { getAdminMenuActiveKey, selectAdminMenuOption } from '../menu';
 import { ADMIN_HOME_ROUTE, ADMIN_LOGIN_ROUTE_NAME } from '../router';
 import type { AdminKitMenuOption } from '../types';
 import SidebarNavigation from './SidebarNavigation.vue';
@@ -77,6 +78,7 @@ const allMenuOptions = computed<Array<AdminKitMenuOption | MenuDividerOption>>(
     {
       label: '切换主题',
       key: 'admin-kit-theme-toggle',
+      onSelect: toggleTheme,
       icon: () =>
         h(NIcon, null, {
           default: () => h(isDark.value ? DarkModeOutlined : LightModeOutlined),
@@ -84,15 +86,14 @@ const allMenuOptions = computed<Array<AdminKitMenuOption | MenuDividerOption>>(
     },
   ],
 );
-const activeKey = computed(() => route.path);
+const activeKey = computed(() =>
+  getAdminMenuActiveKey(props.menuOptions, router, route.path),
+);
 const currentTitle = computed(() => String(route.meta.title ?? ''));
 
-function handleMenuSelect(key: string) {
-  if (key === 'admin-kit-theme-toggle') toggleTheme();
-  else {
-    mobileMenuOpen.value = false;
-    void router.push(key);
-  }
+function handleMenuSelect(option: AdminKitMenuOption) {
+  mobileMenuOpen.value = false;
+  selectAdminMenuOption(option, (to) => router.push(to));
 }
 
 function updateViewport() {

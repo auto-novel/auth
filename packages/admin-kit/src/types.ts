@@ -19,10 +19,13 @@ export interface AdminKitOptions {
 }
 
 export type AdminKitMenuOption = MenuOption & {
-  /** Route target for navigational items. Omit it for actions. */
-  to?: RouteLocationRaw;
-  children?: AdminKitMenuOption[];
-};
+  /** 唯一标识，不作为路由路径使用。 */
+  key: string | number;
+} & (
+    | { to: RouteLocationRaw; onSelect?: never; children?: never }
+    | { to?: never; onSelect: () => void; children?: never }
+    | { to?: never; onSelect?: never; children: AdminKitMenuOption[] }
+  );
 
 export interface AdminKitContext {
   options: DeepReadonly<AdminKitOptions>;
