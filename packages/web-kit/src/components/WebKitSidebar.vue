@@ -78,7 +78,6 @@ const showMascot = ref(false);
         @select="emit('select', $event)"
       />
 
-      <div class="my-2 border-t border-divider" role="separator" />
       <button
         type="button"
         class="web-kit-sidebar-item text-ink hover:bg-hover"
