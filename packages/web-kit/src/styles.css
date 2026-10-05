@@ -25,8 +25,6 @@
     color: var(--color-ink);
     background: var(--color-surface);
     font-family: var(--font-sans);
-    font-synthesis: none;
-    text-rendering: optimizeLegibility;
   }
 
   :root[data-theme='dark'] {
@@ -76,6 +74,11 @@
     min-height: 100vh;
     margin: 0;
     background: var(--color-surface);
+    /* Match Naive UI's global typography without changing rem-based sizing.
+       Keep native font synthesis so CJK fonts without bold faces can be bold. */
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.6;
   }
 
   button,
