@@ -26,8 +26,7 @@ import {
 } from 'vue';
 import { RouterLink, type RouteLocationRaw } from 'vue-router';
 
-import { useWebKit, useWebTheme } from '../context';
-import { useAttention } from '../attentionContext';
+import { useAttention, useWebKit, useWebTheme } from '../context';
 import type { WebKitMenuOption } from '../types';
 
 defineProps<{ options: WebKitMenuOption[] }>();

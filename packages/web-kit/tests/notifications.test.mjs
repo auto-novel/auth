@@ -1,95 +1,71 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import {
-  activateNotifications,
-  createNotifications,
-  Notify,
-} from '../src/notifications/index.ts';
+import { notifications, Notify } from '../src/notifications/index.ts';
 
-test('keeps the newest notification first and numbers them', () => {
-  const store = createNotifications();
-  store.notify.success('已保存');
-  store.notify.error('保存失败');
+function reset(t) {
+  Notify.dismissAll();
+  t.after(() => Notify.dismissAll());
+}
+
+test('Notify writes directly to the single queue, newest first', (t) => {
+  reset(t);
+  Notify.success('已保存');
+  Notify.error('保存失败');
 
   assert.deepEqual(
-    store.items.value.map((notification) => notification.message),
-    ['保存失败', '已保存'],
+    notifications.items.value.map(({ type, message }) => ({ type, message })),
+    [
+      { type: 'error', message: '保存失败' },
+      { type: 'success', message: '已保存' },
+    ],
   );
-  assert.deepEqual(
-    store.items.value.map((notification) => notification.type),
-    ['error', 'success'],
-  );
-  assert.deepEqual(
-    store.items.value.map((notification) => notification.id),
-    [2, 1],
-  );
+  const [newest, oldest] = notifications.items.value;
+  assert.equal(newest.id, oldest.id + 1);
 });
 
-test('dismiss removes a single notification and ignores unknown ids', () => {
-  const store = createNotifications();
-  store.notify.success('a');
-  store.notify.success('b');
-  const [newest, oldest] = store.items.value;
+test('internal dismiss removes one notification and ignores unknown ids', (t) => {
+  reset(t);
+  Notify.success('a');
+  Notify.success('b');
+  const [newest, oldest] = notifications.items.value;
 
-  store.dismiss(404);
-  assert.equal(store.items.value.length, 2);
-
-  store.dismiss(newest.id);
+  notifications.dismiss(-1);
+  assert.equal(notifications.items.value.length, 2);
+  notifications.dismiss(newest.id);
   assert.deepEqual(
-    store.items.value.map((notification) => notification.message),
+    notifications.items.value.map(({ message }) => message),
     ['a'],
   );
-
-  store.dismiss(oldest.id);
-  assert.equal(store.items.value.length, 0);
+  notifications.dismiss(oldest.id);
+  assert.deepEqual(notifications.items.value, []);
 });
 
-test('dismissAll clears everything', () => {
-  const store = createNotifications();
-  store.notify.success('a');
-  store.notify.error('b');
+test('Notify.dismissAll clears the same queue without reusing message ids', (t) => {
+  reset(t);
+  Notify.success('before');
+  const oldId = notifications.items.value[0].id;
+  Notify.dismissAll();
+  assert.deepEqual(notifications.items.value, []);
 
-  store.dismissAll();
-  assert.deepEqual(store.items.value, []);
+  Notify.error('after');
+  assert.ok(notifications.items.value[0].id > oldId);
+  // A late close event from an old toast must not dismiss the new one.
+  notifications.dismiss(oldId);
+  assert.equal(notifications.items.value[0].message, 'after');
 });
 
-test('stores are isolated from each other', () => {
-  const first = createNotifications();
-  const second = createNotifications();
-
-  first.notify.success('only first');
-  second.notify.error('only second');
-
-  assert.deepEqual(
-    first.items.value.map((notification) => notification.message),
-    ['only first'],
-  );
-  assert.deepEqual(
-    second.items.value.map((notification) => notification.message),
-    ['only second'],
-  );
-  assert.deepEqual(
-    first.items.value.map((notification) => notification.id),
-    [1],
-  );
-});
-
-test('Notify writes to the most recently activated store', () => {
-  const first = createNotifications();
-  const second = createNotifications();
-
-  activateNotifications(first);
-  Notify.success('for first');
-  activateNotifications(second);
-  Notify.error('for second');
-
-  assert.deepEqual(
-    first.items.value.map((notification) => notification.message),
-    ['for first'],
-  );
-  assert.deepEqual(
-    second.items.value.map((notification) => notification.message),
-    ['for second'],
-  );
+test('the rendering queue is deeply readonly', (t) => {
+  reset(t);
+  Notify.success('original');
+  const warnings = t.mock.method(console, 'warn', () => {});
+  notifications.items.value[0].message = 'changed';
+  notifications.items.value.push({
+    id: -1,
+    type: 'error',
+    message: 'injected',
+  });
+  assert.equal(notifications.items.value.length, 1);
+  assert.equal(notifications.items.value[0].message, 'original');
+  assert.ok(warnings.mock.callCount() > 0);
 });

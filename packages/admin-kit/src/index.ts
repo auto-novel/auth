@@ -1,62 +1,10 @@
-import { computed, readonly, ref, type App } from 'vue';
-
-import { createAuthApi, type AuthUser } from '@novelia/auth-api';
-
 import AdminLoginView from './components/AdminLoginView.vue';
 import AdminKitApp from './components/AdminKitApp.vue';
 import AdminKitLayout from './components/AdminKitLayout.vue';
-import { adminKitKey, useAdminKit, useAdminTheme } from './context';
-import { createAdminTheme } from './theme';
-import type { AdminKit, AdminKitOptions } from './types';
+import { useAdminKit, useAdminTheme } from './context';
 
+export { createAdminKit } from './create';
 export { createAdminAuthGuard } from './router';
-
-export function createAdminKit(options: AdminKitOptions): AdminKit {
-  const normalizedOptions = Object.freeze({
-    auth: Object.freeze({
-      ...options.auth,
-      url: new URL(options.auth.url, window.location.origin).toString(),
-    }),
-    brand: options.brand,
-    repository: options.repository
-      ? Object.freeze({ ...options.repository })
-      : undefined,
-  });
-  let storage: Storage | undefined;
-  try {
-    storage = window.localStorage;
-  } catch {
-    // Keep the session in memory when browser storage is blocked.
-  }
-  const api = createAuthApi({
-    app: normalizedOptions.auth.app,
-    url: normalizedOptions.auth.url,
-    storage: storage
-      ? { key: `${normalizedOptions.auth.app}-admin-session`, target: storage }
-      : undefined,
-  });
-  const profile = ref<AuthUser>();
-  api.watchUser((user) => {
-    profile.value = user;
-  });
-  const isSignedIn = computed(() => profile.value !== undefined);
-  const isAuthorized = computed(() => profile.value?.role === 'admin');
-  const theme = createAdminTheme(`${normalizedOptions.auth.app}-admin-theme`);
-  const kit: AdminKit = {
-    options: normalizedOptions,
-    api,
-    profile: readonly(profile),
-    isSignedIn,
-    isAuthorized,
-    theme,
-    install(app: App) {
-      app.provide(adminKitKey, kit);
-      app.onUnmount(api.dispose);
-    },
-  };
-
-  return kit;
-}
 
 export {
   AdminLoginView,
@@ -65,4 +13,10 @@ export {
   useAdminKit,
   useAdminTheme,
 };
-export type { AdminKitMenuOption, AdminKitOptions } from './types';
+export type {
+  AdminKit,
+  AdminKitContext,
+  AdminKitMenuOption,
+  AdminKitOptions,
+} from './types';
+export type { AdminTheme } from './theme';

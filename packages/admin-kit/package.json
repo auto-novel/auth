@@ -10,7 +10,8 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "build": "vue-tsc -b"
+    "build": "vue-tsc -b",
+    "test": "node --test tests/*.test.mjs"
   },
   "peerDependencies": {
     "@vicons/material": "^0.13.0",

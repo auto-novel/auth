@@ -4,8 +4,7 @@ import { GavelOutlined } from '@vicons/material';
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
-import { useWebKit } from '../context';
-import { useAttention } from '../attentionContext';
+import { useAttention, useWebKit } from '../context';
 import { useWebKitLayout } from '../layoutContext';
 import XAsyncContent from '../ui/XAsyncContent.vue';
 import XPagination from '../ui/XPagination.vue';

@@ -36,7 +36,11 @@ const webKit = createWebKit({
 createApp(App).use(webKit).use(router).mount('#app');
 ```
 
-`auth.url` 可以是相对地址，按当前页面解析。`app.use(webKit)` 只做依赖注入和卸载清理，不注册全局组件，组件仍要按需 import；router 要先装好。
+`createWebKit` 在应用入口只调用一次；同一模块运行环境中再次调用会报错，不会覆盖配置或创建新会话。kit 只安装到一个 Vue 应用，同一应用重复安装无副作用，跨应用安装会报错。组件通过 `useWebKit()` 读取上下文，不取得 `install`/`dispose`。
+
+`auth.url` 可以是相对地址，按当前页面解析。创建 kit 时认证会话已经开始检查登录并注册监听器/刷新定时器；`app.use(webKit)` 提供上下文、启动主题与处罚提醒，并注册卸载清理，不注册全局组件。组件仍要按需 import，router 在 mount 前安装即可。
+
+Vue 应用卸载时会自动调用 `webKit.dispose()`；创建后没有安装的 kit 也必须手动释放。重复释放无副作用，释放后不能重新安装或再次创建，重新启动应用应重载页面。这里的单实例以浏览器中的包模块为边界，不支持 SSR 服务端按请求创建 kit，也不要在应用入口的热更新回调中重复创建。
 
 根组件用 `WebKitApp` 包一层，它负责挂载全局通知：
 
@@ -119,16 +123,13 @@ Notify.success('已保存');
 Notify.error('保存失败');
 ```
 
-通知本身也挂在 kit 上，需要按实例隔离或者手动清空时用它：
+`Notify` 直接写入唯一的应用级队列，不依赖 kit 的创建顺序，也没有“当前实例”切换。全应用只挂载一个 `WebKitApp`；挂载前的通知会保留在队列中，挂载后显示。需要手动清空时：
 
 ```ts
-const { notifications } = useWebKit();
-
-notifications.notify.success('已保存');
-notifications.dismissAll();
+Notify.dismissAll();
 ```
 
-`Notify` 只是它的快捷方式，写入的是最近创建的那个 kit。
+kit 释放时也会清空通知。原来的 `useWebKit().notifications.notify` 改用 `Notify`，`notifications.dismissAll()` 改用 `Notify.dismissAll()`；不再导出 `Notifications` 类型或 `attentionKey`。`useAttention()` 保持不变，直接读取 kit 上同一份提醒状态。主题上下文只提供状态和 `toggleTheme()`，生命周期由 kit 管理。
 
 ## 错误文案
 

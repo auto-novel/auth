@@ -3,7 +3,6 @@ import type { App, Component, ComputedRef, DeepReadonly, Ref } from 'vue';
 import type { RouteLocationRaw } from 'vue-router';
 
 import type { AttentionContext } from './attentionContext';
-import type { Notifications } from './notifications';
 import type { WebTheme } from './theme';
 
 export interface WebKitStrikeOptions {
@@ -44,12 +43,10 @@ export interface WebKitMenuOption {
 export interface WebKitContext {
   options: DeepReadonly<WebKitResolvedOptions>;
   api: AuthApi;
-  profile: Readonly<Ref<AuthUser | undefined>>;
+  profile: DeepReadonly<Ref<AuthUser | undefined>>;
   isSignedIn: ComputedRef<boolean>;
   /** 处罚提醒状态，与账号菜单里的未读红点同源。 */
   attention: AttentionContext;
-  /** 本实例的通知仓库，`Notify` 是它最近一次创建实例的快捷入口。 */
-  notifications: Notifications;
   theme: WebTheme;
 }
 

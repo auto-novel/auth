@@ -1,12 +1,5 @@
 import type { AttentionStatus, AuthApi, AuthUser } from '@novelia/auth-api';
-import {
-  inject,
-  readonly,
-  ref,
-  type DeepReadonly,
-  type InjectionKey,
-  type Ref,
-} from 'vue';
+import { readonly, ref, type DeepReadonly, type Ref } from 'vue';
 
 export interface AttentionContext {
   status: DeepReadonly<Ref<AttentionStatus | undefined>>;
@@ -145,15 +138,4 @@ export function createAttention(api: AttentionApi) {
   };
 
   return { context, start, dispose };
-}
-
-export const attentionKey: InjectionKey<AttentionContext> =
-  Symbol('web-kit-attention');
-
-export function useAttention() {
-  const attention = inject(attentionKey);
-  if (!attention) {
-    throw new Error('Web kit is not installed. Call app.use(webKit).');
-  }
-  return attention;
 }

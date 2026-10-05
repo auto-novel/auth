@@ -27,7 +27,7 @@ export type AdminKitMenuOption = MenuOption & {
 export interface AdminKitContext {
   options: DeepReadonly<AdminKitOptions>;
   api: AuthApi;
-  profile: Readonly<Ref<AuthUser | undefined>>;
+  profile: DeepReadonly<Ref<AuthUser | undefined>>;
   isSignedIn: ComputedRef<boolean>;
   isAuthorized: ComputedRef<boolean>;
   theme: AdminTheme;
@@ -35,4 +35,5 @@ export interface AdminKitContext {
 
 export interface AdminKit extends AdminKitContext {
   install(app: App): void;
+  dispose(): void;
 }

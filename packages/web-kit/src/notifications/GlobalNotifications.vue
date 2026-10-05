@@ -11,12 +11,10 @@ import {
   ToastViewport,
 } from 'reka-ui';
 
-import { useWebKit } from '../context';
+import { notifications } from './index';
 
 // `items` 需要解构到顶层，模板才会自动解包这个 ref。
-const {
-  notifications: { items, dismiss },
-} = useWebKit();
+const { items, dismiss } = notifications;
 </script>
 
 <template>

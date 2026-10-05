@@ -1,4 +1,10 @@
-import { computed, readonly, ref } from 'vue';
+import { computed, readonly, ref, type ComputedRef, type Ref } from 'vue';
+
+export interface WebTheme {
+  theme: Readonly<Ref<'light' | 'dark'>>;
+  isDark: ComputedRef<boolean>;
+  toggleTheme(): void;
+}
 
 type Theme = 'light' | 'dark';
 
@@ -12,6 +18,7 @@ export function createWebTheme(storageKey: string, storage?: Storage) {
   const currentTheme = ref<Theme>('light');
   let transitionTimer: number | undefined;
   let started = false;
+  let disposed = false;
 
   function storedTheme(): Theme | undefined {
     try {
@@ -54,7 +61,7 @@ export function createWebTheme(storageKey: string, storage?: Storage) {
 
   /** 读取已保存（或系统）主题并写入 `<html>`。由 `install` 触发。 */
   function start() {
-    if (started) return;
+    if (started || disposed) return;
     started = true;
     currentTheme.value = storedTheme() ?? preferredTheme();
     applyTheme(currentTheme.value);
@@ -63,6 +70,7 @@ export function createWebTheme(storageKey: string, storage?: Storage) {
   const isDark = computed(() => currentTheme.value === 'dark');
 
   function toggleTheme() {
+    if (disposed) return;
     currentTheme.value = isDark.value ? 'light' : 'dark';
     applyTheme(currentTheme.value, true);
     try {
@@ -73,19 +81,20 @@ export function createWebTheme(storageKey: string, storage?: Storage) {
   }
 
   function dispose() {
+    disposed = true;
     if (transitionTimer !== undefined && typeof window !== 'undefined') {
       window.clearTimeout(transitionTimer);
+      if (typeof document !== 'undefined') {
+        document.documentElement.classList.remove('theme-transition');
+      }
     }
     transitionTimer = undefined;
   }
 
-  return {
+  const context: WebTheme = {
     theme: readonly(currentTheme),
     isDark,
     toggleTheme,
-    start,
-    dispose,
   };
+  return { context, start, dispose };
 }
-
-export type WebTheme = ReturnType<typeof createWebTheme>;
