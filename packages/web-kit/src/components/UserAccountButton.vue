@@ -175,7 +175,16 @@ async function focusLoginFrame() {
           class="account-menu z-40 outline-none"
         >
           <DropdownMenuLabel class="px-3 py-2.5">
-            <p class="text-sm font-medium text-ink">{{ roleLabel }}</p>
+            <button
+              v-if="authUser.role === 'admin'"
+              type="button"
+              class="cursor-pointer text-sm font-medium text-ink"
+              :aria-pressed="authUser.adminMode"
+              @click="authApi.toggleAdminMode()"
+            >
+              {{ roleLabel }}{{ authUser.adminMode ? '+' : '' }}
+            </button>
+            <p v-else class="text-sm font-medium text-ink">{{ roleLabel }}</p>
             <p class="mt-0.5 text-xs text-muted">注册于 {{ createdAt }}</p>
           </DropdownMenuLabel>
           <DropdownMenuSeparator class="border-t border-divider" />
