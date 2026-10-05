@@ -24,32 +24,32 @@ function renderIcon(icon: Component) {
 const menuOptions: AdminKitMenuOption[] = [
   {
     label: '概览',
-    key: '/overview',
-    to: '/overview',
+    key: 'overview',
+    to: { name: 'overview' },
     icon: renderIcon(DashboardOutlined),
   },
   {
     label: '用户管理',
-    key: '/users',
-    to: '/users',
+    key: 'users',
+    to: { name: 'users' },
     icon: renderIcon(PeopleOutlined),
   },
   {
     label: '处罚管理',
-    key: '/strikes',
-    to: '/strikes',
+    key: 'strikes',
+    to: { name: 'strikes' },
     icon: renderIcon(GavelOutlined),
   },
   {
     label: '事件记录',
-    key: '/events',
-    to: '/events',
+    key: 'events',
+    to: { name: 'events' },
     icon: renderIcon(HistoryOutlined),
   },
   {
     label: '系统设置',
-    key: '/settings',
-    to: '/settings',
+    key: 'settings',
+    to: { name: 'settings' },
     icon: renderIcon(SettingsOutlined),
   },
 ];
