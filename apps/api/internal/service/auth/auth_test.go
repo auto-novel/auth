@@ -44,7 +44,7 @@ func TestAuthFeaturesCanBeDisabled(t *testing.T) {
 		{
 			name:    "register OTP",
 			path:    "/otp/request",
-			body:    `{"email":"new@example.com","type":"verify"}`,
+			body:    `{"email":"new@example.com","type":"verify","turnstileToken":"token"}`,
 			handler: service.RequestOtp,
 			message: "注册功能已关闭",
 		},
@@ -58,7 +58,7 @@ func TestAuthFeaturesCanBeDisabled(t *testing.T) {
 		{
 			name:    "reset password OTP",
 			path:    "/otp/request",
-			body:    `{"email":"user@example.com","type":"reset_password"}`,
+			body:    `{"email":"user@example.com","type":"reset_password","turnstileToken":"token"}`,
 			handler: service.RequestOtp,
 			message: "重置密码功能已关闭",
 		},

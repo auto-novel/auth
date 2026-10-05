@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -32,6 +33,21 @@ func envInt(key string, fallback int) int {
 		return fallback
 	}
 	return value
+}
+
+// envList reads a comma-separated environment variable into a list.
+func envList(key string) []string {
+	raw := env(key, "")
+	if raw == "" {
+		return nil
+	}
+	values := make([]string, 0, strings.Count(raw, ",")+1)
+	for _, value := range strings.Split(raw, ",") {
+		if trimmed := strings.TrimSpace(value); trimmed != "" {
+			values = append(values, trimmed)
+		}
+	}
+	return values
 }
 
 func runOtpCleanup(ctx context.Context, repo repository.OtpRepository, interval time.Duration) {
@@ -93,6 +109,10 @@ func main() {
 		env("MAILGUN_DOMAIN", ""),
 		env("MAILGUN_APIKEY", ""),
 	)
+	turnstileVerifier := infra.NewTurnstileVerifier(
+		env("TURNSTILE_SECRET", ""),
+		envList("TURNSTILE_HOSTNAMES"),
+	)
 
 	// repository
 	userRepo := repository.NewUserRepository(db)
@@ -119,6 +139,7 @@ func main() {
 		otpRepo,
 		email,
 		settingRepo,
+		turnstileVerifier,
 	)
 	adminService := adminservice.NewAdminService(
 		userRepo,

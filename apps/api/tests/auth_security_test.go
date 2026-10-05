@@ -122,21 +122,39 @@ func TestAuthResetPasswordConsumesOtp(t *testing.T) {
 
 func TestAuthOtpRequestIsRateLimited(t *testing.T) {
 	resetDatabase(t)
-	body := map[string]string{
-		"email": "rate-limit@example.com",
-		"type":  repository.OtpVerify,
-	}
 	const ip = "198.51.100.100"
 
+	body := map[string]string{
+		"email":          "rate-limit@example.com",
+		"type":           repository.OtpVerify,
+		"turnstileToken": turnstileGoodToken,
+	}
 	for i := 0; i < 100; i++ {
 		resp, responseBody := sendJSON(t, http.MethodPost, "/v1/auth/otp/request", body, ip, nil)
 		if resp.StatusCode != http.StatusOK {
 			t.Fatalf("OTP request %d unexpectedly returned status %d: %s", i+1, resp.StatusCode, responseBody)
 		}
 	}
+
 	resp, responseBody := sendJSON(t, http.MethodPost, "/v1/auth/otp/request", body, ip, nil)
 	if resp.StatusCode != http.StatusTooManyRequests {
 		t.Fatalf("expected OTP request 101 to be rate limited, got status %d: %s", resp.StatusCode, responseBody)
+	}
+}
+
+func TestAuthOtpRequestRejectsInvalidTurnstileToken(t *testing.T) {
+	resetDatabase(t)
+	resp, responseBody := sendJSON(t, http.MethodPost, "/v1/auth/otp/request", map[string]string{
+		"email":          "invalid@example.com",
+		"type":           repository.OtpVerify,
+		"turnstileToken": turnstileBadToken,
+	}, "203.0.113.41", nil)
+
+	if resp.StatusCode != http.StatusBadRequest {
+		t.Fatalf("expected invalid token to be rejected, got status %d: %s", resp.StatusCode, responseBody)
+	}
+	if responseBody != "人机验证失败，请重试" {
+		t.Fatalf("unexpected invalid token response body: %q", responseBody)
 	}
 }
 

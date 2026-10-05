@@ -5,6 +5,7 @@ import (
 	"auth/internal/httpx"
 	"auth/internal/infra"
 	"auth/internal/repository"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -24,12 +25,32 @@ const (
 	EventResetPassword string = "reset_password"
 )
 
+// Turnstile action names for the protected OTP surfaces. Each widget render
+// carries one of these, and siteverify must return the same value: the action is
+// what stops a token minted for one flow from being replayed against another.
+const (
+	TurnstileActionSignup        string = "signup"
+	TurnstileActionPasswordReset string = "password_reset"
+)
+
+func turnstileActionForOtpType(otpType string) (string, bool) {
+	switch otpType {
+	case repository.OtpVerify:
+		return TurnstileActionSignup, true
+	case repository.OtpResetPassword:
+		return TurnstileActionPasswordReset, true
+	default:
+		return "", false
+	}
+}
+
 type authService struct {
 	userRepo    repository.UserRepository
 	eventRepo   repository.EventRepository
 	otpRepo     repository.OtpRepository
 	email       infra.EmailClient
 	settingRepo repository.SettingRepository
+	turnstile   infra.TurnstileVerifier
 }
 
 func NewAuthService(
@@ -38,13 +59,18 @@ func NewAuthService(
 	otpRepo repository.OtpRepository,
 	email infra.EmailClient,
 	settingRepo repository.SettingRepository,
+	turnstile infra.TurnstileVerifier,
 ) *authService {
+	if turnstile == nil {
+		panic("auth: Turnstile verifier is required")
+	}
 	s := &authService{
 		userRepo:    userRepo,
 		eventRepo:   eventRepo,
 		otpRepo:     otpRepo,
 		email:       email,
 		settingRepo: settingRepo,
+		turnstile:   turnstile,
 	}
 	return s
 }
@@ -370,8 +396,9 @@ func (s *authService) sendOtpEmail(otpType string, email string, otp string) err
 
 func (s *authService) RequestOtp(w http.ResponseWriter, r *http.Request) error {
 	req, err := httpx.Body[struct {
-		Email string `json:"email" label:"邮箱" validate:"required,email"`
-		Type  string `json:"type" label:"请求类型" validate:"required,oneof=verify reset_password"`
+		Email          string `json:"email" label:"邮箱" validate:"required,email"`
+		Type           string `json:"type" label:"请求类型" validate:"required,oneof=verify reset_password"`
+		TurnstileToken string `json:"turnstileToken" label:"人机验证令牌" validate:"required"`
 	}](r)
 	if err != nil {
 		slog.Error("Request OTP body parse error", "error", err)
@@ -383,6 +410,22 @@ func (s *authService) RequestOtp(w http.ResponseWriter, r *http.Request) error {
 	}
 	if req.Type == repository.OtpResetPassword && !settings.ResetPasswordEnabled {
 		return httpx.Forbidden("重置密码功能已关闭")
+	}
+
+	// 人机验证失败时直接拒绝，避免发送验证邮件
+	action, ok := turnstileActionForOtpType(req.Type)
+	if !ok {
+		slog.Error("No Turnstile action for OTP type", "type", req.Type)
+		return httpx.BadRequest("无效的请求类型")
+	}
+	switch err := s.turnstile.Verify(r.Context(), req.TurnstileToken, httpx.GetRealIp(r), action); {
+	case err == nil:
+	case errors.Is(err, infra.ErrTurnstileUnavailable):
+		slog.Error("Turnstile verification is unavailable", "error", err)
+		return httpx.NewHttpError(http.StatusServiceUnavailable, "人机验证服务暂不可用，请稍后再试")
+	default:
+		slog.Warn("Turnstile verification failed", "email", req.Email, "type", req.Type, "error", err)
+		return httpx.BadRequest("人机验证失败，请重试")
 	}
 
 	user, err := s.userRepo.FindByEmail(req.Email)

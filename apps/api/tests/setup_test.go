@@ -12,6 +12,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"net/http"
 	"net/http/httptest"
 	"os"
 	"strconv"
@@ -39,6 +40,43 @@ var (
 type noopEmailClient struct{}
 
 func (noopEmailClient) SendEmail(string, string, string) error { return nil }
+
+// Turnstile stub behaviour. These stand in for Cloudflare siteverify so
+// integration tests never leave the machine, while still mirroring the full
+// canonical response: success, hostname, and action.
+const (
+	turnstileTestHostname = "n.novelia.cc"
+	turnstileGoodToken    = "turnstile-ok"
+	turnstileBadToken     = "turnstile-invalid"
+	turnstileActionSignup = "signup"
+)
+
+// turnstileStubServer returns deterministic responses without simulating
+// Cloudflare's token redemption state.
+func turnstileStubServer() *httptest.Server {
+	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, "bad form", http.StatusBadRequest)
+			return
+		}
+		token := r.PostForm.Get("response")
+		w.Header().Set("Content-Type", "application/json")
+
+		reject := func(code string) {
+			w.Write([]byte(`{"success":false,"error-codes":["` + code + `"]}`))
+		}
+		switch {
+		case token == turnstileBadToken:
+			reject("invalid-input-response")
+		case token == "":
+			reject("missing-input-response")
+		default:
+			w.Write([]byte(
+				`{"success":true,"hostname":"` + turnstileTestHostname + `","action":"` + turnstileActionSignup + `"}`,
+			))
+		}
+	}))
+}
 
 func TestMain(m *testing.M) {
 	port := envInt("TEST_DB_PORT", 4002)
@@ -69,12 +107,20 @@ func TestMain(m *testing.M) {
 		testDB.Close()
 		os.Exit(1)
 	}
+	turnstileServer := turnstileStubServer()
+	defer turnstileServer.Close()
+
 	authService := authservice.NewAuthService(
 		userRepo,
 		eventRepo,
 		otpRepo,
 		noopEmailClient{},
 		settingRepo,
+		infra.NewTurnstileVerifier(
+			"integration-test-turnstile-secret",
+			[]string{turnstileTestHostname},
+			infra.WithTurnstileEndpoint(turnstileServer.URL),
+		),
 	)
 	adminService := adminservice.NewAdminService(userRepo, eventRepo, settingRepo)
 	adminStrikeService := adminservice.NewAdminStrikeService(userRepo, eventRepo, strikeRepo)

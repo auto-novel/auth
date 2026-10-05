@@ -65,8 +65,9 @@ func TestAdminAuthSetting(t *testing.T) {
 	)
 	SendRequestAndExpectError(
 		t, http.MethodPost, "/v1/auth/otp/request", map[string]string{
-			"email": "new@example.com",
-			"type":  repository.OtpVerify,
+			"email":          "new@example.com",
+			"type":           repository.OtpVerify,
+			"turnstileToken": turnstileGoodToken,
 		},
 		http.StatusForbidden, "注册功能已关闭",
 	)
@@ -76,8 +77,9 @@ func TestAdminAuthSetting(t *testing.T) {
 	)
 	SendRequestAndExpectError(
 		t, http.MethodPost, "/v1/auth/otp/request", map[string]string{
-			"email": "user@example.com",
-			"type":  repository.OtpResetPassword,
+			"email":          "user@example.com",
+			"type":           repository.OtpResetPassword,
+			"turnstileToken": turnstileGoodToken,
 		},
 		http.StatusForbidden, "重置密码功能已关闭",
 	)
