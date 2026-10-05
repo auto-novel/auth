@@ -1,0 +1,9 @@
+/* admin-kit 没有自己的样式入口，内置登录页的样式是组件 scoped 的；
+   这里只兜底页面底色，主题切换由 AdminKitApp 的 NConfigProvider 负责。 */
+html,
+body,
+#app {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
