@@ -71,7 +71,7 @@
 
   body {
     min-width: 320px;
-    min-height: 100vh;
+    min-height: 100dvh;
     margin: 0;
     background: var(--color-surface);
     /* Match Naive UI's global typography without changing rem-based sizing.
@@ -79,6 +79,14 @@
     font-family: var(--font-sans);
     font-size: 14px;
     line-height: 1.6;
+  }
+
+  /* Layout pages scroll inside main, never on the document. Keep this scoped
+     so pages without WebKitLayout retain normal document scrolling. */
+  :root:has(.web-kit-layout),
+  body:has(.web-kit-layout) {
+    overflow: hidden;
+    overscroll-behavior-y: none;
   }
 
   button,

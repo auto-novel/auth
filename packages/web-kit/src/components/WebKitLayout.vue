@@ -214,7 +214,10 @@ watch(mobileMenuOpen, (open) => {
         <UserAccountButton :options="accountOptions" />
       </header>
 
-      <main ref="pageContent" class="min-h-0 flex-1 overflow-y-auto">
+      <main
+        ref="pageContent"
+        class="min-h-0 flex-1 overflow-y-auto overscroll-y-contain"
+      >
         <slot />
       </main>
     </div>
