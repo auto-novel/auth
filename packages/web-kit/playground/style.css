@@ -1,0 +1,6 @@
+/* 与宿主应用一致：先 tailwindcss，再引 kit 样式。
+   kit 样式里的 @source 只扫描 src，playground 自己的类名要在这里补。 */
+@import 'tailwindcss';
+@import '@novelia/web-kit/styles.css';
+
+@source './**/*.{vue,ts}';
