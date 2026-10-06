@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { toast } from 'vue-sonner';
+import Turnstile from '../components/Turnstile.vue';
 import { Api } from '../data/api';
 import { Validator, onLoginSuccess } from './util';
 
@@ -14,6 +15,9 @@ const password = ref('');
 const email = ref('');
 const otp = ref('');
 const loading = ref(false);
+
+const turnstileToken = ref('');
+const turnstile = ref<InstanceType<typeof Turnstile> | null>(null);
 
 function register(event: MouseEvent) {
   event.preventDefault();
@@ -54,8 +58,17 @@ function register(event: MouseEvent) {
 
     <FormItem :rules="Validator.validateOtpVerify">
       <Input round="left" placeholder="邮箱验证码" v-model="otp" />
-      <OtpButton :email="email" type="verify" round="right" class="flex-1/2" />
+      <OtpButton
+        :token="turnstileToken"
+        :email="email"
+        type="verify"
+        round="right"
+        class="flex-1/2"
+        @reset="turnstile?.reset()"
+      />
     </FormItem>
+
+    <Turnstile ref="turnstile" v-model:token="turnstileToken" action="signup" />
 
     <p class="mt-1 text-left text-xs text-[#8d8d8d] select-none">
       * 收不到验证邮件的话，记得看垃圾箱

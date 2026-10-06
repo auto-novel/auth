@@ -27,6 +27,8 @@ services:
       - DB_PASSWORD=${POSTGRES_PASSWORD}
       - MAILGUN_DOMAIN
       - MAILGUN_APIKEY
+      - TURNSTILE_SECRET
+      - TURNSTILE_HOSTNAMES
     healthcheck:
       test:
         [

@@ -2,8 +2,8 @@ async function post(url: string, body: any) {
   const controller = new AbortController();
   const signal = controller.signal;
 
-  // 设置5秒超时
-  const timeoutId = setTimeout(() => controller.abort(), 5000);
+  // 设置10秒超时
+  const timeoutId = setTimeout(() => controller.abort(), 10000);
 
   try {
     const response = await fetch('/api/v1/auth/' + url, {
@@ -59,8 +59,9 @@ export const Api = {
   login: debounce((body: { app: string; username: string; password: string }) =>
     post('login', body),
   ),
-  requestOtp: debounce((body: { email: string; type: OtpType }) =>
-    post('otp/request', body),
+  requestOtp: debounce(
+    (body: { email: string; type: OtpType; turnstileToken: string }) =>
+      post('otp/request', body),
   ),
   resetPassword: debounce(
     (body: { email: string; password: string; otp: string }) =>

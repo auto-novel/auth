@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { toast } from 'vue-sonner';
+import Turnstile from '../components/Turnstile.vue';
 import { Api } from '../data/api';
 import { Validator } from './util';
 
@@ -13,6 +14,9 @@ const password = ref('');
 const email = ref('');
 const otp = ref('');
 const loading = ref(false);
+
+const turnstileToken = ref('');
+const turnstile = ref<InstanceType<typeof Turnstile> | null>(null);
 
 function resetPassword(event: MouseEvent) {
   event.preventDefault();
@@ -45,12 +49,20 @@ function resetPassword(event: MouseEvent) {
     <FormItem :rules="Validator.validateOtpResetPassword">
       <Input round="left" placeholder="邮箱验证码" v-model="otp" />
       <OtpButton
+        :token="turnstileToken"
         :email="email"
         type="reset_password"
         round="right"
         class="flex-1/2"
+        @reset="turnstile?.reset()"
       />
     </FormItem>
+
+    <Turnstile
+      ref="turnstile"
+      v-model:token="turnstileToken"
+      action="password_reset"
+    />
 
     <FormItem :rules="Validator.validatePassword">
       <Input type="password" placeholder="新密码" v-model="password" />
