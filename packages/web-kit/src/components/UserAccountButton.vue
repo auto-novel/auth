@@ -257,42 +257,42 @@ async function focusLoginFrame() {
   </div>
 
   <Teleport to="body">
+    <!--
+      The login page is embedded full-page, matching how the auth app renders
+      it standalone (admin-kit does the same). A constrained modal iframe would
+      make the page's own viewport-based layout diverge from that rendering.
+    -->
     <div
       v-if="loginOpen"
-      class="fixed inset-0 z-50 grid bg-black/45 p-4 sm:place-items-center"
+      class="fixed inset-0 z-50 bg-surface"
       role="dialog"
       aria-modal="true"
       aria-label="登录或注册"
       @vue:mounted="focusLoginFrame"
-      @click.self="closeLogin"
     >
-      <div
-        class="relative h-full w-full overflow-hidden bg-surface shadow-2xl sm:h-[min(760px,calc(100dvh-3rem))] sm:max-w-lg sm:rounded-xl"
+      <button
+        type="button"
+        class="absolute top-3 right-3 z-10 grid size-9 place-items-center rounded-full bg-black/55 text-white transition hover:bg-black/70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+        aria-label="关闭登录窗口"
+        @click="closeLogin"
       >
-        <button
-          type="button"
-          class="absolute top-3 right-3 z-10 grid size-9 place-items-center rounded-full bg-black/55 text-white transition hover:bg-black/70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-          aria-label="关闭登录窗口"
-          @click="closeLogin"
-        >
-          <CloseOutlined class="size-5" aria-hidden="true" />
-        </button>
+        <CloseOutlined class="size-5" aria-hidden="true" />
+      </button>
 
-        <iframe
-          ref="loginFrame"
-          class="h-full w-full border-0"
-          :src="loginFrameSrc"
-          title="登录或注册"
-        />
+      <iframe
+        ref="loginFrame"
+        class="h-full w-full border-0"
+        :src="loginFrameSrc"
+        title="登录或注册"
+      />
 
-        <p
-          v-if="loginError"
-          class="absolute right-4 bottom-4 left-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 shadow"
-          role="alert"
-        >
-          {{ loginError }}
-        </p>
-      </div>
+      <p
+        v-if="loginError"
+        class="absolute bottom-4 left-1/2 w-[min(420px,calc(100%-2rem))] -translate-x-1/2 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 shadow"
+        role="alert"
+      >
+        {{ loginError }}
+      </p>
     </div>
   </Teleport>
 </template>
