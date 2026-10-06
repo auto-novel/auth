@@ -64,6 +64,26 @@ func resolveTurnstileHostnames(hostnames []string) map[string]struct{} {
 	return resolved
 }
 
+// allowsHostname matches exact names or leading *. patterns. Wildcards cover
+// one or more subdomain levels, but never the base domain itself.
+func (v *turnstileVerifier) allowsHostname(hostname string) bool {
+	hostname = strings.ToLower(hostname)
+	if _, ok := v.hostnames[hostname]; ok {
+		return true
+	}
+	for pattern := range v.hostnames {
+		base, wildcard := strings.CutPrefix(pattern, "*.")
+		if !wildcard || base == "" || strings.Contains(base, "*") {
+			continue
+		}
+		suffix := "." + base
+		if len(hostname) > len(suffix) && strings.HasSuffix(hostname, suffix) {
+			return true
+		}
+	}
+	return false
+}
+
 // NewTurnstileVerifier creates a verifier. It always fails closed: a missing
 // secret, an empty hostname allowlist, or an unreachable siteverify all reject
 // the request rather than letting it through.
@@ -148,7 +168,7 @@ func (v *turnstileVerifier) Verify(ctx context.Context, token string, remoteIp s
 		}
 		return fmt.Errorf("%w: %s", ErrTurnstileInvalid, strings.Join(result.ErrorCodes, ","))
 	}
-	if _, ok := v.hostnames[strings.ToLower(result.Hostname)]; !ok {
+	if !v.allowsHostname(result.Hostname) {
 		return fmt.Errorf("%w: hostname %q is not allowed", ErrTurnstileInvalid, result.Hostname)
 	}
 	if result.Action != expectedAction {

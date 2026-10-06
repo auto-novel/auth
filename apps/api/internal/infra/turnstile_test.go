@@ -235,3 +235,43 @@ func TestTurnstileVerifyFailsClosed(t *testing.T) {
 		})
 	}
 }
+
+func TestTurnstileVerifyHostnamePatterns(t *testing.T) {
+	tests := []struct {
+		name     string
+		allowed  []string
+		hostname string
+		wantOK   bool
+	}{
+		{"subdomain", []string{"*.novelia.cc"}, "forum.novelia.cc", true},
+		{"nested subdomain", []string{"*.novelia.cc"}, "dev.forum.novelia.cc", true},
+		{"case and config whitespace", []string{"  *.Novelia.CC  "}, "Forum.NOVELIA.cc", true},
+		{"bare domain excluded", []string{"*.novelia.cc"}, "novelia.cc", false},
+		{"bare domain explicitly allowed", []string{"novelia.cc", "*.novelia.cc"}, "novelia.cc", true},
+		{"mixed exact and wildcard", []string{"auth.example.com", "*.novelia.cc"}, "auth.example.com", true},
+		{"exact does not include children", []string{"forum.novelia.cc"}, "dev.forum.novelia.cc", false},
+		{"suffix without label boundary", []string{"*.novelia.cc"}, "evilnovelia.cc", false},
+		{"appended foreign domain", []string{"*.novelia.cc"}, "forum.novelia.cc.evil.com", false},
+		{"unrelated domain", []string{"*.novelia.cc"}, "forum.example.com", false},
+		{"empty subdomain", []string{"*.novelia.cc"}, ".novelia.cc", false},
+		{"empty hostname", []string{"*.novelia.cc"}, "", false},
+		{"bare wildcard unsupported", []string{"*"}, "forum.novelia.cc", false},
+		{"empty wildcard base", []string{"*."}, "forum.novelia.cc", false},
+		{"partial label wildcard unsupported", []string{"forum*.novelia.cc"}, "forum1.novelia.cc", false},
+		{"embedded wildcard unsupported", []string{"*.*.novelia.cc"}, "dev.forum.novelia.cc", false},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			server, _ := siteverifyStub(t, http.StatusOK, successBody(test.hostname, testAction))
+			verifier := newTestVerifier("secret", server.URL, test.allowed...)
+			err := verifier.Verify(t.Context(), "token-abc", "", testAction)
+			if test.wantOK {
+				if err != nil {
+					t.Fatalf("expected hostname %q to be allowed, got %v", test.hostname, err)
+				}
+			} else if !errors.Is(err, ErrTurnstileInvalid) {
+				t.Fatalf("expected ErrTurnstileInvalid for hostname %q, got %v", test.hostname, err)
+			}
+		})
+	}
+}
