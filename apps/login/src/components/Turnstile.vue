@@ -44,6 +44,7 @@ function renderWidget() {
   if (!container.value || !window.turnstile) return;
   widgetId = window.turnstile.render(container.value, {
     sitekey: SITE_KEY,
+    size: 'flexible',
     theme: document.documentElement.classList.contains('dark')
       ? 'dark'
       : 'light',
@@ -89,7 +90,7 @@ defineExpose({ reset });
 </script>
 
 <template>
-  <div class="relative min-h-[65px] w-full max-w-[300px]" :aria-busy="loading">
+  <div class="relative min-h-[65px] w-full" :aria-busy="loading">
     <div ref="container"></div>
     <p
       v-if="loading"

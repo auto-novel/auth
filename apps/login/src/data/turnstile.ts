@@ -1,6 +1,8 @@
 /** Options accepted by `turnstile.render`. */
 interface TurnstileRenderOptions {
   sitekey: string;
+  /** `flexible` stretches the widget to the container width. */
+  size?: 'normal' | 'compact' | 'flexible';
   theme?: 'light' | 'dark' | 'auto';
   language?: string;
   action?: string;
