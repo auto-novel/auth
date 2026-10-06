@@ -44,6 +44,9 @@ function renderWidget() {
   if (!container.value || !window.turnstile) return;
   widgetId = window.turnstile.render(container.value, {
     sitekey: SITE_KEY,
+    theme: document.documentElement.classList.contains('dark')
+      ? 'dark'
+      : 'light',
     action: props.action,
     language: 'zh-CN',
     callback: onToken,

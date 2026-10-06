@@ -1,6 +1,7 @@
 /** Options accepted by `turnstile.render`. */
 interface TurnstileRenderOptions {
   sitekey: string;
+  theme?: 'light' | 'dark' | 'auto';
   language?: string;
   action?: string;
   callback?: (token: string) => void;
