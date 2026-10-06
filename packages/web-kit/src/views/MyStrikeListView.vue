@@ -4,7 +4,7 @@ import { GavelOutlined } from '@vicons/material';
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
-import { useAttention, useWebKit } from '../context';
+import { useWebKit } from '../context';
 import { useWebKitLayout } from '../layoutContext';
 import XAsyncContent from '../ui/XAsyncContent.vue';
 import XPagination from '../ui/XPagination.vue';
@@ -14,8 +14,7 @@ const PAGE_SIZE = 20;
 
 const route = useRoute();
 const router = useRouter();
-const { api: authApi, profile: authUser } = useWebKit();
-const { updateStrikeReadState } = useAttention();
+const { api: authApi, attention, profile: authUser } = useWebKit();
 const { scrollToTop } = useWebKitLayout();
 const strikes = ref<MyStrike[]>([]);
 const total = ref(0);
@@ -62,7 +61,7 @@ async function loadStrikes() {
     if (currentRequestId !== requestId) return;
     strikes.value = result.items;
     total.value = result.total;
-    void updateStrikeReadState(result.latestStrikeId);
+    void attention.updateStrikeReadState(result.latestStrikeId);
   } catch (reason) {
     if (currentRequestId !== requestId) return;
     strikes.value = [];

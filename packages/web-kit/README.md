@@ -151,11 +151,12 @@ createWebKit({ /* ... */ strikes: { to: { name: 'strikes' } } });
 未读状态和账号按钮同源，想在别处用（比如自己画一个角标）：
 
 ```ts
-import { useAttention } from '@novelia/web-kit';
+import { useWebKit } from '@novelia/web-kit';
 
-const { status, refresh } = useAttention();
+const { attention } = useWebKit();
 
-status.value?.strikes.hasUnread;
+attention.status.value?.strikes.hasUnread;
+attention.refresh();
 ```
 
 ## 通知
@@ -173,7 +174,7 @@ Notify.error('保存失败');
 Notify.dismissAll();
 ```
 
-已启动的 kit 释放时也会清空通知。原来的 `useWebKit().notifications.notify` 改用 `Notify`，`notifications.dismissAll()` 改用 `Notify.dismissAll()`；不再导出 `Notifications` 类型或 `attentionKey`。`useAttention()` 保持不变，直接读取 kit 上同一份提醒状态。主题上下文只提供状态和 `toggleTheme()`，生命周期由 kit 管理。
+已启动的 kit 释放时也会清空通知。原来的 `useWebKit().notifications.notify` 改用 `Notify`，`notifications.dismissAll()` 改用 `Notify.dismissAll()`；不再导出 `Notifications` 类型或 `attentionKey`。提醒状态从 `useWebKit().attention` 读取，主题从 `useWebKit().theme` 读取；两个上下文都只提供状态和公开方法，生命周期由 kit 管理。`useWebKit()` 是唯一的 kit 上下文入口，其他 hook 只在有独立注入源时才单独存在（目前只有 `useWebKitLayout()`）。
 
 ## 错误文案
 
@@ -191,7 +192,7 @@ try {
 
 ## 主题
 
-主题在启动时写入 `<html data-theme>`，无已保存偏好时采用当时的系统主题，切换后写 `localStorage`（键默认 `<auth.app>-web-theme`，可用 `themeStorageKey` 覆盖）。侧边栏底部的按钮已经接好了，业务里要用就 `useWebTheme()`，拿 `{ isDark, theme, toggleTheme }`。
+主题在启动时写入 `<html data-theme>`，无已保存偏好时采用当时的系统主题，切换后写 `localStorage`（键默认 `<auth.app>-web-theme`，可用 `themeStorageKey` 覆盖）。侧边栏底部的按钮已经接好了，业务里要用就 `useWebKit().theme`，拿 `{ isDark, theme, toggleTheme }`。
 
 ## 侧栏构建信息
 

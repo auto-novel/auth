@@ -2,7 +2,7 @@
 import { DarkModeOutlined, LightModeOutlined } from '@vicons/material';
 import { ref } from 'vue';
 
-import { useWebKit, useWebTheme } from '../context';
+import { useWebKit } from '../context';
 import type { WebKitMenuOption } from '../types';
 import SidebarFooter from './SidebarFooter.vue';
 import SidebarNavigation from './SidebarNavigation.vue';
@@ -19,8 +19,8 @@ const emit = defineEmits<{
   select: [option: WebKitMenuOption];
 }>();
 
-const { options: kitOptions } = useWebKit();
-const { isDark, toggleTheme } = useWebTheme();
+const { options: kitOptions, theme } = useWebKit();
+const { isDark, toggleTheme } = theme;
 const showMascot = ref(false);
 </script>
 

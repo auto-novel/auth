@@ -8,7 +8,7 @@ import XButton from './ui/XButton.vue';
 import XConfirmDialog from './ui/XConfirmDialog.vue';
 import XPagination from './ui/XPagination.vue';
 import XSelect from './ui/XSelect.vue';
-import { useAttention, useWebKit, useWebTheme, webKitKey } from './context';
+import { useWebKit, webKitKey } from './context';
 import { Notify } from './notifications';
 import { getApiErrorMessage } from './utils/apiError';
 import { useWebKitLayout } from './layoutContext';
@@ -28,10 +28,8 @@ export {
   XSelect,
   Notify,
   getApiErrorMessage,
-  useAttention,
   useWebKit,
   useWebKitLayout,
-  useWebTheme,
   webKitKey,
 };
 export type { AttentionContext } from './attentionContext';

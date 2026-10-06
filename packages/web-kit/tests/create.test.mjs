@@ -23,8 +23,7 @@ registerHooks({
   },
 });
 
-const { useAttention, useWebKit, useWebTheme } =
-  await import('../src/context.ts');
+const { useWebKit } = await import('../src/context.ts');
 let moduleId = 0;
 async function freshFactory() {
   return (await import(`../src/create.ts?test=${++moduleId}`)).createWebKit;
@@ -232,8 +231,8 @@ test('single owner, context-only hooks, same-app idempotence, and unmount cleanu
     assert.equal(context.profile, kit.profile);
     assert.equal('install' in context, false);
     assert.equal('dispose' in context, false);
-    assert.equal(app.runWithContext(useAttention), kit.attention);
-    assert.equal(app.runWithContext(useWebTheme), kit.theme);
+    assert.equal(context.attention, kit.attention);
+    assert.equal(context.theme, kit.theme);
     assert.equal('start' in kit.theme, false);
     assert.equal('dispose' in kit.theme, false);
     assert.throws(() => kit.install(otherApp), /another app/);

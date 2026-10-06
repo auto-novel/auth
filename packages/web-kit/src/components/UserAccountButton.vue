@@ -28,14 +28,18 @@ import {
 } from 'vue';
 import { RouterLink, type RouteLocationRaw } from 'vue-router';
 
-import { useAttention, useWebKit, useWebTheme } from '../context';
+import { useWebKit } from '../context';
 import type { WebKitMenuOption } from '../types';
 
 defineProps<{ options: WebKitMenuOption[] }>();
 
-const { api: authApi, options: kitOptions, profile: authUser } = useWebKit();
-const { status: attentionStatus, refresh: refreshAttentionStatus } =
-  useAttention();
+const {
+  api: authApi,
+  attention,
+  options: kitOptions,
+  profile: authUser,
+  theme: webTheme,
+} = useWebKit();
 const loginFrame = useTemplateRef('loginFrame');
 const menuOpen = ref(false);
 const loginOpen = ref(false);
@@ -71,7 +75,7 @@ const strikesEnabled = computed(() => kitOptions.strikes.enabled);
 const strikesTo = computed(() => kitOptions.strikes.to as RouteLocationRaw);
 const hasUnreadStrikes = computed(
   () =>
-    strikesEnabled.value && attentionStatus.value?.strikes.hasUnread === true,
+    strikesEnabled.value && attention.status.value?.strikes.hasUnread === true,
 );
 
 const accountLabel = computed(() => {
@@ -93,11 +97,12 @@ const createdAt = computed(() => {
   );
 });
 
-const { theme } = useWebTheme();
-const loginFrameSrc = computed(() => authApi.createLoginUrl(theme.value));
+const loginFrameSrc = computed(() =>
+  authApi.createLoginUrl(webTheme.theme.value),
+);
 
 watch(menuOpen, (open) => {
-  if (open) void refreshAttentionStatus();
+  if (open) void attention.refresh();
 });
 
 function openLogin() {
