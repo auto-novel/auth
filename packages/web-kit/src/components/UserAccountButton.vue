@@ -6,7 +6,6 @@ import {
   KeyboardArrowDownOutlined,
   OpenInNewOutlined,
 } from '@vicons/material';
-import { roleLabels } from '@novelia/auth-api';
 import {
   DropdownMenuContent,
   DropdownMenuItem,
@@ -37,7 +36,7 @@ const {
   api: authApi,
   attention,
   options: kitOptions,
-  profile: authUser,
+  whoami,
   theme: webTheme,
 } = useWebKit();
 const loginFrame = useTemplateRef('loginFrame');
@@ -79,18 +78,14 @@ const hasUnreadStrikes = computed(
 );
 
 const accountLabel = computed(() => {
-  if (!authUser.value) return '登录/注册';
+  const user = whoami.value.user;
+  if (!user) return '登录/注册';
   const attention = hasUnreadStrikes.value ? '，有新的处罚记录' : '';
-  return `账号 @${authUser.value.username}${attention}`;
-});
-
-const roleLabel = computed(() => {
-  const role = authUser.value?.role;
-  return role ? (roleLabels[role] ?? role) : '未知角色';
+  return `账号 @${user.username}${attention}`;
 });
 
 const createdAt = computed(() => {
-  const timestamp = authUser.value?.createdAt;
+  const timestamp = whoami.value.user?.createdAt;
   if (!timestamp) return '未知日期';
   return new Intl.DateTimeFormat('zh-CN', { dateStyle: 'medium' }).format(
     timestamp * 1000,
@@ -167,7 +162,7 @@ async function focusLoginFrame() {
 
 <template>
   <div class="relative ml-auto min-w-0 flex-none">
-    <DropdownMenuRoot v-if="authUser" v-model:open="menuOpen">
+    <DropdownMenuRoot v-if="whoami.isSignedIn" v-model:open="menuOpen">
       <DropdownMenuTrigger as-child>
         <button
           type="button"
@@ -175,7 +170,7 @@ async function focusLoginFrame() {
           :aria-label="accountLabel"
         >
           <span class="max-w-24 truncate sm:max-w-48">
-            @{{ authUser.username }}
+            @{{ whoami.user?.username }}
           </span>
           <span
             class="grid size-2 flex-none place-items-center"
@@ -209,15 +204,17 @@ async function focusLoginFrame() {
         >
           <DropdownMenuLabel class="px-3 py-2.5">
             <button
-              v-if="authUser.role === 'admin'"
+              v-if="whoami.isAdmin"
               type="button"
               class="cursor-pointer text-sm font-medium text-ink"
-              :aria-pressed="authUser.adminMode"
+              :aria-pressed="whoami.asAdmin"
               @click="authApi.toggleAdminMode()"
             >
-              {{ roleLabel }}{{ authUser.adminMode ? '+' : '' }}
+              {{ whoami.roleLabel }}{{ whoami.asAdmin ? '+' : '' }}
             </button>
-            <p v-else class="text-sm font-medium text-ink">{{ roleLabel }}</p>
+            <p v-else class="text-sm font-medium text-ink">
+              {{ whoami.roleLabel }}
+            </p>
             <p class="mt-0.5 text-xs text-muted">注册于 {{ createdAt }}</p>
           </DropdownMenuLabel>
           <DropdownMenuSeparator class="border-t border-divider" />

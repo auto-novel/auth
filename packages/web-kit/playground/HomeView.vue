@@ -8,7 +8,7 @@ import {
 } from '@novelia/web-kit';
 import { ref } from 'vue';
 
-const { isSignedIn, profile } = useWebKit();
+const { whoami } = useWebKit();
 const { scrollToTop } = useWebKitLayout();
 
 const selected = ref('alpha');
@@ -33,7 +33,7 @@ const options = [
     <section class="border-border bg-surface rounded-lg border p-5">
       <h2 class="mb-3 font-medium">会话</h2>
       <p class="text-sm">
-        登录状态：{{ isSignedIn ? (profile?.username ?? '已登录') : '未登录' }}
+        登录状态：{{ whoami.isSignedIn ? (whoami.user?.username ?? '已登录') : '未登录' }}
       </p>
       <p class="text-muted mt-1 text-xs">
         auth.url 指向相对地址 <code>/auth</code>，playground

@@ -43,6 +43,7 @@ export type {
   WebKitOptions,
   WebKitResolvedOptions,
   WebKitStrikeOptions,
+  Whoami,
 } from './types';
 export type {
   XActionMenuItemProps,

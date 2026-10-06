@@ -1,5 +1,5 @@
-import type { AuthApi, AuthUser } from '@novelia/auth-api';
-import type { App, Component, ComputedRef, DeepReadonly, Ref } from 'vue';
+import type { AuthApi, AuthUser, UserRole } from '@novelia/auth-api';
+import type { App, Component, ComputedRef, DeepReadonly } from 'vue';
 import type { RouteLocationRaw } from 'vue-router';
 
 import type { AttentionContext } from './attentionContext';
@@ -54,11 +54,27 @@ export type WebKitMenuOption =
       href: string;
     };
 
+/**
+ * 会话视图：登录状态、角色判定和派生展示字段的统一入口。
+ * 权限规则由 `@novelia/auth-api` 的 `AuthUser` 提供，这里只做响应式包装。
+ */
+export interface Whoami {
+  /** 会话用户快照；未登录为 `undefined`。 */
+  readonly user: DeepReadonly<AuthUser> | undefined;
+  readonly isSignedIn: boolean;
+  readonly isAdmin: boolean;
+  /** 角色至少为 admin 且已打开管理模式，与账号菜单里的 “+” 同源。 */
+  readonly asAdmin: boolean;
+  /** 本地化的角色名，未登录或角色未知时为“未知角色”。 */
+  readonly roleLabel: string;
+  hasRoleAtLeast(role: UserRole): boolean;
+  isAtLeastDaysOld(days: number): boolean;
+}
+
 export interface WebKitContext {
   readonly options: DeepReadonly<WebKitResolvedOptions>;
   readonly api: AuthApi;
-  readonly profile: DeepReadonly<Ref<AuthUser | undefined>>;
-  readonly isSignedIn: ComputedRef<boolean>;
+  readonly whoami: ComputedRef<Whoami>;
   /** 处罚提醒状态，与账号菜单里的未读红点同源。 */
   readonly attention: AttentionContext;
   readonly theme: WebTheme;

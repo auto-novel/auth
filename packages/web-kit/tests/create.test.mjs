@@ -116,8 +116,8 @@ test('one successful create, no notification rebinding, and final idempotent dis
   const kit = createWebKit(options);
   try {
     assert.deepEqual(counts, beforeCreate);
-    assert.equal(kit.profile.value, undefined);
-    assert.equal(kit.isSignedIn.value, false);
+    assert.equal(kit.whoami.value.user, undefined);
+    assert.equal(kit.whoami.value.isSignedIn, false);
     assert.equal(kit.theme.theme.value, 'light');
     kit.start();
     const afterStart = { ...counts };
@@ -125,8 +125,8 @@ test('one successful create, no notification rebinding, and final idempotent dis
     assert.deepEqual(counts, afterStart);
     assert.equal(kit.theme.theme.value, 'dark');
     assert.equal(kit.options.auth.url, 'https://web.example/auth/');
-    assert.equal(kit.profile.value.username, 'member');
-    assert.equal(kit.isSignedIn.value, true);
+    assert.equal(kit.whoami.value.user.username, 'member');
+    assert.equal(kit.whoami.value.isSignedIn, true);
     assert.equal('notifications' in kit, false);
     assert.equal(counts.added, 1);
     assert.equal(counts.timers, 2); // auth refresh + attention polling
@@ -181,9 +181,9 @@ test('invalid initial URL does not consume the singleton or allocate resources',
   const kit = createWebKit(options);
   try {
     assert.deepEqual(counts, before);
-    assert.equal(kit.isSignedIn.value, false);
+    assert.equal(kit.whoami.value.isSignedIn, false);
     kit.start();
-    assert.equal(kit.isSignedIn.value, true);
+    assert.equal(kit.whoami.value.isSignedIn, true);
     assert.equal(counts.timers, 2); // auth refresh + attention polling
     assert.equal(counts.fetches, 0);
   } finally {
@@ -200,8 +200,8 @@ test('disposing before start preserves notifications and allocates no resources'
   const kit = createWebKit(options);
   kit.dispose();
   kit.dispose();
-  assert.equal(kit.profile.value, undefined);
-  assert.equal(kit.isSignedIn.value, false);
+  assert.equal(kit.whoami.value.user, undefined);
+  assert.equal(kit.whoami.value.isSignedIn, false);
   assert.equal(notifications.items.value[0].message, 'before creation');
   assert.throws(() => kit.start(), /disposed web kit/);
   assert.throws(() => kit.install(createApp({})), /disposed/);
@@ -228,7 +228,7 @@ test('single owner, context-only hooks, same-app idempotence, and unmount cleanu
     assert.equal(kit.theme.theme.value, 'dark');
     const context = app.runWithContext(useWebKit);
     assert.equal(context.api, kit.api);
-    assert.equal(context.profile, kit.profile);
+    assert.equal(context.whoami, kit.whoami);
     assert.equal('install' in context, false);
     assert.equal('dispose' in context, false);
     assert.equal(context.attention, kit.attention);

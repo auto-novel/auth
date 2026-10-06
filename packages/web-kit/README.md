@@ -48,11 +48,11 @@ createApp(App).use(webKit).use(router).mount('#app');
 销毁是终态：之后不能启动或安装，也不重置单实例创建限制。同步启动或安装失败会清理已分配资源并销毁 kit，重新启动应用需要重载页面。
 组件通过 `useWebKit()` 获取上下文，不取得 `start`、`install` 或 `dispose`；会话、主题和提醒的生命周期应统一由 kit 管理。
 
-kit、组件/主题/提醒/布局上下文的对象外壳均被冻结，类型中的字段也只读，不能替换状态引用或方法。`profile` 的 Ref 与用户字段、提醒 `status` 均深只读，修改主题和提醒状态应调用公开方法。主题仅公开只读的 `theme`、`isDark` 和 `toggleTheme()`，不暴露内部生命周期。
+kit、组件/主题/提醒/布局上下文的对象外壳均被冻结，类型中的字段也只读，不能替换状态引用或方法。`whoami` 中的用户字段、提醒 `status` 均深只读，修改主题和提醒状态应调用公开方法。主题仅公开只读的 `theme`、`isDark` 和 `toggleTheme()`，不暴露内部生命周期。
 
 配置是复制后冻结的快照，包括 `strikes.to` 的 params、query、state 及其中的数组/记录；修改传入的配置对象不会改变 kit，也不会冻结调用者的原对象。冻结上下文不会阻止 Ref 随内部状态更新；`api` 只禁止替换引用，其原有接口与调用能力不变。
 
-创建后 `profile` 为 `undefined`，主题使用初始浅色，启动时才恢复存储状态。
+创建后 `whoami` 处于未登录状态，主题使用初始浅色，启动时才恢复存储状态。
 `start()` 只启动同步，不等待网络登录检查；需要等待时，在启动后调用 `await webKit.api.checkSignedIn()`。
 请先安装 kit 再安装 router，确保首次路由守卫使用已启动的会话；创建业务客户端仍可在启动前完成。
 
@@ -125,7 +125,7 @@ const options: WebKitMenuOption[] = [
 
 内置菜单及注入位置不变：侧栏注入项在主题切换之前；账号注入项在账号信息及其分割线之后、处罚记录和退出账号之前。宿主只能在这些位置组织自己的菜单，不能通过注入配置重排内置项。
 
-会话信息用 `useWebKit()` 拿：`{ api, profile, isSignedIn }`。
+会话信息用 `useWebKit()` 拿：`{ api, whoami }`。`whoami` 是 `ComputedRef<Whoami>`，含 `user`、`isSignedIn`、`isAdmin`、`asAdmin`、`roleLabel`，以及 `hasRoleAtLeast(role)`、`isAtLeastDaysOld(days)` 两个判定方法；判定规则沿用 auth-api 的 `AuthUser`，站点自己的准入策略（如注册满 30 天）在宿主里用这两者组合，不要塞进 kit。
 
 页面内容区要滚回顶部时用 `useWebKitLayout().scrollToTop()`，别自己去查 DOM；不在布局里它会退化成滚动窗口。
 

@@ -14,7 +14,7 @@ const PAGE_SIZE = 20;
 
 const route = useRoute();
 const router = useRouter();
-const { api: authApi, attention, profile: authUser } = useWebKit();
+const { api: authApi, attention, whoami } = useWebKit();
 const { scrollToTop } = useWebKitLayout();
 const strikes = ref<MyStrike[]>([]);
 const total = ref(0);
@@ -45,7 +45,7 @@ async function loadStrikes() {
   const currentRequestId = ++requestId;
   error.value = '';
 
-  if (!authUser.value) {
+  if (!whoami.value.isSignedIn) {
     strikes.value = [];
     total.value = 0;
     loading.value = false;
@@ -80,7 +80,7 @@ function changePage(nextPage: number) {
   scrollToTop({ behavior: 'smooth' });
 }
 
-watch([authUser, page], loadStrikes, { immediate: true });
+watch([whoami, page], loadStrikes, { immediate: true });
 onBeforeUnmount(() => requestId++);
 </script>
 
@@ -92,7 +92,7 @@ onBeforeUnmount(() => requestId++);
         <p class="mt-1 text-sm text-muted">查看你的账号处罚及其撤销状态。</p>
       </header>
 
-      <section v-if="!authUser" class="py-8 text-center">
+      <section v-if="!whoami.isSignedIn" class="py-8 text-center">
         <div
           class="mx-auto grid size-12 place-items-center rounded-full bg-primary-soft text-primary"
           aria-hidden="true"

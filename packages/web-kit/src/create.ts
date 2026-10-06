@@ -1,4 +1,9 @@
-import { createAuthApi, type AuthUser } from '@novelia/auth-api';
+import {
+  AuthUser,
+  createAuthApi,
+  roleLabels,
+  type UserRole,
+} from '@novelia/auth-api';
 import { computed, readonly, ref, type App, type DeepReadonly } from 'vue';
 import type { RouteLocationRaw } from 'vue-router';
 
@@ -6,7 +11,7 @@ import { createAttention } from './attentionContext';
 import { webKitKey } from './context';
 import { Notify } from './notifications';
 import { createWebTheme } from './theme';
-import type { WebKit, WebKitContext, WebKitOptions } from './types';
+import type { WebKit, WebKitContext, WebKitOptions, Whoami } from './types';
 
 let created = false;
 
@@ -114,9 +119,28 @@ export function createWebKit(options: WebKitOptions): WebKit {
       : undefined,
   });
   const profile = ref<AuthUser>();
+  const readonlyProfile = readonly(profile);
   let unsubscribe: (() => void) | undefined;
   const attention = createAttention(api);
-  const isSignedIn = computed(() => profile.value !== undefined);
+  // 谓词闭包读取 profile，解构出去后也不会拿到过期快照。
+  const predicates = {
+    hasRoleAtLeast: (role: UserRole) =>
+      AuthUser.hasRoleAtLeast(profile.value, role),
+    isAtLeastDaysOld: (days: number) =>
+      AuthUser.isAtLeastDaysOld(profile.value, days),
+  };
+  const whoami = computed<Whoami>(() => {
+    const user = readonlyProfile.value;
+    const role = user?.role;
+    return {
+      user,
+      isSignedIn: user !== undefined,
+      isAdmin: AuthUser.isAdmin(user),
+      asAdmin: AuthUser.asAdmin(user),
+      roleLabel: role ? (roleLabels[role] ?? role) : '未知角色',
+      ...predicates,
+    };
+  });
   const theme = createWebTheme(
     normalizedOptions.themeStorageKey ??
       `${normalizedOptions.auth.app}-web-theme`,
@@ -159,8 +183,7 @@ export function createWebKit(options: WebKitOptions): WebKit {
   const context: WebKitContext = Object.freeze({
     options: normalizedOptions,
     api,
-    profile: readonly(profile),
-    isSignedIn,
+    whoami,
     attention: attention.context,
     theme: theme.context,
   });
