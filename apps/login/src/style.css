@@ -17,6 +17,17 @@
     --color-outline-variant: rgb(239, 239, 245);
   }
 
+  /* 页面画布与页面底色一致。移动端输入法弹出时浏览器会平移视觉视口，未被内容
+     覆盖的部分否则会露出浏览器默认的白色。 */
+  html {
+    background-color: var(--color-surface);
+  }
+
+  html,
+  body {
+    overscroll-behavior: none;
+  }
+
   .dark {
     --color-body: #101014;
     --color-surface: #18181c;
