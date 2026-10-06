@@ -23,11 +23,6 @@
     background-color: var(--color-surface);
   }
 
-  html,
-  body {
-    overscroll-behavior: none;
-  }
-
   .dark {
     --color-body: #101014;
     --color-surface: #18181c;

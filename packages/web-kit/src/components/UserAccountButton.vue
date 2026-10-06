@@ -18,6 +18,7 @@ import {
 } from 'reka-ui';
 import {
   computed,
+  type CSSProperties,
   nextTick,
   onBeforeUnmount,
   onMounted,
@@ -38,6 +39,32 @@ const { status: attentionStatus, refresh: refreshAttentionStatus } =
 const loginFrame = useTemplateRef('loginFrame');
 const menuOpen = ref(false);
 const loginOpen = ref(false);
+const loginViewportStyle = ref<CSSProperties>({});
+
+watch(loginOpen, (open, _, onCleanup) => {
+  loginViewportStyle.value = {};
+  if (!open) return;
+
+  // iframe 无法感知宿主被键盘缩小的可见视口，由父页面同步其位置和高度。
+  const viewport = window.visualViewport;
+  if (!viewport) return;
+
+  const syncViewport = () => {
+    loginViewportStyle.value = {
+      top: `${viewport.offsetTop}px`,
+      height: `${viewport.height}px`,
+      bottom: 'auto',
+    };
+  };
+
+  syncViewport();
+  viewport.addEventListener('resize', syncViewport);
+  viewport.addEventListener('scroll', syncViewport);
+  onCleanup(() => {
+    viewport.removeEventListener('resize', syncViewport);
+    viewport.removeEventListener('scroll', syncViewport);
+  });
+});
 const loginError = ref<string>();
 const completingLogin = ref(false);
 const strikesEnabled = computed(() => kitOptions.strikes.enabled);
@@ -265,6 +292,7 @@ async function focusLoginFrame() {
     <div
       v-if="loginOpen"
       class="fixed inset-0 z-50 bg-surface"
+      :style="loginViewportStyle"
       role="dialog"
       aria-modal="true"
       aria-label="登录或注册"
@@ -281,7 +309,7 @@ async function focusLoginFrame() {
 
       <iframe
         ref="loginFrame"
-        class="h-full w-full border-0"
+        class="block h-full w-full border-0"
         :src="loginFrameSrc"
         title="登录或注册"
       />

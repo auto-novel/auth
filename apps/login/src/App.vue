@@ -35,8 +35,12 @@ root.classList.toggle('dark', theme === 'dark');
     (web-kit / admin-kit), so the old viewport-based card on wide screens only
     made the embedded and standalone renderings diverge.
   -->
-  <div class="bg-surface flex min-h-dvh w-full flex-col px-8 pt-[10vh] pb-8">
-    <div class="mx-auto flex w-full max-w-md flex-col gap-4">
+  <!-- Use an explicit scrollport when the keyboard reduces the viewport.
+       Keep the content at its natural height so every field remains reachable. -->
+  <div
+    class="bg-surface flex h-dvh w-full flex-col overflow-x-hidden overflow-y-auto overscroll-y-contain px-8 pt-[10vh] pb-8"
+  >
+    <div class="mx-auto flex w-full max-w-md shrink-0 flex-col gap-4">
       <img
         class="m-auto mt-0 mb-0 aspect-square w-1/2 max-w-[200px] select-none"
         src="https://n.novelia.cc/files-extra/girl.6e4fe22c238737fd028247f8f0cfd4ee.webp"
