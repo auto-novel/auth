@@ -44,8 +44,12 @@ function resetPassword(event: MouseEvent) {
       :current="step === 'email' ? 1 : 2"
     />
 
+    <!--
+      Both steps stay mounted (`v-show`) so returning to step 1 keeps the same
+      Turnstile widget instead of rendering a new one.
+    -->
     <StepEmailOtp
-      v-if="step === 'email'"
+      v-show="step === 'email'"
       v-model:email="email"
       v-model:otp="otp"
       type="reset_password"
@@ -53,7 +57,11 @@ function resetPassword(event: MouseEvent) {
       @next="step = 'password'"
     />
 
-    <form v-else class="flex w-auto flex-col gap-2" novalidate>
+    <form
+      v-show="step === 'password'"
+      class="flex w-auto flex-col gap-2"
+      novalidate
+    >
       <FormItem :rules="Validator.validatePassword">
         <Input type="password" placeholder="新密码" v-model="password" />
       </FormItem>

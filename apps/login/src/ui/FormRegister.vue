@@ -46,8 +46,12 @@ function register(event: MouseEvent) {
       :current="step === 'email' ? 1 : 2"
     />
 
+    <!--
+      Both steps stay mounted (`v-show`) so returning to step 1 keeps the same
+      Turnstile widget instead of rendering a new one.
+    -->
     <StepEmailOtp
-      v-if="step === 'email'"
+      v-show="step === 'email'"
       v-model:email="email"
       v-model:otp="otp"
       type="verify"
@@ -55,7 +59,11 @@ function register(event: MouseEvent) {
       @next="step = 'profile'"
     />
 
-    <form v-else class="flex w-auto flex-col gap-2" novalidate>
+    <form
+      v-show="step === 'profile'"
+      class="flex w-auto flex-col gap-2"
+      novalidate
+    >
       <FormItem :rules="Validator.validateUsername">
         <Input placeholder="用户名" v-model="username" />
       </FormItem>

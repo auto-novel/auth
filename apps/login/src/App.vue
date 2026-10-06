@@ -45,16 +45,20 @@ root.classList.toggle('dark', theme === 'dark');
 
       <Tabs :tabs="['登录', '注册']" v-model="type" />
 
+      <!--
+        The forms stay mounted and are toggled with `v-show`, so switching tabs
+        does not tear down their Turnstile widget and force a new challenge.
+      -->
       <FormLogin
-        v-if="type === '登录'"
+        v-show="type === '登录'"
         :app="app"
         @openResetPasswordForm="type = '重置密码'"
       />
 
-      <FormRegister v-else-if="type === '注册'" :app="app" />
+      <FormRegister v-show="type === '注册'" :app="app" />
 
       <FormResetPassword
-        v-else-if="type === '重置密码'"
+        v-show="type === '重置密码'"
         @openLoginForm="type = '登录'"
       />
     </div>
