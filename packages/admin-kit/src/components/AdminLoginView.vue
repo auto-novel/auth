@@ -3,11 +3,11 @@ import { NAlert } from 'naive-ui';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
-import { useAdminKit, useAdminTheme } from '../context';
+import { useAdminKit } from '../context';
 import { ADMIN_HOME_ROUTE } from '../router';
 
-const { api } = useAdminKit();
-const { isDark } = useAdminTheme();
+const { api, theme } = useAdminKit();
+const { isDark } = theme;
 const route = useRoute();
 const router = useRouter();
 const iframe = ref<HTMLIFrameElement>();

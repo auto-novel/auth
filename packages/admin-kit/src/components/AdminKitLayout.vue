@@ -24,7 +24,7 @@ import {
 import { computed, h, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { RouterView, useRoute, useRouter } from 'vue-router';
 
-import { useAdminKit, useAdminTheme } from '../context';
+import { useAdminKit } from '../context';
 import { getAdminMenuActiveKey, selectAdminMenuOption } from '../menu';
 import { ADMIN_HOME_ROUTE, ADMIN_LOGIN_ROUTE_NAME } from '../router';
 import type { AdminKitMenuOption } from '../types';
@@ -49,9 +49,9 @@ function getViewportMode(): ViewportMode {
 const viewportMode = ref<ViewportMode>(getViewportMode());
 const isMobile = computed(() => viewportMode.value === 'mobile');
 const collapsed = ref(viewportMode.value === 'tablet');
-const { isDark, toggleTheme } = useAdminTheme();
+const { isAuthorized, isSignedIn, options, theme } = useAdminKit();
+const { isDark, toggleTheme } = theme;
 const themeVars = useThemeVars();
-const { options, isSignedIn, isAuthorized } = useAdminKit();
 const route = useRoute();
 const router = useRouter();
 

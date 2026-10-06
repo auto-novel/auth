@@ -2,9 +2,10 @@
 import { darkTheme, NConfigProvider } from 'naive-ui';
 import { RouterView } from 'vue-router';
 
-import { useAdminTheme } from '../context';
+import { useAdminKit } from '../context';
 
-const { isDark } = useAdminTheme();
+const { theme } = useAdminKit();
+const { isDark } = theme;
 </script>
 
 <template>

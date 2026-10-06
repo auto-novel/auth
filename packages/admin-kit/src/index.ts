@@ -1,18 +1,12 @@
 import AdminLoginView from './components/AdminLoginView.vue';
 import AdminKitApp from './components/AdminKitApp.vue';
 import AdminKitLayout from './components/AdminKitLayout.vue';
-import { useAdminKit, useAdminTheme } from './context';
+import { useAdminKit } from './context';
 
 export { createAdminKit } from './create';
 export { createAdminAuthGuard } from './router';
 
-export {
-  AdminLoginView,
-  AdminKitApp,
-  AdminKitLayout,
-  useAdminKit,
-  useAdminTheme,
-};
+export { AdminLoginView, AdminKitApp, AdminKitLayout, useAdminKit };
 export type {
   AdminKit,
   AdminKitContext,
