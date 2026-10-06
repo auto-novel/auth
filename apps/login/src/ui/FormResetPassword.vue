@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { toast } from 'vue-sonner';
-import Turnstile from '../components/Turnstile.vue';
 import { Api } from '../data/api';
 import { Validator } from './util';
 
@@ -10,13 +9,11 @@ interface Emits {
 
 const emits = defineEmits<Emits>();
 
-const password = ref('');
+const step = ref<'email' | 'password'>('email');
 const email = ref('');
 const otp = ref('');
+const password = ref('');
 const loading = ref(false);
-
-const turnstileToken = ref('');
-const turnstile = ref<InstanceType<typeof Turnstile> | null>(null);
 
 function resetPassword(event: MouseEvent) {
   event.preventDefault();
@@ -41,37 +38,35 @@ function resetPassword(event: MouseEvent) {
 </script>
 
 <template>
-  <form class="flex w-auto flex-col gap-2" novalidate>
-    <FormItem :rules="Validator.validateEmail">
-      <Input placeholder="邮箱" v-model="email" />
-    </FormItem>
-
-    <FormItem :rules="Validator.validateOtpResetPassword">
-      <Input round="left" placeholder="邮箱验证码" v-model="otp" />
-      <OtpButton
-        :token="turnstileToken"
-        :email="email"
-        type="reset_password"
-        round="right"
-        class="flex-1/2"
-        @reset="turnstile?.reset()"
-      />
-    </FormItem>
-
-    <Turnstile
-      ref="turnstile"
-      v-model:token="turnstileToken"
-      action="password_reset"
+  <div class="flex w-auto flex-col gap-4">
+    <StepIndicator
+      :steps="['验证邮箱', '设置新密码']"
+      :current="step === 'email' ? 1 : 2"
     />
 
-    <FormItem :rules="Validator.validatePassword">
-      <Input type="password" placeholder="新密码" v-model="password" />
-    </FormItem>
+    <StepEmailOtp
+      v-if="step === 'email'"
+      v-model:email="email"
+      v-model:otp="otp"
+      type="reset_password"
+      action="password_reset"
+      @next="step = 'password'"
+    />
 
-    <p class="mt-1 text-left text-xs text-[#8d8d8d] select-none">
-      * 收不到验证邮件的话，记得看垃圾箱
-    </p>
+    <form v-else class="flex w-auto flex-col gap-2" novalidate>
+      <FormItem :rules="Validator.validatePassword">
+        <Input type="password" placeholder="新密码" v-model="password" />
+      </FormItem>
 
-    <Button text="重置密码" :loading="loading" @click="resetPassword" />
-  </form>
+      <button
+        type="button"
+        class="text-primary cursor-pointer text-left text-sm font-bold"
+        @click="step = 'email'"
+      >
+        ← 返回上一步
+      </button>
+
+      <Button text="重置密码" :loading="loading" @click="resetPassword" />
+    </form>
+  </div>
 </template>

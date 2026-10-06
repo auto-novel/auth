@@ -10,13 +10,14 @@ const props = withDefaults(defineProps<Props>(), {
 const root = ref<HTMLElement>();
 const validateError = ref('');
 
+/** Re-runs the rules and reports whether the field is currently valid. */
 function validate() {
-  if (!root.value) return;
+  if (!root.value) return true;
 
   const input = root.value.getElementsByTagName('input').item(0);
   if (!input) {
     validateError.value = '';
-    return;
+    return true;
   }
 
   if (props.rules) {
@@ -26,7 +27,10 @@ function validate() {
     validateError.value = '';
   }
   input.setCustomValidity(validateError.value);
+  return validateError.value === '';
 }
+
+defineExpose({ validate });
 </script>
 
 <template>
