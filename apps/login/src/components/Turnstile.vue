@@ -1,85 +1,8 @@
-<script lang="ts">
-/** Options accepted by `turnstile.render`. */
-interface TurnstileRenderOptions {
-  sitekey: string;
-  language?: string;
-  action?: string;
-  callback?: (token: string) => void;
-  'error-callback'?: (errorCode?: string) => void;
-  'expired-callback'?: () => void;
-}
-
-interface TurnstileApi {
-  render(container: HTMLElement, options: TurnstileRenderOptions): string;
-  remove(widgetId: string): void;
-  reset(widgetId?: string): void;
-}
-
-declare global {
-  interface Window {
-    turnstile?: TurnstileApi;
-  }
-}
-
-/**
- * Shared loader for the Cloudflare Turnstile script.
- *
- * The script is loaded once per page, no matter how many widgets mount. A
- * failed load is retried on the next mount instead of being cached forever.
- */
+<script setup lang="ts">
+import { loadTurnstileScript } from '../data/turnstile';
 
 const SITE_KEY = '0x4AAAAAAFOswITt_UDDpCC3';
-const SCRIPT_ID = 'cf-turnstile-script';
-const SCRIPT_SRC =
-  'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
 
-/** In-flight load, shared by every widget on the page. */
-let pending: Promise<void> | undefined;
-
-function loadTurnstileScript(): Promise<void> {
-  if (window.turnstile) return Promise.resolve();
-  if (pending) return pending;
-
-  pending = new Promise<void>((resolve, reject) => {
-    const script = document.createElement('script');
-    script.id = SCRIPT_ID;
-    script.src = SCRIPT_SRC;
-    script.async = true;
-    script.defer = true;
-    const timeout = setTimeout(onError, 10000);
-
-    function cleanup() {
-      clearTimeout(timeout);
-      script.removeEventListener('load', onLoad);
-      script.removeEventListener('error', onError);
-      pending = undefined;
-    }
-
-    function onLoad() {
-      if (!window.turnstile) {
-        onError();
-        return;
-      }
-      cleanup();
-      resolve();
-    }
-
-    function onError() {
-      cleanup();
-      script.remove();
-      reject(new Error('Failed to load the Turnstile script'));
-    }
-
-    script.addEventListener('load', onLoad);
-    script.addEventListener('error', onError);
-    document.head.appendChild(script);
-  });
-
-  return pending;
-}
-</script>
-
-<script setup lang="ts">
 /**
  * Cloudflare Turnstile widget.
  *
@@ -105,6 +28,7 @@ let widgetId: string | undefined;
 
 const container = ref<HTMLDivElement | null>(null);
 const failed = ref(false);
+const loading = ref(true);
 
 function onToken(token: string) {
   failed.value = false;
@@ -137,6 +61,8 @@ onMounted(async () => {
     renderWidget();
   } catch {
     onError();
+  } finally {
+    loading.value = false;
   }
 });
 
@@ -160,7 +86,16 @@ defineExpose({ reset });
 </script>
 
 <template>
-  <div ref="container" class="cf-turnstile w-full max-w-[300px]"></div>
+  <div class="relative min-h-[65px] w-full max-w-[300px]" :aria-busy="loading">
+    <div ref="container"></div>
+    <p
+      v-if="loading"
+      role="status"
+      class="absolute inset-0 flex items-center justify-center text-xs text-[#8d8d8d]"
+    >
+      人机验证加载中…
+    </p>
+  </div>
   <p v-if="failed" class="mt-2 text-left text-xs text-[#8d8d8d] select-none">
     * 人机验证加载失败，请刷新页面后重试
   </p>

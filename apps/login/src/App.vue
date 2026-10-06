@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import 'vue-sonner/style.css';
 import { Toaster } from 'vue-sonner';
+import { loadTurnstileScript } from './data/turnstile';
+
+// Start loading before the user opens a form; the widget retries on failure.
+void loadTurnstileScript().catch(() => {});
 
 const type = ref('登录');
 
