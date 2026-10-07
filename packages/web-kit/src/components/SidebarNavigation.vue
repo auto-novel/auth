@@ -82,7 +82,7 @@ async function navigate(event: MouseEvent, option: WebKitMenuOption) {
               class="grid size-5 flex-none place-items-center"
               aria-hidden="true"
             >
-              <component :is="option.icon" class="size-5" />
+              <component v-if="option.icon" :is="option.icon" class="size-5" />
             </span>
             <span
               class="web-kit-sidebar-label flex-1"
@@ -102,7 +102,6 @@ async function navigate(event: MouseEvent, option: WebKitMenuOption) {
         <CollapsibleContent>
           <SidebarNavigation
             class="mt-1"
-            :class="{ 'ml-3 border-l border-divider pl-1': !collapsed }"
             :options="option.children"
             :expanded="expanded"
             :selected="selected"
@@ -121,7 +120,7 @@ async function navigate(event: MouseEvent, option: WebKitMenuOption) {
           class="grid size-5 flex-none place-items-center"
           aria-hidden="true"
         >
-          <component :is="option.icon" class="size-5" />
+          <component v-if="option.icon" :is="option.icon" class="size-5" />
         </span>
         <span
           class="web-kit-sidebar-label inline-flex items-center gap-1"
@@ -154,7 +153,7 @@ async function navigate(event: MouseEvent, option: WebKitMenuOption) {
             class="grid size-5 flex-none place-items-center"
             aria-hidden="true"
           >
-            <component :is="option.icon" class="size-5" />
+            <component v-if="option.icon" :is="option.icon" class="size-5" />
           </span>
           <span
             class="web-kit-sidebar-label"

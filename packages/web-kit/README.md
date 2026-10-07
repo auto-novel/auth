@@ -97,7 +97,7 @@ const accountOptions: WebKitMenuOption[] = [
 
 `WebKitApp` 默认渲染 `<RouterView />`，也可以用默认插槽自己写。`Notify` 只在 `WebKitApp` 挂载后才有地方显示，脱离它调用不报错，但什么也看不到；老代码里的通知原来挂在 `WebKitLayout` 上，升级时把 `WebKitApp` 补上就行。
 
-`navigationOptions` 和 `accountOptions` 都支持四种注入项，每项的 `key` 需在对应菜单内唯一（包括分组中的子项）：
+`navigationOptions` 和 `accountOptions` 都支持四种注入项，每项的 `key` 需在对应菜单内唯一（包括分组中的子项）。`icon` 可省略，未设置时仍保留图标位置，保持文字对齐：
 
 ```ts
 const options: WebKitMenuOption[] = [
@@ -131,7 +131,7 @@ const options: WebKitMenuOption[] = [
 - `link`：站内路由，`to` 是 `RouteLocationRaw`；省略 `type` 时仍按 `link` 处理，兼容原有配置。渲染成原生 `<a>`，右键、中键、Ctrl/Cmd 开新标签页都正常。
 - `divider`：在该数据项的位置渲染分割线，不依赖 CSS 按位置推断。
 - `external`：使用 `href`，默认在当前页面打开；设置 `target: '_blank'` 时在新标签页打开，并显示新标签页图标和无障碍提示。
-- `group`：使用 `children` 配置子项，支持嵌套。侧栏中点击分组可向下展开或收起，选中子项时自动展开其父级；侧栏收窄后仍可点击图标展开子项。展开状态在布局存活期间保留，关闭移动端抽屉或收起父分组不会清空子分组状态。账号菜单中以子菜单展开，支持键盘操作。
+- `group`：使用 `children` 配置子项，支持嵌套。侧栏中点击分组可向下展开或收起，子项与一级菜单对齐，不额外缩进；选中子项时自动展开其父级；侧栏收窄后仍可点击图标展开子项。展开状态在布局存活期间保留，关闭移动端抽屉或收起父分组不会清空子分组状态。账号菜单中以子菜单展开，支持键盘操作。
 
 内置菜单及注入位置不变：侧栏注入项在主题切换之前；账号注入项在账号信息及其分割线之后、处罚记录和退出账号之前。宿主只能在这些位置组织自己的菜单，不能通过注入配置重排内置项。
 

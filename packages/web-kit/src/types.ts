@@ -39,7 +39,7 @@ export type WebKitMenuOption =
       type?: 'link';
       key: string;
       label: string;
-      icon: Component;
+      icon?: Component;
       to: RouteLocationRaw;
     }
   | {
@@ -50,7 +50,7 @@ export type WebKitMenuOption =
       type: 'external';
       key: string;
       label: string;
-      icon: Component;
+      icon?: Component;
       href: string;
       /** 默认在当前页面打开；传 `_blank` 可在新标签页打开。 */
       target?: '_self' | '_blank';
@@ -59,7 +59,7 @@ export type WebKitMenuOption =
       type: 'group';
       key: string;
       label: string;
-      icon: Component;
+      icon?: Component;
       children: WebKitMenuOption[];
     };
 

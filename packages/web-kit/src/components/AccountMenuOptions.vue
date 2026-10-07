@@ -24,11 +24,12 @@ defineProps<{ options: WebKitMenuOption[] }>();
     />
     <DropdownMenuSub v-else-if="option.type === 'group'">
       <DropdownMenuSubTrigger class="account-menu-item">
-        <component
-          :is="option.icon"
-          class="size-4 flex-none"
+        <span
+          class="grid size-4 flex-none place-items-center"
           aria-hidden="true"
-        />
+        >
+          <component v-if="option.icon" :is="option.icon" class="size-4" />
+        </span>
         <span class="min-w-0 flex-1 truncate">{{ option.label }}</span>
         <ChevronRightOutlined class="size-4 flex-none" aria-hidden="true" />
       </DropdownMenuSubTrigger>
@@ -44,11 +45,12 @@ defineProps<{ options: WebKitMenuOption[] }>();
     </DropdownMenuSub>
     <DropdownMenuItem v-else-if="option.type === 'external'" as-child>
       <a v-bind="externalLinkAttrs(option)" class="account-menu-item">
-        <component
-          :is="option.icon"
-          class="size-4 flex-none"
+        <span
+          class="grid size-4 flex-none place-items-center"
           aria-hidden="true"
-        />
+        >
+          <component v-if="option.icon" :is="option.icon" class="size-4" />
+        </span>
         <span class="min-w-0 truncate">{{ option.label }}</span>
         <OpenInNewOutlined
           v-if="option.target === '_blank'"
@@ -59,7 +61,12 @@ defineProps<{ options: WebKitMenuOption[] }>();
     </DropdownMenuItem>
     <DropdownMenuItem v-else as-child>
       <RouterLink :to="option.to" class="account-menu-item">
-        <component :is="option.icon" class="size-4" aria-hidden="true" />
+        <span
+          class="grid size-4 flex-none place-items-center"
+          aria-hidden="true"
+        >
+          <component v-if="option.icon" :is="option.icon" class="size-4" />
+        </span>
         {{ option.label }}
       </RouterLink>
     </DropdownMenuItem>
