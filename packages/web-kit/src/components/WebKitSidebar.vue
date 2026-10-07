@@ -29,7 +29,7 @@ const showMascot = ref(false);
   <aside
     class="web-kit-sidebar flex h-full flex-col overflow-hidden border-r border-divider bg-surface"
     :class="[
-      fullWidth ? 'w-full' : collapsed ? 'w-16' : 'w-50',
+      fullWidth ? 'w-full' : collapsed ? 'w-16' : 'w-60',
       { 'is-collapsed': collapsed },
     ]"
     aria-label="站点导航"
@@ -136,7 +136,7 @@ const showMascot = ref(false);
 
 .brand-header {
   display: flex;
-  height: 4rem;
+  height: 50px;
   flex: none;
   align-items: center;
   gap: 10px;

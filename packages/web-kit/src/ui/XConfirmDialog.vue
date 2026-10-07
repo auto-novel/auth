@@ -33,9 +33,9 @@ function confirm() {
     <AlertDialogPortal>
       <AlertDialogOverlay class="fixed inset-0 z-40 bg-black/45" />
       <AlertDialogContent
-        class="fixed top-1/2 left-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-md border border-border bg-surface p-5 shadow-2xl outline-none sm:p-6"
+        class="fixed top-1/2 left-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-floating bg-modal p-5 shadow-floating outline-none sm:p-6"
       >
-        <AlertDialogTitle class="text-lg font-semibold text-ink">
+        <AlertDialogTitle class="text-lg font-medium text-ink">
           {{ title }}
         </AlertDialogTitle>
         <AlertDialogDescription class="mt-2 text-sm leading-6 text-muted">

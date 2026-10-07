@@ -51,14 +51,14 @@ function handleChange(value: AcceptableValue) {
         <SelectContent
           position="popper"
           :side-offset="6"
-          class="z-40 max-h-60 min-w-(--reka-select-trigger-width) overflow-hidden rounded-md border border-border bg-surface p-1 text-ink shadow-xl"
+          class="floating-panel z-40 max-h-60 min-w-(--reka-select-trigger-width) overflow-hidden p-1 text-ink"
         >
           <SelectViewport>
             <SelectItem
               v-for="option in options"
               :key="option.value"
               :value="option.value"
-              class="relative flex cursor-default items-center rounded-sm py-2 pr-3 pl-8 text-sm outline-none select-none data-[highlighted]:bg-paper data-[highlighted]:text-ink"
+              class="account-menu-item relative cursor-default pl-8 select-none"
             >
               <SelectItemIndicator class="absolute left-2 text-primary">
                 <CheckOutlined class="size-4" aria-hidden="true" />

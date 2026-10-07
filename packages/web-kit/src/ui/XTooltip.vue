@@ -32,7 +32,7 @@ withDefaults(defineProps<XTooltipProps>(), {
           :align="align"
           :side-offset="sideOffset"
           :collision-padding="8"
-          class="z-50 rounded-sm border border-divider bg-surface px-3 py-2 text-xs text-ink shadow-md"
+          class="floating-panel z-50 px-3 py-2 text-xs text-ink"
         >
           <slot />
         </TooltipContent>

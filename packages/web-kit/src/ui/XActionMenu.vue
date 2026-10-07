@@ -37,7 +37,7 @@ withDefaults(defineProps<XActionMenuProps>(), {
         :align="align"
         :side-offset="6"
         :collision-padding="8"
-        class="z-30 rounded-md border border-border bg-surface p-1 shadow-xl outline-none"
+        class="floating-panel z-40 p-1 outline-none"
         :class="compact ? 'w-32' : 'w-40'"
       >
         <slot />

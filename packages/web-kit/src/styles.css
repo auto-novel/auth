@@ -6,6 +6,15 @@
 @theme {
   --color-paper: #f7f7f8;
   --color-surface: #ffffff;
+  --color-body: #ffffff;
+  --color-popover: #ffffff;
+  --color-modal: #ffffff;
+  --color-success: #18a058;
+  --color-error: #d03050;
+  --radius-floating: 3px;
+  --shadow-floating:
+    0 3px 6px -4px rgb(0 0 0 / 12%), 0 6px 16px rgb(0 0 0 / 8%),
+    0 9px 28px 8px rgb(0 0 0 / 5%);
   --color-ink: #1f2225;
   --color-muted: #767c82;
   --color-border: #e0e0e6;
@@ -31,6 +40,14 @@
     color-scheme: dark;
     --color-paper: #101014;
     --color-surface: #18181c;
+    --color-body: #101014;
+    --color-popover: #48484e;
+    --color-modal: #2c2c32;
+    --color-success: #63e2b7;
+    --color-error: #e88080;
+    --shadow-floating:
+      0 3px 6px -4px rgb(0 0 0 / 24%), 0 6px 12px rgb(0 0 0 / 16%),
+      0 9px 18px 8px rgb(0 0 0 / 10%);
     --color-ink: #f2f2f5;
     --color-muted: #a3a3aa;
     --color-border: #3b3b40;
@@ -122,17 +139,18 @@
   }
 }
 
+@utility floating-panel {
+  border-radius: var(--radius-floating);
+  background: var(--color-popover);
+  box-shadow: var(--shadow-floating);
+}
+
 @utility account-menu {
+  @apply floating-panel;
   z-index: 40;
   width: 12rem;
   overflow: hidden;
   padding-block: 0.25rem;
-  border-radius: 0.1875rem;
-  background: var(--color-surface);
-  box-shadow:
-    0 3px 6px -4px rgb(0 0 0 / 12%),
-    0 6px 16px rgb(0 0 0 / 8%),
-    0 9px 28px 8px rgb(0 0 0 / 5%);
 }
 
 @utility account-menu-item {
@@ -140,7 +158,7 @@
   width: 100%;
   align-items: center;
   gap: 0.5rem;
-  border-radius: 0.25rem;
+  border-radius: var(--radius-floating);
   padding: 0.5rem 0.75rem;
   color: var(--color-ink);
   font-size: 0.875rem;

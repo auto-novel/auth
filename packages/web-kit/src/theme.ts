@@ -11,7 +11,7 @@ type Theme = 'light' | 'dark';
 const TRANSITION_DURATION = 200;
 const THEME_COLORS: Record<Theme, string> = {
   dark: '#101014',
-  light: '#f7f7f8',
+  light: '#ffffff',
 };
 
 export function createWebTheme(storageKey: string, storage?: Storage) {

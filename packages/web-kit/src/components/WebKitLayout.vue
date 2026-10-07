@@ -131,32 +131,7 @@ watch(
 
 <template>
   <DialogRoot v-model:open="mobileMenuOpen">
-    <div class="web-kit-layout flex h-dvh overflow-hidden bg-paper">
-      <div v-if="!isMobile" class="sidebar-shell">
-        <WebKitSidebar
-          :options="navigationOptions"
-          :expanded="expanded"
-          :selected="selectedNavigationKey"
-          :collapsed="sidebarCollapsed"
-          class="flex-none"
-          @select="selectNavigation"
-        />
-        <button
-          type="button"
-          class="sidebar-collapse"
-          :aria-label="sidebarCollapsed ? '展开侧边栏' : '收起侧边栏'"
-          :title="sidebarCollapsed ? '展开侧边栏' : '收起侧边栏'"
-          :aria-expanded="!sidebarCollapsed"
-          @click="sidebarCollapsed = !sidebarCollapsed"
-        >
-          <component
-            :is="sidebarCollapsed ? ChevronRightOutlined : ChevronLeftOutlined"
-            class="size-[18px]"
-            aria-hidden="true"
-          />
-        </button>
-      </div>
-
+    <div class="web-kit-layout flex h-dvh overflow-hidden bg-body">
       <DialogPortal>
         <Transition
           enter-active-class="transition-opacity duration-200"
@@ -198,9 +173,35 @@ watch(
         </Transition>
       </DialogPortal>
 
-      <div class="flex min-w-0 flex-1 flex-col">
+      <div v-if="!isMobile" class="sidebar-shell">
+        <WebKitSidebar
+          :options="navigationOptions"
+          :expanded="expanded"
+          :selected="selectedNavigationKey"
+          :collapsed="sidebarCollapsed"
+          class="flex-none"
+          @select="selectNavigation"
+        />
+        <button
+          v-if="viewportMode === 'desktop'"
+          type="button"
+          class="sidebar-collapse"
+          :aria-label="sidebarCollapsed ? '展开侧边栏' : '收起侧边栏'"
+          :title="sidebarCollapsed ? '展开侧边栏' : '收起侧边栏'"
+          :aria-expanded="!sidebarCollapsed"
+          @click="sidebarCollapsed = !sidebarCollapsed"
+        >
+          <component
+            :is="sidebarCollapsed ? ChevronRightOutlined : ChevronLeftOutlined"
+            class="size-[18px]"
+            aria-hidden="true"
+          />
+        </button>
+      </div>
+
+      <div class="flex min-h-0 min-w-0 flex-1 flex-col">
         <header
-          class="z-30 flex h-16 flex-none items-center gap-3 border-b border-divider bg-surface px-4 sm:px-6"
+          class="z-30 flex h-[50px] flex-none items-center gap-3 border-b border-divider bg-surface px-2"
         >
           <DialogTrigger v-if="isMobile" as-child>
             <button
@@ -209,7 +210,7 @@ watch(
               aria-label="打开导航菜单"
               title="打开导航菜单"
             >
-              <MenuOutlined class="size-5" aria-hidden="true" />
+              <MenuOutlined class="size-6" aria-hidden="true" />
             </button>
           </DialogTrigger>
           <UserAccountButton :options="accountOptions" />
@@ -217,7 +218,7 @@ watch(
 
         <main
           ref="pageContent"
-          class="min-h-0 flex-1 overflow-y-auto overscroll-y-contain"
+          class="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-y-contain"
         >
           <slot />
         </main>
@@ -236,7 +237,7 @@ watch(
 .sidebar-collapse {
   position: absolute;
   right: -12px;
-  bottom: 48px;
+  top: 80dvh;
   display: grid;
   width: 24px;
   height: 24px;
