@@ -108,14 +108,16 @@ async function navigate(event: MouseEvent, option: WebKitMenuOption) {
             />
           </button>
         </CollapsibleTrigger>
-        <CollapsibleContent v-if="!collapsed">
+        <CollapsibleContent
+          class="sidebar-submenu"
+          :inert="collapsed || !expanded.has(option.key)"
+        >
           <SidebarNavigation
-            class="mt-1"
+            class="pt-1"
             :options="option.children"
             :depth="depth + 1"
             :expanded="expanded"
             :selected="selected"
-            :collapsed="collapsed"
             @select="emit('select', $event)"
           />
         </CollapsibleContent>
@@ -177,3 +179,45 @@ async function navigate(event: MouseEvent, option: WebKitMenuOption) {
     </template>
   </nav>
 </template>
+
+<style scoped>
+.sidebar-submenu {
+  overflow: hidden;
+}
+
+.sidebar-submenu[data-state='open'] {
+  animation: submenu-expand 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar-submenu[data-state='closed'] {
+  animation: submenu-collapse 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes submenu-expand {
+  from {
+    height: 0;
+    opacity: 0;
+  }
+  to {
+    height: var(--reka-collapsible-content-height);
+    opacity: 1;
+  }
+}
+
+@keyframes submenu-collapse {
+  from {
+    height: var(--reka-collapsible-content-height);
+    opacity: 1;
+  }
+  to {
+    height: 0;
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar-submenu[data-state] {
+    animation: none;
+  }
+}
+</style>
