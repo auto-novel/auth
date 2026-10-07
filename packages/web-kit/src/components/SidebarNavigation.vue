@@ -62,7 +62,7 @@ async function navigate(event: MouseEvent, option: WebKitMenuOption) {
 
 <template>
   <nav
-    class="grid gap-1"
+    class="grid min-w-0 grid-cols-1 gap-1"
     :style="{ '--web-kit-item-indent': `${depth * 12}px` }"
     aria-label="站点导航"
   >
