@@ -9,6 +9,7 @@ import SidebarNavigation from './SidebarNavigation.vue';
 
 defineProps<{
   options: WebKitMenuOption[];
+  expanded: Set<string>;
   selected?: string;
   collapsed?: boolean;
   fullWidth?: boolean;
@@ -16,7 +17,7 @@ defineProps<{
 }>();
 
 const emit = defineEmits<{
-  select: [option: WebKitMenuOption];
+  select: [samePath: boolean];
 }>();
 
 const { options: kitOptions, theme } = useWebKit();
@@ -73,6 +74,7 @@ const showMascot = ref(false);
     >
       <SidebarNavigation
         :options="options"
+        :expanded="expanded"
         :selected="selected"
         :collapsed="collapsed"
         @select="emit('select', $event)"

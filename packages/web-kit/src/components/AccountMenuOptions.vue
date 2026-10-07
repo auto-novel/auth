@@ -10,6 +10,7 @@ import {
 } from 'reka-ui';
 import { RouterLink } from 'vue-router';
 
+import { externalLinkAttrs } from '../menu';
 import type { WebKitMenuOption } from '../types';
 
 defineProps<{ options: WebKitMenuOption[] }>();
@@ -42,17 +43,7 @@ defineProps<{ options: WebKitMenuOption[] }>();
       </DropdownMenuPortal>
     </DropdownMenuSub>
     <DropdownMenuItem v-else-if="option.type === 'external'" as-child>
-      <a
-        :href="option.href"
-        :target="option.target ?? '_self'"
-        :rel="option.target === '_blank' ? 'noopener noreferrer' : undefined"
-        class="account-menu-item"
-        :aria-label="
-          option.target === '_blank'
-            ? `${option.label}（在新标签页打开）`
-            : option.label
-        "
-      >
+      <a v-bind="externalLinkAttrs(option)" class="account-menu-item">
         <component
           :is="option.icon"
           class="size-4 flex-none"

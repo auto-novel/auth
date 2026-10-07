@@ -5,57 +5,54 @@ import {
   CollapsibleRoot,
   CollapsibleTrigger,
 } from 'reka-ui';
-import { ref, watch } from 'vue';
-import { RouterLink } from 'vue-router';
+import {
+  isNavigationFailure,
+  NavigationFailureType,
+  RouterLink,
+  useRouter,
+} from 'vue-router';
 
+import { externalLinkAttrs } from '../menu';
 import type { WebKitMenuOption } from '../types';
 
-const props = defineProps<{
+defineProps<{
   options: WebKitMenuOption[];
   selected?: string;
   collapsed?: boolean;
+  expanded: Set<string>;
 }>();
 
 const emit = defineEmits<{
-  select: [option: WebKitMenuOption];
+  select: [samePath: boolean];
 }>();
 
-const expanded = ref<Record<string, boolean>>({});
+const router = useRouter();
 
-function containsSelected(options: WebKitMenuOption[]): boolean {
-  return options.some((option) =>
-    option.type === 'group'
-      ? containsSelected(option.children)
-      : option.type !== 'divider' && option.key === props.selected,
-  );
-}
+async function navigate(event: MouseEvent, option: WebKitMenuOption) {
+  if (
+    (option.type && option.type !== 'link') ||
+    event.defaultPrevented ||
+    event.button !== 0 ||
+    event.metaKey ||
+    event.altKey ||
+    event.ctrlKey ||
+    event.shiftKey
+  )
+    return;
 
-watch(
-  () => [props.options, props.selected],
-  () => {
-    for (const option of props.options) {
-      if (option.type === 'group' && containsSelected(option.children)) {
-        expanded.value[option.key] = true;
-      }
-    }
-  },
-  { immediate: true, deep: true },
-);
-
-async function navigate(
-  event: MouseEvent,
-  option: WebKitMenuOption,
-  routerNavigate: (event?: MouseEvent) => Promise<unknown> | void,
-) {
-  const isPlainLeftClick =
-    event.button === 0 &&
-    !event.metaKey &&
-    !event.altKey &&
-    !event.ctrlKey &&
-    !event.shiftKey;
-
-  await routerNavigate(event);
-  if (isPlainLeftClick) emit('select', option);
+  event.preventDefault();
+  const previousPath = router.currentRoute.value.path;
+  try {
+    const failure = await router.push(option.to);
+    if (
+      failure &&
+      !isNavigationFailure(failure, NavigationFailureType.duplicated)
+    )
+      return;
+    emit('select', previousPath === router.currentRoute.value.path);
+  } catch {
+    // 路由错误由宿主的 router.onError 处理，菜单保持原状。
+  }
 }
 </script>
 
@@ -69,7 +66,10 @@ async function navigate(
       />
       <CollapsibleRoot
         v-else-if="option.type === 'group'"
-        v-model:open="expanded[option.key]"
+        :open="expanded.has(option.key)"
+        @update:open="
+          $event ? expanded.add(option.key) : expanded.delete(option.key)
+        "
       >
         <CollapsibleTrigger as-child>
           <button
@@ -94,7 +94,7 @@ async function navigate(
             <KeyboardArrowDownOutlined
               v-if="!collapsed"
               class="size-4 flex-none transition-transform"
-              :class="{ '-rotate-90': !expanded[option.key] }"
+              :class="{ '-rotate-90': !expanded.has(option.key) }"
               aria-hidden="true"
             />
           </button>
@@ -104,6 +104,7 @@ async function navigate(
             class="mt-1"
             :class="{ 'ml-3 border-l border-divider pl-1': !collapsed }"
             :options="option.children"
+            :expanded="expanded"
             :selected="selected"
             :collapsed="collapsed"
             @select="emit('select', $event)"
@@ -112,15 +113,8 @@ async function navigate(
       </CollapsibleRoot>
       <a
         v-else-if="option.type === 'external'"
-        :href="option.href"
-        :target="option.target ?? '_self'"
-        :rel="option.target === '_blank' ? 'noopener noreferrer' : undefined"
+        v-bind="externalLinkAttrs(option)"
         class="web-kit-sidebar-item text-ink hover:bg-hover"
-        :aria-label="
-          option.target === '_blank'
-            ? `${option.label}（在新标签页打开）`
-            : option.label
-        "
         :title="collapsed ? option.label : undefined"
       >
         <span
@@ -142,12 +136,7 @@ async function navigate(
           />
         </span>
       </a>
-      <RouterLink
-        v-else
-        v-slot="{ href, navigate: routerNavigate }"
-        :to="option.to"
-        custom
-      >
+      <RouterLink v-else v-slot="{ href }" :to="option.to" custom>
         <a
           :href="href"
           class="web-kit-sidebar-item"
@@ -159,7 +148,7 @@ async function navigate(
           :aria-label="collapsed ? option.label : undefined"
           :title="collapsed ? option.label : undefined"
           :aria-current="selected === option.key ? 'page' : undefined"
-          @click="navigate($event, option, routerNavigate)"
+          @click="navigate($event, option)"
         >
           <span
             class="grid size-5 flex-none place-items-center"

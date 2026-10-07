@@ -6,6 +6,15 @@ import {
   MenuOutlined,
 } from '@vicons/material';
 import {
+  DialogRoot,
+  DialogPortal,
+  DialogOverlay,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+} from 'reka-ui';
+import {
   computed,
   nextTick,
   onBeforeUnmount,
@@ -18,20 +27,20 @@ import {
 import { useRoute } from 'vue-router';
 
 import { layoutKey } from '../layoutContext';
+import { selectedGroupKeys } from '../menu';
 import type { WebKitMenuOption } from '../types';
 import UserAccountButton from './UserAccountButton.vue';
 import WebKitSidebar from './WebKitSidebar.vue';
 
 type ViewportMode = 'mobile' | 'tablet' | 'desktop';
 
-defineProps<{
+const props = defineProps<{
   navigationOptions: WebKitMenuOption[];
   accountOptions: WebKitMenuOption[];
   selectedNavigationKey?: string;
 }>();
 
 const route = useRoute();
-const mobileDrawer = useTemplateRef<HTMLElement>('mobileDrawer');
 const pageContent = useTemplateRef<HTMLElement>('pageContent');
 // 媒体查询在 onMounted 里创建，setup 阶段不碰 window。
 let mobileMediaQuery: MediaQueryList | undefined;
@@ -47,6 +56,20 @@ const viewportMode = ref<ViewportMode>('desktop');
 const mobileMenuOpen = ref(false);
 const sidebarCollapsed = ref(false);
 const isMobile = computed(() => viewportMode.value === 'mobile');
+const expanded = ref(new Set<string>());
+const activeGroups = computed(
+  () =>
+    selectedGroupKeys(props.navigationOptions, props.selectedNavigationKey) ??
+    [],
+);
+
+watch(
+  [() => props.selectedNavigationKey, () => JSON.stringify(activeGroups.value)],
+  () => {
+    for (const key of activeGroups.value) expanded.value.add(key);
+  },
+  { immediate: true },
+);
 
 provide(
   layoutKey,
@@ -57,10 +80,12 @@ provide(
   }),
 );
 
-async function selectNavigation() {
+async function selectNavigation(samePath: boolean) {
   mobileMenuOpen.value = false;
-  await nextTick();
-  pageContent.value?.scrollTo({ top: 0, behavior: 'smooth' });
+  if (samePath) {
+    await nextTick();
+    pageContent.value?.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 }
 
 function updateViewport() {
@@ -72,16 +97,6 @@ function updateViewport() {
   if (nextMode === 'desktop') sidebarCollapsed.value = false;
 }
 
-function handleKeydown(event: KeyboardEvent) {
-  if (event.key === 'Escape') mobileMenuOpen.value = false;
-}
-
-async function openMobileMenu() {
-  mobileMenuOpen.value = true;
-  await nextTick();
-  mobileDrawer.value?.focus();
-}
-
 onMounted(() => {
   mobileMediaQuery = window.matchMedia('(max-width: 767px)');
   tabletMediaQuery = window.matchMedia(
@@ -91,14 +106,11 @@ onMounted(() => {
   sidebarCollapsed.value = viewportMode.value === 'tablet';
   mobileMediaQuery.addEventListener('change', updateViewport);
   tabletMediaQuery.addEventListener('change', updateViewport);
-  window.addEventListener('keydown', handleKeydown);
 });
 
 onBeforeUnmount(() => {
   mobileMediaQuery?.removeEventListener('change', updateViewport);
   tabletMediaQuery?.removeEventListener('change', updateViewport);
-  window.removeEventListener('keydown', handleKeydown);
-  document.body.style.overflow = '';
 });
 
 watch(
@@ -115,113 +127,103 @@ watch(
     pageContent.value?.scrollTo({ top: 0 });
   },
 );
-
-watch(mobileMenuOpen, (open) => {
-  document.body.style.overflow = open ? 'hidden' : '';
-});
 </script>
 
 <template>
-  <div class="web-kit-layout flex h-dvh overflow-hidden bg-paper">
-    <div v-if="!isMobile" class="sidebar-shell">
-      <WebKitSidebar
-        :options="navigationOptions"
-        :selected="selectedNavigationKey"
-        :collapsed="sidebarCollapsed"
-        class="flex-none"
-        @select="selectNavigation"
-      />
-      <button
-        type="button"
-        class="sidebar-collapse"
-        :aria-label="sidebarCollapsed ? '展开侧边栏' : '收起侧边栏'"
-        :title="sidebarCollapsed ? '展开侧边栏' : '收起侧边栏'"
-        :aria-expanded="!sidebarCollapsed"
-        @click="sidebarCollapsed = !sidebarCollapsed"
-      >
-        <component
-          :is="sidebarCollapsed ? ChevronRightOutlined : ChevronLeftOutlined"
-          class="size-[18px]"
-          aria-hidden="true"
+  <DialogRoot v-model:open="mobileMenuOpen">
+    <div class="web-kit-layout flex h-dvh overflow-hidden bg-paper">
+      <div v-if="!isMobile" class="sidebar-shell">
+        <WebKitSidebar
+          :options="navigationOptions"
+          :expanded="expanded"
+          :selected="selectedNavigationKey"
+          :collapsed="sidebarCollapsed"
+          class="flex-none"
+          @select="selectNavigation"
         />
-      </button>
-    </div>
-
-    <Teleport to="body">
-      <Transition
-        enter-active-class="transition-opacity duration-200"
-        enter-from-class="opacity-0"
-        leave-active-class="transition-opacity duration-200"
-        leave-to-class="opacity-0"
-      >
         <button
-          v-if="isMobile && mobileMenuOpen"
           type="button"
-          class="fixed inset-0 z-50 bg-black/40"
-          aria-label="关闭导航菜单"
-          @click="mobileMenuOpen = false"
-        />
-      </Transition>
-      <Transition
-        enter-active-class="transition-transform duration-200 ease-out"
-        enter-from-class="-translate-x-full"
-        leave-active-class="transition-transform duration-200 ease-in"
-        leave-to-class="-translate-x-full"
-      >
-        <div
-          v-if="isMobile && mobileMenuOpen"
-          ref="mobileDrawer"
-          class="fixed inset-y-0 left-0 z-50 h-full w-70 max-w-[calc(100vw-3rem)] shadow-2xl outline-none"
-          role="dialog"
-          aria-modal="true"
-          aria-label="站点导航"
-          tabindex="-1"
+          class="sidebar-collapse"
+          :aria-label="sidebarCollapsed ? '展开侧边栏' : '收起侧边栏'"
+          :title="sidebarCollapsed ? '展开侧边栏' : '收起侧边栏'"
+          :aria-expanded="!sidebarCollapsed"
+          @click="sidebarCollapsed = !sidebarCollapsed"
         >
-          <WebKitSidebar
-            :options="navigationOptions"
-            :selected="selectedNavigationKey"
-            full-width
-            mobile-header
-            @select="selectNavigation"
+          <component
+            :is="sidebarCollapsed ? ChevronRightOutlined : ChevronLeftOutlined"
+            class="size-[18px]"
+            aria-hidden="true"
           />
-          <button
-            type="button"
-            class="absolute top-3 right-3 grid size-10 place-items-center rounded-md text-white transition-colors hover:bg-black/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-            aria-label="关闭导航菜单"
-            @click="mobileMenuOpen = false"
-          >
-            <CloseOutlined class="size-5" aria-hidden="true" />
-          </button>
-        </div>
-      </Transition>
-    </Teleport>
-
-    <div class="flex min-w-0 flex-1 flex-col">
-      <header
-        class="z-30 flex h-16 flex-none items-center gap-3 border-b border-divider bg-surface px-4 sm:px-6"
-      >
-        <button
-          v-if="isMobile"
-          type="button"
-          class="layout-toggle"
-          aria-label="打开导航菜单"
-          title="打开导航菜单"
-          :aria-expanded="mobileMenuOpen"
-          @click="openMobileMenu"
-        >
-          <MenuOutlined class="size-5" aria-hidden="true" />
         </button>
-        <UserAccountButton :options="accountOptions" />
-      </header>
+      </div>
 
-      <main
-        ref="pageContent"
-        class="min-h-0 flex-1 overflow-y-auto overscroll-y-contain"
-      >
-        <slot />
-      </main>
+      <DialogPortal>
+        <Transition
+          enter-active-class="transition-opacity duration-200"
+          enter-from-class="opacity-0"
+          leave-active-class="transition-opacity duration-200"
+          leave-to-class="opacity-0"
+        >
+          <DialogOverlay class="fixed inset-0 z-50 bg-black/40" />
+        </Transition>
+        <Transition
+          enter-active-class="transition-transform duration-200 ease-out"
+          enter-from-class="-translate-x-full"
+          leave-active-class="transition-transform duration-200 ease-in"
+          leave-to-class="-translate-x-full"
+        >
+          <DialogContent
+            :aria-describedby="undefined"
+            class="fixed inset-y-0 left-0 z-50 h-full w-70 max-w-[calc(100vw-3rem)] shadow-2xl outline-none"
+          >
+            <DialogTitle class="sr-only">站点导航</DialogTitle>
+            <WebKitSidebar
+              :options="navigationOptions"
+              :expanded="expanded"
+              :selected="selectedNavigationKey"
+              full-width
+              mobile-header
+              @select="selectNavigation"
+            />
+            <DialogClose as-child>
+              <button
+                type="button"
+                class="absolute top-3 right-3 grid size-10 place-items-center rounded-md text-white transition-colors hover:bg-black/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                aria-label="关闭导航菜单"
+              >
+                <CloseOutlined class="size-5" aria-hidden="true" />
+              </button>
+            </DialogClose>
+          </DialogContent>
+        </Transition>
+      </DialogPortal>
+
+      <div class="flex min-w-0 flex-1 flex-col">
+        <header
+          class="z-30 flex h-16 flex-none items-center gap-3 border-b border-divider bg-surface px-4 sm:px-6"
+        >
+          <DialogTrigger v-if="isMobile" as-child>
+            <button
+              type="button"
+              class="layout-toggle"
+              aria-label="打开导航菜单"
+              title="打开导航菜单"
+            >
+              <MenuOutlined class="size-5" aria-hidden="true" />
+            </button>
+          </DialogTrigger>
+          <UserAccountButton :options="accountOptions" />
+        </header>
+
+        <main
+          ref="pageContent"
+          class="min-h-0 flex-1 overflow-y-auto overscroll-y-contain"
+        >
+          <slot />
+        </main>
+      </div>
     </div>
-  </div>
+  </DialogRoot>
 </template>
 
 <style scoped>
