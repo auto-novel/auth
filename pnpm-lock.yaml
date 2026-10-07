@@ -13,9 +13,6 @@ importers:
 
   apps/admin:
     dependencies:
-      '@novelia/auth-api':
-        specifier: workspace:*
-        version: link:../../packages/auth-api
       '@novelia/web-kit':
         specifier: workspace:*
         version: link:../../packages/web-kit

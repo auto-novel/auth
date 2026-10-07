@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { roles } from '@novelia/auth-api';
+import { roles } from '@novelia/web-kit';
 import { NAlert, NButton, NSpace, NText } from 'naive-ui';
 import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter, type LocationQueryRaw } from 'vue-router';

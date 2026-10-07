@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { roleLabels } from '@novelia/auth-api';
+import { roleLabels } from '@novelia/web-kit';
 import { NButton, NTag, NText } from 'naive-ui';
 
 import type { User, UserAction } from '@/api';

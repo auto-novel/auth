@@ -16,6 +16,26 @@ import { getApiErrorMessage } from './utils/apiError';
 import { useWebKitLayout } from './layoutContext';
 
 export { createWebKit } from './create';
+export {
+  createAuthApi,
+  AuthUser,
+  isKnownRole,
+  isRoleAtLeast,
+  roleLabels,
+  roles,
+  type AttentionStatus,
+  type AuthApi,
+  type AuthApiOptions,
+  type AuthClientOptions,
+  type BanUserRequest,
+  type CreateStrikeRequest,
+  type CreateStrikeResponse,
+  type MyStrike,
+  type MyStrikeListParams,
+  type MyStrikePage,
+  type StrikeReadState,
+  type UserRole,
+} from '@novelia/auth-api';
 
 export {
   MyStrikeListView,

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { roleLabels, roles } from '@novelia/auth-api';
+import { roleLabels, roles } from '@novelia/web-kit';
 import { SearchOutlined } from '@vicons/material';
 import { NIcon, NInput } from 'naive-ui';
 

@@ -1,6 +1,6 @@
 import { inject, type InjectionKey } from 'vue';
 
-import type { AuthApi } from '@novelia/auth-api';
+import type { AuthApi } from '@novelia/web-kit';
 
 interface Page<T> {
   total: number;

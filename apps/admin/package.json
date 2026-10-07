@@ -9,7 +9,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@novelia/auth-api": "workspace:*",
     "@novelia/web-kit": "workspace:*",
     "@tailwindcss/vite": "^4.3.3",
     "@vicons/material": "^0.13.0",
