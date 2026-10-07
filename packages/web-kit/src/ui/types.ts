@@ -30,6 +30,13 @@ export interface XActionMenuProps {
   compact?: boolean;
 }
 
+export interface XTooltipProps {
+  side?: 'top' | 'right' | 'bottom' | 'left';
+  align?: 'start' | 'center' | 'end';
+  sideOffset?: number;
+  delayDuration?: number;
+}
+
 export interface XActionMenuItemProps {
   disabled?: boolean;
   danger?: boolean;

@@ -208,4 +208,25 @@ try {
 
 上面 `createWebKit` 里的 `repository` 就是干这个的，配上之后桌面侧栏和移动端导航底部会显示 `SidebarFooter`。
 
-`buildTime` 由应用的构建配置给 ISO 时间字符串，`commitSha` 给对应的 Git 提交哈希。页脚按浏览器本地时区显示时间，提交哈希截短到 12 位并链到仓库的提交页；哈希是 `unknown` 或空字符串就不生成链接，时间无效则显示“未知时间”。不配 `repository` 不显示页脚，侧栏收起时页脚隐藏且不进键盘焦点。
+`buildTime` 由应用的构建配置给 ISO 时间字符串，`commitSha` 给对应的 Git 提交哈希。页脚按浏览器本地时区显示时间，提交哈希截短到 12 位并链到仓库的提交页；哈希是 `unknown` 或空字符串就不生成链接，时间无效则不显示时间。不配 `repository` 不显示页脚，侧栏收起时保留 Commit 图标，悬停或键盘聚焦可查看构建信息。
+
+## 提示框
+
+`XTooltip` 封装提示框的 Provider、Portal 和统一样式。`trigger` 插槽提供一个可聚焦的触发元素，默认插槽提供提示内容：
+
+```vue
+<script setup lang="ts">
+import { XTooltip } from '@novelia/web-kit';
+</script>
+
+<template>
+  <XTooltip side="right">
+    <template #trigger>
+      <button type="button">构建信息</button>
+    </template>
+    当前版本的构建时间和提交号
+  </XTooltip>
+</template>
+```
+
+支持 `side`（默认 `top`）、`align`（默认 `center`）、`sideOffset`（默认 8px）和 `delayDuration`（默认 200ms）。额外属性及 `class` 传给提示内容容器；触发元素的属性直接写在插槽内。组件和 `XTooltipProps` 类型均从 `@novelia/web-kit` 导出。

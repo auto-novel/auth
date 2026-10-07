@@ -9,6 +9,7 @@ import XConfirmDialog from './ui/XConfirmDialog.vue';
 import XPagination from './ui/XPagination.vue';
 import XSelect from './ui/XSelect.vue';
 import XTime from './ui/XTime.vue';
+import XTooltip from './ui/XTooltip.vue';
 import { useWebKit, webKitKey } from './context';
 import { Notify } from './notifications';
 import { getApiErrorMessage } from './utils/apiError';
@@ -28,6 +29,7 @@ export {
   XPagination,
   XSelect,
   XTime,
+  XTooltip,
   Notify,
   getApiErrorMessage,
   useWebKit,
@@ -62,4 +64,5 @@ export type {
   XTimePreset,
   XTimeProps,
   XTimeValue,
+  XTooltipProps,
 } from './ui/types';
