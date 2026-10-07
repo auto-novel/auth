@@ -169,6 +169,9 @@
   overflow: hidden;
   border-radius: 3px;
   padding-inline: var(--web-kit-item-padding, 1.5rem);
+  padding-inline-start: calc(
+    var(--web-kit-item-padding, 1.5rem) + var(--web-kit-item-indent, 0px)
+  );
   font-size: 14px;
   font-weight: 400;
   text-align: left;

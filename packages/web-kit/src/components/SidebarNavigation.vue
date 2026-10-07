@@ -15,12 +15,16 @@ import {
 import { externalLinkAttrs } from '../menu';
 import type { WebKitMenuOption } from '../types';
 
-defineProps<{
-  options: WebKitMenuOption[];
-  selected?: string;
-  collapsed?: boolean;
-  expanded: Set<string>;
-}>();
+withDefaults(
+  defineProps<{
+    options: WebKitMenuOption[];
+    selected?: string;
+    collapsed?: boolean;
+    expanded: Set<string>;
+    depth?: number;
+  }>(),
+  { depth: 0 },
+);
 
 const emit = defineEmits<{
   select: [samePath: boolean];
@@ -57,7 +61,11 @@ async function navigate(event: MouseEvent, option: WebKitMenuOption) {
 </script>
 
 <template>
-  <nav class="grid gap-1" aria-label="站点导航">
+  <nav
+    class="grid gap-1"
+    :style="{ '--web-kit-item-indent': `${depth * 12}px` }"
+    aria-label="站点导航"
+  >
     <template v-for="option in options" :key="option.key">
       <div
         v-if="option.type === 'divider'"
@@ -104,6 +112,7 @@ async function navigate(event: MouseEvent, option: WebKitMenuOption) {
           <SidebarNavigation
             class="mt-1"
             :options="option.children"
+            :depth="depth + 1"
             :expanded="expanded"
             :selected="selected"
             :collapsed="collapsed"
