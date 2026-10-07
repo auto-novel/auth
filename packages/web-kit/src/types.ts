@@ -52,6 +52,15 @@ export type WebKitMenuOption =
       label: string;
       icon: Component;
       href: string;
+      /** 默认在当前页面打开；传 `_blank` 可在新标签页打开。 */
+      target?: '_self' | '_blank';
+    }
+  | {
+      type: 'group';
+      key: string;
+      label: string;
+      icon: Component;
+      children: WebKitMenuOption[];
     };
 
 /**

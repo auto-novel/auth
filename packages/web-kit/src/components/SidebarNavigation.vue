@@ -1,10 +1,16 @@
 <script setup lang="ts">
-import { OpenInNewOutlined } from '@vicons/material';
+import { KeyboardArrowDownOutlined, OpenInNewOutlined } from '@vicons/material';
+import {
+  CollapsibleContent,
+  CollapsibleRoot,
+  CollapsibleTrigger,
+} from 'reka-ui';
+import { ref, watch } from 'vue';
 import { RouterLink } from 'vue-router';
 
 import type { WebKitMenuOption } from '../types';
 
-defineProps<{
+const props = defineProps<{
   options: WebKitMenuOption[];
   selected?: string;
   collapsed?: boolean;
@@ -13,6 +19,28 @@ defineProps<{
 const emit = defineEmits<{
   select: [option: WebKitMenuOption];
 }>();
+
+const expanded = ref<Record<string, boolean>>({});
+
+function containsSelected(options: WebKitMenuOption[]): boolean {
+  return options.some((option) =>
+    option.type === 'group'
+      ? containsSelected(option.children)
+      : option.type !== 'divider' && option.key === props.selected,
+  );
+}
+
+watch(
+  () => [props.options, props.selected],
+  () => {
+    for (const option of props.options) {
+      if (option.type === 'group' && containsSelected(option.children)) {
+        expanded.value[option.key] = true;
+      }
+    }
+  },
+  { immediate: true, deep: true },
+);
 
 async function navigate(
   event: MouseEvent,
@@ -39,14 +67,61 @@ async function navigate(
         class="my-2 border-t border-divider"
         role="separator"
       />
+      <CollapsibleRoot
+        v-else-if="option.type === 'group'"
+        v-model:open="expanded[option.key]"
+      >
+        <CollapsibleTrigger as-child>
+          <button
+            type="button"
+            class="web-kit-sidebar-item text-ink hover:bg-hover"
+            :aria-label="option.label"
+            :title="collapsed ? option.label : undefined"
+          >
+            <span
+              class="grid size-5 flex-none place-items-center"
+              aria-hidden="true"
+            >
+              <component :is="option.icon" class="size-5" />
+            </span>
+            <span
+              class="web-kit-sidebar-label flex-1"
+              :class="collapsed ? 'opacity-0' : 'opacity-100'"
+              :aria-hidden="collapsed"
+            >
+              {{ option.label }}
+            </span>
+            <KeyboardArrowDownOutlined
+              v-if="!collapsed"
+              class="size-4 flex-none transition-transform"
+              :class="{ '-rotate-90': !expanded[option.key] }"
+              aria-hidden="true"
+            />
+          </button>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <SidebarNavigation
+            class="mt-1"
+            :class="{ 'ml-3 border-l border-divider pl-1': !collapsed }"
+            :options="option.children"
+            :selected="selected"
+            :collapsed="collapsed"
+            @select="emit('select', $event)"
+          />
+        </CollapsibleContent>
+      </CollapsibleRoot>
       <a
         v-else-if="option.type === 'external'"
         :href="option.href"
-        target="_blank"
-        rel="noopener noreferrer"
+        :target="option.target ?? '_self'"
+        :rel="option.target === '_blank' ? 'noopener noreferrer' : undefined"
         class="web-kit-sidebar-item text-ink hover:bg-hover"
-        :aria-label="`${option.label}（在新标签页打开）`"
-        :title="collapsed ? `${option.label}（在新标签页打开）` : undefined"
+        :aria-label="
+          option.target === '_blank'
+            ? `${option.label}（在新标签页打开）`
+            : option.label
+        "
+        :title="collapsed ? option.label : undefined"
       >
         <span
           class="grid size-5 flex-none place-items-center"
@@ -60,7 +135,11 @@ async function navigate(
           :aria-hidden="collapsed"
         >
           <span class="truncate">{{ option.label }}</span>
-          <OpenInNewOutlined class="size-3 flex-none" aria-hidden="true" />
+          <OpenInNewOutlined
+            v-if="option.target === '_blank'"
+            class="size-3 flex-none"
+            aria-hidden="true"
+          />
         </span>
       </a>
       <RouterLink

@@ -16,7 +16,20 @@ const route = useRoute();
 
 const navigationOptions: WebKitMenuOption[] = [
   { key: 'home', label: '首页', icon: HomeOutlined, to: '/' },
-  { key: 'profile', label: '个人资料', icon: PersonOutlined, to: '/profile' },
+  {
+    key: 'account',
+    type: 'group',
+    label: '账号',
+    icon: PersonOutlined,
+    children: [
+      {
+        key: 'profile',
+        label: '个人资料',
+        icon: PersonOutlined,
+        to: '/profile',
+      },
+    ],
+  },
   { key: 'divider', type: 'divider' },
   {
     key: 'docs',
@@ -28,7 +41,28 @@ const navigationOptions: WebKitMenuOption[] = [
 ];
 
 const accountOptions: WebKitMenuOption[] = [
-  { key: 'strikes', label: '处罚记录', icon: ReportOutlined, to: '/strikes' },
+  {
+    key: 'resources',
+    type: 'group',
+    label: '相关链接',
+    icon: HomeOutlined,
+    children: [
+      {
+        key: 'strikes',
+        label: '处罚记录',
+        icon: ReportOutlined,
+        to: '/strikes',
+      },
+      {
+        key: 'docs-new-tab',
+        type: 'external',
+        label: 'Vite 文档',
+        icon: OpenInNewOutlined,
+        href: 'https://cn.vite.dev/',
+        target: '_blank',
+      },
+    ],
+  },
 ];
 </script>
 
