@@ -32,7 +32,7 @@ root.classList.toggle('dark', theme === 'dark');
   <!--
     One layout at every width: a full-page surface with a centered content
     column. The page is shown either on its own or inside a full-page iframe
-    (web-kit / admin-kit), so the old viewport-based card on wide screens only
+    (web-kit), so the old viewport-based card on wide screens only
     made the embedded and standalone renderings diverge.
   -->
   <!-- Use an explicit scrollport when the keyboard reduces the viewport.

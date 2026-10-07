@@ -10,11 +10,9 @@
     "dev:local": "pnpm --filter auth-login dev:local",
     "dev:native": "pnpm --filter auth-login dev:native",
     "dev:web-kit": "pnpm --filter @novelia/web-kit dev",
-    "dev:admin-kit": "pnpm --filter @novelia/admin-kit dev",
-    "build": "pnpm --filter @novelia/auth-api build && pnpm --filter @novelia/admin-kit build && pnpm --filter @novelia/web-kit build && pnpm --filter auth-login build && pnpm --filter auth-admin build",
+    "build": "pnpm --filter @novelia/auth-api build && pnpm --filter @novelia/web-kit build && pnpm --filter auth-login build && pnpm --filter auth-admin build",
     "preview": "pnpm --filter auth-login preview",
-    "preview:web-kit": "pnpm --filter @novelia/web-kit preview",
-    "preview:admin-kit": "pnpm --filter @novelia/admin-kit preview"
+    "preview:web-kit": "pnpm --filter @novelia/web-kit preview"
   },
   "devDependencies": {
     "prettier": "^3.9.6"

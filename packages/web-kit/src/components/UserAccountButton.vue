@@ -257,7 +257,7 @@ async function focusLoginFrame() {
   <Teleport to="body">
     <!--
       The login page is embedded full-page, matching how the auth app renders
-      it standalone (admin-kit does the same). A constrained modal iframe would
+      it standalone. A constrained modal iframe would
       make the page's own viewport-based layout diverge from that rendering.
     -->
     <div

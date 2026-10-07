@@ -38,7 +38,7 @@ createApp(App).use(webKit).use(router).mount('#app');
 
 `createWebKit` 在应用入口只调用一次；同一模块运行环境中再次调用会报错，不会覆盖配置或创建新会话。`auth.url` 可以是相对地址，按当前页面解析。
 
-两个 kit 使用相同的生命周期契约：
+web-kit 的生命周期契约：
 
 - `createWebKit()` 只构造配置与内存状态，不读取会话/主题存储内容、不发请求、不注册监听器或定时器，也不修改页面主题。
 - `webKit.start()` 启动认证会话、主题和处罚提醒。`app.use(webKit)` 会自动调用它，通常不需要手动启动；重复启动无副作用。
