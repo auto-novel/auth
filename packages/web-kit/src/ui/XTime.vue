@@ -26,8 +26,13 @@ const text = computed(() => {
     : formatTimeValue(value, TIME_PRESETS[props.preset]);
 });
 const machineTime = computed(() => (date.value ? formatISO(date.value) : ''));
+const title = computed(
+  () =>
+    props.title ??
+    (date.value ? formatTimeValue(date.value, 'yyyy年M月d日 HH:mm:ss') : ''),
+);
 </script>
 
 <template>
-  <time v-if="date" :datetime="machineTime">{{ text }}</time>
+  <time v-if="date" :datetime="machineTime" :title="title">{{ text }}</time>
 </template>

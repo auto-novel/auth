@@ -85,6 +85,8 @@ export interface XSelectProps {
 }
 
 export interface XTimeProps {
+  /** 悬浮提示，默认显示完整时间（含秒）；传空字符串可关闭。 */
+  title?: string;
   /** 时间值：Date、毫秒时间戳，或可被 Date 解析的字符串；空值/非法值不渲染。 */
   time?: XTimeValue;
   /** 格式预设，默认 `datetime`；传了非空 `format` 时忽略。 */
