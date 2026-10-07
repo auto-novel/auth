@@ -2,9 +2,9 @@ import { isHTTPError } from 'ky';
 
 import type { AccessTokenProvider } from './client';
 import { isKnownRole } from './role';
-import type { AuthUser } from './user';
+import type { SessionUser } from './user';
 
-interface AccessTokenProfile extends Omit<AuthUser, 'adminMode'> {
+interface AccessTokenProfile extends Omit<SessionUser, 'adminMode'> {
   token: string;
   issuedAt: number;
   expiredAt: number;
@@ -65,7 +65,7 @@ function parseAccessToken(token: string): AccessTokenProfile {
     id: claims.uid,
     username: claims.sub,
     role: claims.role,
-    createdAt: claims.crat,
+    createdAt: claims.crat * 1000,
     issuedAt: claims.iat,
     expiredAt: claims.exp,
   };
@@ -126,7 +126,7 @@ function createAuthStorage(options?: AuthStorageOptions) {
 
 export function createAuthSession(options: AuthSessionOptions) {
   const storage = createAuthStorage(options.storage);
-  const listeners = new Set<(user?: AuthUser) => void>();
+  const listeners = new Set<(user?: SessionUser) => void>();
   let profile: AccessTokenProfile | undefined;
   let adminMode = false;
   let initialized = false;
@@ -149,7 +149,7 @@ export function createAuthSession(options: AuthSessionOptions) {
     }
   }
 
-  function notify(listener: (user?: AuthUser) => void) {
+  function notify(listener: (user?: SessionUser) => void) {
     try {
       listener(
         profile
@@ -187,7 +187,7 @@ export function createAuthSession(options: AuthSessionOptions) {
     for (const listener of listeners) notify(listener);
   }
 
-  function subscribe(listener: (user?: AuthUser) => void) {
+  function subscribe(listener: (user?: SessionUser) => void) {
     assertNotDisposed();
     listeners.add(listener);
     notify(listener);

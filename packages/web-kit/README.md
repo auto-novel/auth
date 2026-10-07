@@ -135,7 +135,7 @@ const options: WebKitMenuOption[] = [
 
 内置菜单及注入位置不变：侧栏注入项在主题切换之前；账号注入项在账号信息及其分割线之后、处罚记录和退出账号之前。宿主只能在这些位置组织自己的菜单，不能通过注入配置重排内置项。
 
-会话信息用 `useWebKit()` 拿：`{ api, whoami }`。`whoami` 是 `ComputedRef<Whoami>`，含 `user`、`isSignedIn`、`isAdmin`、`asAdmin`、`roleLabel`，以及 `hasRoleAtLeast(role)`、`isAtLeastDaysOld(days)` 两个判定方法；判定规则使用内置认证模块的 `AuthUser`，站点自己的准入策略（如注册满 30 天）在宿主里用这两者组合，不要塞进 kit。`whoami.user.createdAt` 已归一化为毫秒时间戳，可直接给 `XTime` 或 `Date`，不要再 `* 1000`；它也不再是 `AuthUser` 的秒口径，账号年龄一律走 `isAtLeastDaysOld(days)`。
+会话信息用 `useWebKit()` 拿：`{ api, whoami }`。`whoami` 是 `ComputedRef<Whoami>`，含 `user`、`isSignedIn`、`isAdmin`、`asAdmin`、`roleLabel`，以及 `hasRoleAtLeast(role)`、`isAtLeastDaysOld(days)` 两个判定方法；站点自己的准入策略（如注册满 30 天）在宿主里用这两者组合，不要塞进 kit。`whoami.user` 的公开类型为只读的 `WhoamiUser`，其 `createdAt` 使用 Unix 毫秒时间戳，在 JWT 解析时转换，可直接给 `XTime` 或 `Date`，不要再 `* 1000`。用户状态与权限判定统一通过 `whoami` 获取，账号年龄使用 `whoami.isAtLeastDaysOld(days)` 判断。
 
 页面内容区要滚回顶部时用 `useWebKitLayout().scrollToTop()`，别自己去查 DOM；不在布局里它会退化成滚动窗口。
 

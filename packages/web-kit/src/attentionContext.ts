@@ -1,5 +1,5 @@
 import type { AttentionStatus, StrikeReadState } from './auth/requests';
-import type { AuthUser } from './auth/user';
+import type { SessionUser } from './auth/user';
 import { readonly, ref, type DeepReadonly, type Ref } from 'vue';
 
 export interface AttentionContext {
@@ -15,7 +15,7 @@ interface AttentionSession {
 }
 
 interface AttentionApi {
-  watchUser(listener: (user?: AuthUser) => void): () => void;
+  watchUser(listener: (user?: SessionUser) => void): () => void;
   getAttentionStatus(): Promise<AttentionStatus>;
   updateMyStrikeReadState(throughId: number): Promise<StrikeReadState>;
 }
@@ -103,7 +103,7 @@ export function createAttention(api: AttentionApi) {
     if (document.visibilityState === 'visible') void refresh();
   }
 
-  function handleUser(user: AuthUser | undefined) {
+  function handleUser(user: SessionUser | undefined) {
     if (disposed || user?.id === session?.userId) return;
     session = user ? { userId: user.id } : undefined;
     status.value = undefined;

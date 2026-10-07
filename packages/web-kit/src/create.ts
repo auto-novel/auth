@@ -1,5 +1,5 @@
-import { AuthUser } from './auth/user';
-import { roleLabels, type UserRole } from './auth/role';
+import { isAccountAtLeastDaysOld, type SessionUser } from './auth/user';
+import { isRoleAtLeast, roleLabels, type UserRole } from './auth/role';
 import {
   createApiClient,
   createAuthAwareApiClient,
@@ -133,7 +133,7 @@ export function createWebKit(options: WebKitOptions): WebKit {
         }
       : undefined,
   });
-  const profile = ref<AuthUser>();
+  const profile = ref<SessionUser>();
   let unsubscribe: (() => void) | undefined;
   const requests = createAuthRequests(
     createAuthAwareApiClient(authClient, session.accessToken),
@@ -154,21 +154,19 @@ export function createWebKit(options: WebKitOptions): WebKit {
   // 谓词闭包读取 profile，解构出去后也不会拿到过期快照。
   const predicates = {
     hasRoleAtLeast: (role: UserRole) =>
-      AuthUser.hasRoleAtLeast(profile.value, role),
+      isRoleAtLeast(profile.value?.role, role),
     isAtLeastDaysOld: (days: number) =>
-      AuthUser.isAtLeastDaysOld(profile.value, days),
+      isAccountAtLeastDaysOld(profile.value, days),
   };
   const whoami = computed<Whoami>(() => {
     const user = profile.value;
     const role = user?.role;
+    const isAdmin = isRoleAtLeast(role, 'admin');
     return {
-      // 将 认证会话的秒时间戳转为毫秒，并保持对外快照只读。
-      user: user
-        ? readonly({ ...user, createdAt: user.createdAt * 1000 })
-        : undefined,
+      user: user ? readonly({ ...user }) : undefined,
       isSignedIn: user !== undefined,
-      isAdmin: AuthUser.isAdmin(user),
-      asAdmin: AuthUser.asAdmin(user),
+      isAdmin,
+      asAdmin: isAdmin && user?.adminMode === true,
       roleLabel: role ? (roleLabels[role] ?? role) : '未知角色',
       ...predicates,
     };

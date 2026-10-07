@@ -1,4 +1,4 @@
-import type { AuthUser } from './auth/user';
+import type { SessionUser } from './auth/user';
 import type { UserRole } from './auth/role';
 import type { ApiClient, ApiClientOptions } from './auth/client';
 import type {
@@ -70,16 +70,10 @@ export type WebKitMenuOption =
       children: WebKitMenuOption[];
     };
 
-/**
- * 会话用户，`createdAt` 使用毫秒；账号年龄使用 `whoami.isAtLeastDaysOld(days)`，
- * 不要传给按秒计算的 `AuthUser.isAtLeastDaysOld`。
- */
-export type WhoamiUser = DeepReadonly<AuthUser>;
+/** 只读会话用户快照，createdAt 使用 Unix 毫秒。 */
+export type WhoamiUser = DeepReadonly<SessionUser>;
 
-/**
- * 会话视图：登录状态、角色判定和派生展示字段的统一入口。
- * 权限规则由 认证模块的 `AuthUser` 提供，这里只做响应式包装。
- */
+/** 会话视图：登录状态、角色判定和派生展示字段的统一入口。 */
 export interface Whoami {
   /** 会话用户快照；未登录为 `undefined`。 */
   readonly user: WhoamiUser | undefined;

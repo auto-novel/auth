@@ -2,8 +2,6 @@ import assert from 'node:assert/strict';
 import { registerHooks } from 'node:module';
 import test from 'node:test';
 
-import { AuthUser } from '../src/auth/user.ts';
-
 registerHooks({
   resolve(specifier, context, nextResolve) {
     if (
@@ -54,32 +52,23 @@ test('admin mode persists only for the same administrator account', async () => 
     requestRefresh: async () => nextToken,
   });
   const observed = [];
-  const unsubscribe = session.subscribe((user) =>
-    observed.push(user && [user.adminMode, AuthUser.asAdmin(user)]),
-  );
+  const unsubscribe = session.subscribe((user) => {
+    observed.push(user?.adminMode);
+  });
 
   try {
-    assert.deepEqual(observed, [[false, false]]);
+    assert.deepEqual(observed, [false]);
     assert.equal(session.setAdminMode(true), false);
     assert.equal(session.toggleAdminMode(), false);
 
     await session.accessToken.refresh();
     assert.equal(session.setAdminMode(true), true);
     assert.equal(JSON.parse(storage.getItem('session')).adminMode, true);
-    assert.deepEqual(observed, [
-      [false, false],
-      [false, false],
-      [true, true],
-    ]);
+    assert.deepEqual(observed, [false, false, true]);
 
     nextToken = makeToken('admin');
     await session.accessToken.refresh();
-    assert.deepEqual(observed, [
-      [false, false],
-      [false, false],
-      [true, true],
-      [true, true],
-    ]);
+    assert.deepEqual(observed, [false, false, true, true]);
 
     const restored = createAuthSession({
       app: 'test',
@@ -89,47 +78,27 @@ test('admin mode persists only for the same administrator account', async () => 
     });
     try {
       const restoredValues = [];
-      restored.subscribe((user) =>
-        restoredValues.push(user && [user.adminMode, AuthUser.asAdmin(user)]),
-      );
-      assert.deepEqual(restoredValues, [[true, true]]);
+      restored.subscribe((user) => restoredValues.push(user?.adminMode));
+      assert.deepEqual(restoredValues, [true]);
     } finally {
       restored.dispose();
     }
 
     nextToken = makeToken('admin', 2);
     await session.accessToken.refresh();
-    assert.deepEqual(observed, [
-      [false, false],
-      [false, false],
-      [true, true],
-      [true, true],
-      [false, false],
-    ]);
+    assert.deepEqual(observed, [false, false, true, true, false]);
     assert.equal(JSON.parse(storage.getItem('session')).adminMode, false);
 
     session.setAdminMode(true);
     nextToken = makeToken('member', 2);
     await session.accessToken.refresh();
-    assert.deepEqual(observed, [
-      [false, false],
-      [false, false],
-      [true, true],
-      [true, true],
-      [false, false],
-      [true, true],
-      [false, false],
-    ]);
+    assert.deepEqual(observed, [false, false, true, true, false, true, false]);
 
     nextToken = makeToken('admin', 2);
     await session.accessToken.refresh();
     assert.equal(session.toggleAdminMode(), true);
     await session.logout();
-    assert.deepEqual(observed.slice(-3), [
-      [false, false],
-      [true, true],
-      undefined,
-    ]);
+    assert.deepEqual(observed.slice(-3), [false, true, undefined]);
     assert.equal(storage.getItem('session'), null);
   } finally {
     unsubscribe();
@@ -148,9 +117,9 @@ test('admin mode follows storage changes from another tab', () => {
     requestRefresh: async () => makeToken('admin'),
   });
   const observed = [];
-  session.subscribe((user) =>
-    observed.push(user && [user.adminMode, AuthUser.asAdmin(user)]),
-  );
+  session.subscribe((user) => {
+    observed.push(user?.adminMode);
+  });
 
   function dispatchStorageChange() {
     const event = new Event('storage');
@@ -167,16 +136,41 @@ test('admin mode follows storage changes from another tab', () => {
       JSON.stringify({ token: makeToken('admin'), adminMode: true }),
     );
     dispatchStorageChange();
-    assert.deepEqual(observed, [
-      [false, false],
-      [true, true],
-    ]);
+    assert.deepEqual(observed, [false, true]);
 
     storage.removeItem('session');
     dispatchStorageChange();
-    assert.deepEqual(observed, [[false, false], [true, true], undefined]);
+    assert.deepEqual(observed, [false, true, undefined]);
   } finally {
     session.dispose();
     delete globalThis.window;
+  }
+});
+
+test('session users use milliseconds after restoring and refreshing a JWT', async () => {
+  const token = makeToken('member');
+  const storage = makeStorage(token, false);
+  const session = createAuthSession({
+    app: 'test',
+    storage: { key: 'session', target: storage },
+    requestLogout: async () => '',
+    requestRefresh: async () => makeToken('admin'),
+  });
+  let user;
+  session.subscribe((value) => {
+    user = value;
+  });
+  try {
+    assert.equal(user.createdAt, 1_700_000_000_000);
+    await session.accessToken.refresh();
+    assert.equal(user.role, 'admin');
+    assert.equal(user.createdAt, 1_700_000_000_000);
+    const savedToken = JSON.parse(storage.getItem('session')).token;
+    const claims = JSON.parse(
+      Buffer.from(savedToken.split('.')[1], 'base64url'),
+    );
+    assert.equal(claims.crat, 1_700_000_000);
+  } finally {
+    session.dispose();
   }
 });

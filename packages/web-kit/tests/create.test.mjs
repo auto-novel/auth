@@ -120,6 +120,10 @@ test('one successful create, no notification rebinding, and final idempotent dis
     assert.deepEqual(counts, beforeCreate);
     assert.equal(kit.whoami.value.user, undefined);
     assert.equal(kit.whoami.value.isSignedIn, false);
+    assert.equal(kit.whoami.value.isAdmin, false);
+    assert.equal(kit.whoami.value.asAdmin, false);
+    assert.equal(kit.whoami.value.hasRoleAtLeast('member'), false);
+    assert.equal(kit.whoami.value.isAtLeastDaysOld(0), false);
     assert.equal(kit.theme.theme.value, 'light');
     kit.start();
     const afterStart = { ...counts };
@@ -128,8 +132,15 @@ test('one successful create, no notification rebinding, and final idempotent dis
     assert.equal(kit.theme.theme.value, 'dark');
     assert.equal(kit.options.auth.url, 'https://web.example/auth/');
     assert.equal(kit.whoami.value.user.username, 'member');
-    // JWT `crat` 是 Unix 秒；whoami 已归一化为毫秒，供 XTime/Date 直接消费。
+    // JWT 的秒时间戳在会话解析时转为毫秒，kit 保持同一单位。
     assert.equal(kit.whoami.value.user.createdAt, now * 1000);
+    const thirtyDaysLater = now * 1000 + 30 * 24 * 60 * 60 * 1000;
+    let currentTime = thirtyDaysLater - 1;
+    const clock = t.mock.method(Date, 'now', () => currentTime);
+    assert.equal(kit.whoami.value.isAtLeastDaysOld(30), false);
+    currentTime = thirtyDaysLater;
+    assert.equal(kit.whoami.value.isAtLeastDaysOld(30), true);
+    clock.mock.restore();
     // 归一化后的快照仍须保持深只读，不能被宿主改写。
     assert.equal(isReadonly(kit.whoami.value.user), true);
     const warnings = t.mock.method(console, 'warn', () => {});
@@ -393,6 +404,12 @@ test('login accepts only its iframe and refreshes the shared kit session', async
   try {
     kit.install(app);
     const account = app.runWithContext(useAccountActions);
+    const { hasRoleAtLeast, isAtLeastDaysOld } = kit.whoami.value;
+    assert.equal(kit.whoami.value.isAdmin, false);
+    assert.equal(kit.whoami.value.asAdmin, false);
+    assert.equal(hasRoleAtLeast('member'), true);
+    assert.equal(hasRoleAtLeast('admin'), false);
+    assert.equal(hasRoleAtLeast('unknown'), false);
     const frame = {};
     const event = {
       origin: 'https://web.example',
@@ -415,10 +432,19 @@ test('login accepts only its iframe and refreshes the shared kit session', async
     assert.equal(new URL(refreshes[0].url).searchParams.get('app'), 'test');
     assert.equal(refreshes[0].credentials, 'include');
     assert.equal(kit.whoami.value.user.username, 'admin');
+    assert.equal(kit.whoami.value.isAdmin, true);
+    assert.equal(hasRoleAtLeast('admin'), true);
+    assert.equal(isAtLeastDaysOld(0), true);
+    assert.equal(kit.whoami.value.user.createdAt, now * 1000);
     assert.equal(kit.whoami.value.asAdmin, false);
     account.toggleAdminMode();
     assert.equal(kit.whoami.value.asAdmin, true);
     await kit.attention.refresh();
+    await kit.api.logout();
+    assert.equal(kit.whoami.value.isAdmin, false);
+    assert.equal(kit.whoami.value.asAdmin, false);
+    assert.equal(hasRoleAtLeast('member'), false);
+    assert.equal(isAtLeastDaysOld(0), false);
     kit.dispose();
     await assert.rejects(account.handleLoginMessage(event, frame), /disposed/);
     assert.equal(refreshes.length, 1);

@@ -1,22 +1,20 @@
-import { isRoleAtLeast, type UserRole } from './role.ts';
+import type { UserRole } from './role';
 
 const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
 
-export interface AuthUser {
+export interface SessionUser {
   id: number;
   username: string;
   role: UserRole;
+  /** Unix 毫秒时间戳，与 Date 和 XTime 的数值输入一致。 */
   createdAt: number;
   adminMode: boolean;
 }
 
-type UserWithCreatedAt = Pick<AuthUser, 'createdAt'> | null | undefined;
-type UserWithRole = Pick<AuthUser, 'role'> | null | undefined;
-type UserWithAdminMode =
-  Pick<AuthUser, 'role' | 'adminMode'> | null | undefined;
+type UserWithCreatedAt = Pick<SessionUser, 'createdAt'> | null | undefined;
 
-/** Account creation time is expressed in Unix seconds. */
-function isAccountAtLeastDaysOld(
+/** Account creation time and now are expressed in Unix milliseconds. */
+export function isAccountAtLeastDaysOld(
   user: UserWithCreatedAt,
   days: number,
   now = Date.now(),
@@ -27,22 +25,6 @@ function isAccountAtLeastDaysOld(
     Number.isFinite(days) &&
     days >= 0 &&
     Number.isFinite(now) &&
-    now - user.createdAt * 1000 >= days * MILLISECONDS_PER_DAY
+    now - user.createdAt >= days * MILLISECONDS_PER_DAY
   );
 }
-
-/** User-focused predicates for session profiles and optional users. */
-export const AuthUser = {
-  isAtLeastDaysOld(user: UserWithCreatedAt, days: number, now?: number) {
-    return isAccountAtLeastDaysOld(user, days, now);
-  },
-  hasRoleAtLeast(user: UserWithRole, requiredRole: unknown) {
-    return isRoleAtLeast(user?.role, requiredRole);
-  },
-  isAdmin(user: UserWithRole) {
-    return isRoleAtLeast(user?.role, 'admin');
-  },
-  asAdmin(user: UserWithAdminMode) {
-    return user?.adminMode === true && isRoleAtLeast(user.role, 'admin');
-  },
-};

@@ -16,7 +16,6 @@ import { getApiErrorMessage } from './utils/apiError';
 import { useWebKitLayout } from './layoutContext';
 
 export { createWebKit } from './create';
-export { AuthUser } from './auth/user';
 export {
   isKnownRole,
   isRoleAtLeast,
