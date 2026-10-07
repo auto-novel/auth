@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { registerHooks } from 'node:module';
 import test from 'node:test';
 
-import { createApp } from 'vue';
+import { createApp, isReadonly } from 'vue';
 import { notifications, Notify } from '../src/notifications/index.ts';
 
 registerHooks({
@@ -105,11 +105,11 @@ function fakeBrowser(t) {
     counts.cleared++;
     timers.delete(timer);
   });
-  return { counts, timers };
+  return { counts, now, timers };
 }
 
 test('one successful create, no notification rebinding, and final idempotent disposal', async (t) => {
-  const { counts, timers } = fakeBrowser(t);
+  const { counts, now, timers } = fakeBrowser(t);
   const createWebKit = await freshFactory();
   Notify.success('before creation');
   const beforeCreate = { ...counts };
@@ -126,6 +126,14 @@ test('one successful create, no notification rebinding, and final idempotent dis
     assert.equal(kit.theme.theme.value, 'dark');
     assert.equal(kit.options.auth.url, 'https://web.example/auth/');
     assert.equal(kit.whoami.value.user.username, 'member');
+    // JWT `crat` 是 Unix 秒；whoami 已归一化为毫秒，供 XTime/Date 直接消费。
+    assert.equal(kit.whoami.value.user.createdAt, now * 1000);
+    // 归一化后的快照仍须保持深只读，不能被宿主改写。
+    assert.equal(isReadonly(kit.whoami.value.user), true);
+    const warnings = t.mock.method(console, 'warn', () => {});
+    kit.whoami.value.user.username = 'tampered';
+    assert.equal(kit.whoami.value.user.username, 'member');
+    assert.ok(warnings.mock.callCount() > 0);
     assert.equal(kit.whoami.value.isSignedIn, true);
     assert.equal('notifications' in kit, false);
     assert.equal(counts.added, 1);

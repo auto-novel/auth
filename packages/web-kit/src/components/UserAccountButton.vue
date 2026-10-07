@@ -85,11 +85,6 @@ const accountLabel = computed(() => {
   return `账号 @${user.username}${attention}`;
 });
 
-const createdAt = computed(() => {
-  const timestamp = whoami.value.user?.createdAt;
-  return timestamp ? timestamp * 1000 : undefined;
-});
-
 const loginFrameSrc = computed(() =>
   authApi.createLoginUrl(webTheme.theme.value),
 );
@@ -215,7 +210,7 @@ async function focusLoginFrame() {
             </p>
             <p class="mt-0.5 text-xs text-muted">
               注册于
-              <XTime :time="createdAt" preset="date" />
+              <XTime :time="whoami.user?.createdAt" preset="date" />
             </p>
           </DropdownMenuLabel>
           <DropdownMenuSeparator class="border-t border-divider" />

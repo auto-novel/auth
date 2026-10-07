@@ -119,7 +119,6 @@ export function createWebKit(options: WebKitOptions): WebKit {
       : undefined,
   });
   const profile = ref<AuthUser>();
-  const readonlyProfile = readonly(profile);
   let unsubscribe: (() => void) | undefined;
   const attention = createAttention(api);
   // 谓词闭包读取 profile，解构出去后也不会拿到过期快照。
@@ -130,10 +129,13 @@ export function createWebKit(options: WebKitOptions): WebKit {
       AuthUser.isAtLeastDaysOld(profile.value, days),
   };
   const whoami = computed<Whoami>(() => {
-    const user = readonlyProfile.value;
+    const user = profile.value;
     const role = user?.role;
     return {
-      user,
+      // 将 auth-api 的秒时间戳转为毫秒，并保持对外快照只读。
+      user: user
+        ? readonly({ ...user, createdAt: user.createdAt * 1000 })
+        : undefined,
       isSignedIn: user !== undefined,
       isAdmin: AuthUser.isAdmin(user),
       asAdmin: AuthUser.asAdmin(user),
