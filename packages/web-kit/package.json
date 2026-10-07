@@ -28,6 +28,7 @@
   },
   "dependencies": {
     "@novelia/auth-api": "workspace:*",
+    "date-fns": "^4.4.0",
     "reka-ui": "^2.10.5"
   },
   "devDependencies": {

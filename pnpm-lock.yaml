@@ -147,6 +147,9 @@ importers:
       '@vicons/material':
         specifier: ^0.13.0
         version: 0.13.0
+      date-fns:
+        specifier: ^4.4.0
+        version: 4.4.0
       reka-ui:
         specifier: ^2.10.5
         version: 2.10.5(vue@3.5.41(typescript@6.0.3))

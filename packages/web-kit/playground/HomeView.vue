@@ -3,6 +3,7 @@ import {
   Notify,
   XButton,
   XSelect,
+  XTime,
   useWebKit,
   useWebKitLayout,
 } from '@novelia/web-kit';
@@ -17,6 +18,9 @@ const options = [
   { label: '选项 B', value: 'beta' },
   { label: '选项 C', value: 'gamma' },
 ];
+
+const sampleTime = new Date('2025-06-05T15:04:30+08:00');
+const relativeBase = new Date('2025-06-05T15:07:30+08:00');
 </script>
 
 <template>
@@ -56,6 +60,25 @@ const options = [
       <div class="w-48">
         <XSelect v-model="selected" :options="options" />
       </div>
+    </section>
+
+    <section class="border-border bg-surface rounded-lg border p-5">
+      <h2 class="mb-3 font-medium">时间</h2>
+      <dl class="grid gap-2 text-sm sm:grid-cols-[8rem_1fr]">
+        <dt class="text-muted">默认格式</dt>
+        <dd><XTime :time="sampleTime" /></dd>
+        <dt class="text-muted">自定义格式</dt>
+        <dd><XTime :time="sampleTime" format="yyyy年M月d日 HH:mm" /></dd>
+        <dt class="text-muted">相对时间</dt>
+        <dd>
+          <XTime :time="sampleTime" format="relative" :to="relativeBase" />
+        </dd>
+        <dt class="text-muted">非法值</dt>
+        <dd>
+          <XTime time="not-a-date" />
+          （不渲染）
+        </dd>
+      </dl>
     </section>
 
     <section class="border-border bg-surface rounded-lg border p-5">

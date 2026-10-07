@@ -1,5 +1,9 @@
 import type { Component } from 'vue';
 
+import type { XTimeValue } from '../utils/time';
+
+export type { XTimeValue };
+
 export type XButtonVariant =
   | 'primary'
   | 'outline'
@@ -71,4 +75,13 @@ export interface XSelectProps {
   disabled?: boolean;
   required?: boolean;
   rounded?: boolean;
+}
+
+export interface XTimeProps {
+  /** 时间值：Date、毫秒时间戳，或可被 Date 解析的字符串；空值/非法值不渲染。 */
+  time?: XTimeValue;
+  /** date-fns 格式串；传 `relative` 输出相对时间（如“3 分钟前”）。 */
+  format?: string;
+  /** `relative` 的基准时间，默认当前时刻。 */
+  to?: XTimeValue;
 }
