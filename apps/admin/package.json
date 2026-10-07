@@ -9,12 +9,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@novelia/admin-kit": "workspace:*",
     "@novelia/auth-api": "workspace:*",
-    "@vitejs/plugin-vue": "^6.0.8",
+    "@novelia/web-kit": "workspace:*",
+    "@tailwindcss/vite": "^4.3.3",
     "@vicons/material": "^0.13.0",
+    "@vitejs/plugin-vue": "^6.0.8",
     "@vue/tsconfig": "^0.9.1",
     "naive-ui": "^2.45.1",
+    "tailwindcss": "^4.3.3",
     "typescript": "^6.0.0",
     "vite": "^8.2.2",
     "vue": "^3.5.41",

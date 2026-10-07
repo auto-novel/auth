@@ -1,17 +1,21 @@
 import { createApp } from 'vue';
 import App from './App.vue';
 
-import { createAdminAuthGuard, createAdminKit } from '@novelia/admin-kit';
+import { createWebKit } from '@novelia/web-kit';
+import './style.css';
 
 import { adminApiKey, createAdminApi } from './api';
 import router from './router';
 
-const adminKit = createAdminKit({
+const webKit = createWebKit({
   auth: {
     app: 'auth',
     url: __AUTH_URL__,
+    storageKey: 'auth-admin-session',
   },
   brand: 'Auth',
+  themeStorageKey: 'auth-admin-theme',
+  strikes: { enabled: false },
   repository: {
     url: 'https://github.com/auto-novel/auth',
     buildTime: __BUILD_TIME__,
@@ -19,16 +23,18 @@ const adminKit = createAdminKit({
   },
 });
 
-router.beforeEach(createAdminAuthGuard(adminKit));
+router.beforeEach(async () => {
+  await webKit.api.checkSignedIn();
+});
 
 createApp(App)
   .provide(
     adminApiKey,
     createAdminApi(
-      adminKit.api,
-      new URL('api/v1/', adminKit.options.auth.url).toString(),
+      webKit.api,
+      new URL('api/v1/', webKit.options.auth.url).toString(),
     ),
   )
-  .use(adminKit)
+  .use(webKit)
   .use(router)
   .mount('#app');

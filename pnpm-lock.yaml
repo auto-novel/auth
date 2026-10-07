@@ -13,12 +13,15 @@ importers:
 
   apps/admin:
     dependencies:
-      '@novelia/admin-kit':
-        specifier: workspace:*
-        version: link:../../packages/admin-kit
       '@novelia/auth-api':
         specifier: workspace:*
         version: link:../../packages/auth-api
+      '@novelia/web-kit':
+        specifier: workspace:*
+        version: link:../../packages/web-kit
+      '@tailwindcss/vite':
+        specifier: ^4.3.3
+        version: 4.3.3(vite@8.2.2(@types/node@25.9.5)(jiti@2.7.0)(terser@5.50.0)(yaml@2.9.0))
       '@vicons/material':
         specifier: ^0.13.0
         version: 0.13.0
@@ -31,6 +34,9 @@ importers:
       naive-ui:
         specifier: ^2.45.1
         version: 2.45.1(vue@3.5.41(typescript@6.0.3))
+      tailwindcss:
+        specifier: ^4.3.3
+        version: 4.3.3
       typescript:
         specifier: ^6.0.0
         version: 6.0.3

@@ -1,3 +1,4 @@
+import tailwindcss from '@tailwindcss/vite';
 import vue from '@vitejs/plugin-vue';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath, URL } from 'node:url';
@@ -84,7 +85,7 @@ export default defineConfig(({ command, mode }) => {
       __BUILD_TIME__: JSON.stringify(buildTime),
       __COMMIT_SHA__: JSON.stringify(commitSha),
     },
-    plugins: [vue()],
+    plugins: [tailwindcss(), vue()],
     build: {
       cssCodeSplit: false,
       rolldownOptions: {
