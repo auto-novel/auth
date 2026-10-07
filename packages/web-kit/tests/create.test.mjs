@@ -328,7 +328,6 @@ test('public API hides session internals while sharing authentication with built
       'getAttentionStatus',
       'updateMyStrikeReadState',
       'getMyStrikes',
-      'setAdminMode',
       'toggleAdminMode',
     ]) {
       assert.equal(name in context.api, false, name);

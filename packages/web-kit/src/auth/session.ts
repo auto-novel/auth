@@ -29,7 +29,6 @@ interface AuthStorageOptions {
 
 interface AuthSessionOptions {
   app: string;
-  autoStart?: boolean;
   storage?: AuthStorageOptions;
   requestLogout(): Promise<string>;
   requestRefresh(app: string): Promise<string>;
@@ -167,9 +166,9 @@ export function createAuthSession(options: AuthSessionOptions) {
     }
   }
 
-  function setAdminMode(enabled: boolean): boolean {
+  function toggleAdminMode(): boolean {
     assertActive();
-    const nextMode = enabled === true && profile?.role === 'admin';
+    const nextMode = !adminMode && profile?.role === 'admin';
     if (adminMode === nextMode) return adminMode;
     adminMode = nextMode;
     if (profile) storage?.save(profile, adminMode);
@@ -328,7 +327,6 @@ export function createAuthSession(options: AuthSessionOptions) {
         eventTarget.addEventListener('storage', onStorage);
       }
 
-      // Preserve the eager API's initial-check-before-interval timing.
       void checkSignedIn().catch(() => undefined);
       assertActive();
       refreshTimer = globalThis.setInterval(() => {
@@ -350,15 +348,10 @@ export function createAuthSession(options: AuthSessionOptions) {
     }
   }
 
-  if (options.autoStart !== false) start();
-
   return {
     accessToken,
     checkSignedIn,
-    setAdminMode,
-    toggleAdminMode() {
-      return setAdminMode(!adminMode);
-    },
+    toggleAdminMode,
     async logout() {
       assertActive();
       // Ignore refreshes started before logout, including their errors.

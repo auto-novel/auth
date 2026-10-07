@@ -51,6 +51,7 @@ test('admin mode persists only for the same administrator account', async () => 
     requestLogout: async () => '',
     requestRefresh: async () => nextToken,
   });
+  session.start();
   const observed = [];
   const unsubscribe = session.subscribe((user) => {
     observed.push(user?.adminMode);
@@ -58,11 +59,10 @@ test('admin mode persists only for the same administrator account', async () => 
 
   try {
     assert.deepEqual(observed, [false]);
-    assert.equal(session.setAdminMode(true), false);
     assert.equal(session.toggleAdminMode(), false);
 
     await session.accessToken.refresh();
-    assert.equal(session.setAdminMode(true), true);
+    assert.equal(session.toggleAdminMode(), true);
     assert.equal(JSON.parse(storage.getItem('session')).adminMode, true);
     assert.deepEqual(observed, [false, false, true]);
 
@@ -77,6 +77,7 @@ test('admin mode persists only for the same administrator account', async () => 
       requestRefresh: async () => nextToken,
     });
     try {
+      restored.start();
       const restoredValues = [];
       restored.subscribe((user) => restoredValues.push(user?.adminMode));
       assert.deepEqual(restoredValues, [true]);
@@ -89,7 +90,7 @@ test('admin mode persists only for the same administrator account', async () => 
     assert.deepEqual(observed, [false, false, true, true, false]);
     assert.equal(JSON.parse(storage.getItem('session')).adminMode, false);
 
-    session.setAdminMode(true);
+    session.toggleAdminMode();
     nextToken = makeToken('member', 2);
     await session.accessToken.refresh();
     assert.deepEqual(observed, [false, false, true, true, false, true, false]);
@@ -116,6 +117,7 @@ test('admin mode follows storage changes from another tab', () => {
     requestLogout: async () => '',
     requestRefresh: async () => makeToken('admin'),
   });
+  session.start();
   const observed = [];
   session.subscribe((user) => {
     observed.push(user?.adminMode);
@@ -156,6 +158,7 @@ test('session users use milliseconds after restoring and refreshing a JWT', asyn
     requestLogout: async () => '',
     requestRefresh: async () => makeToken('admin'),
   });
+  session.start();
   let user;
   session.subscribe((value) => {
     user = value;

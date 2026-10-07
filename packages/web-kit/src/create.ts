@@ -113,7 +113,6 @@ export function createWebKit(options: WebKitOptions): WebKit {
   const authUrl = new URL(normalizedOptions.auth.url);
   const authClient = createApiClient(new URL('api/v1/', authUrl).toString());
   const session = createAuthSession({
-    autoStart: false,
     app: normalizedOptions.auth.app,
     requestLogout: () =>
       authClient.post('auth/logout', { credentials: 'include' }).text(),
