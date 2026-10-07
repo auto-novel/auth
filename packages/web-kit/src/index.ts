@@ -16,26 +16,25 @@ import { getApiErrorMessage } from './utils/apiError';
 import { useWebKitLayout } from './layoutContext';
 
 export { createWebKit } from './create';
+export { AuthUser } from './auth/user';
 export {
-  createAuthApi,
-  AuthUser,
   isKnownRole,
   isRoleAtLeast,
   roleLabels,
   roles,
-  type AttentionStatus,
-  type AuthApi,
-  type AuthApiOptions,
-  type AuthClientOptions,
-  type BanUserRequest,
-  type CreateStrikeRequest,
-  type CreateStrikeResponse,
-  type MyStrike,
-  type MyStrikeListParams,
-  type MyStrikePage,
-  type StrikeReadState,
   type UserRole,
-} from './auth/index';
+} from './auth/role';
+export type { ApiClientOptions as AuthClientOptions } from './auth/client';
+export type {
+  AttentionStatus,
+  BanUserRequest,
+  CreateStrikeRequest,
+  CreateStrikeResponse,
+  MyStrike,
+  MyStrikeListParams,
+  MyStrikePage,
+  StrikeReadState,
+} from './auth/requests';
 
 export {
   MyStrikeListView,
@@ -62,6 +61,7 @@ export type { AppNotification } from './notifications';
 export type { WebTheme } from './theme';
 export type {
   WebKit,
+  WebKitApi,
   WebKitContext,
   WebKitMenuOption,
   WebKitOptions,

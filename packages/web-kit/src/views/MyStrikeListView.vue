@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import type { MyStrike } from '../auth/index';
+import type { MyStrike } from '../auth/requests';
 import { GavelOutlined } from '@vicons/material';
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 import { useWebKit } from '../context';
+import { useMyStrikesLoader } from '../auth/context';
 import { useWebKitLayout } from '../layoutContext';
 import XAsyncContent from '../ui/XAsyncContent.vue';
 import XPagination from '../ui/XPagination.vue';
@@ -15,7 +16,8 @@ const PAGE_SIZE = 20;
 
 const route = useRoute();
 const router = useRouter();
-const { api: authApi, attention, whoami } = useWebKit();
+const { attention, whoami } = useWebKit();
+const loadMyStrikes = useMyStrikesLoader();
 const { scrollToTop } = useWebKitLayout();
 const strikes = ref<MyStrike[]>([]);
 const total = ref(0);
@@ -45,7 +47,7 @@ async function loadStrikes() {
 
   loading.value = true;
   try {
-    const result = await authApi.getMyStrikes({
+    const result = await loadMyStrikes({
       page: page.value,
       pageSize: PAGE_SIZE,
     });

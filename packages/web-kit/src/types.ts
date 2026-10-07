@@ -1,4 +1,11 @@
-import type { AuthApi, AuthUser, UserRole } from './auth/index';
+import type { AuthUser } from './auth/user';
+import type { UserRole } from './auth/role';
+import type { ApiClient, ApiClientOptions } from './auth/client';
+import type {
+  BanUserRequest,
+  CreateStrikeRequest,
+  CreateStrikeResponse,
+} from './auth/requests';
 import type { App, Component, ComputedRef, DeepReadonly } from 'vue';
 import type { RouteLocationRaw } from 'vue-router';
 
@@ -86,9 +93,23 @@ export interface Whoami {
   isAtLeastDaysOld(days: number): boolean;
 }
 
+/** 宿主可调用的认证与管理接口；会话生命周期由 kit 统一管理。 */
+export interface WebKitApi {
+  readonly createClient: (
+    baseUrl: string,
+    options?: ApiClientOptions,
+  ) => ApiClient;
+  readonly checkSignedIn: () => Promise<boolean>;
+  readonly logout: () => Promise<string>;
+  readonly banUser: (request: BanUserRequest) => Promise<string>;
+  readonly createStrike: (
+    request: CreateStrikeRequest,
+  ) => Promise<CreateStrikeResponse>;
+}
+
 export interface WebKitContext {
   readonly options: DeepReadonly<WebKitResolvedOptions>;
-  readonly api: AuthApi;
+  readonly api: WebKitApi;
   readonly whoami: ComputedRef<Whoami>;
   /** 处罚提醒状态，与账号菜单里的未读红点同源。 */
   readonly attention: AttentionContext;

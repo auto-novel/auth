@@ -1,6 +1,6 @@
 import { inject, type InjectionKey } from 'vue';
 
-import type { AuthApi } from '@novelia/web-kit';
+import type { WebKitApi } from '@novelia/web-kit';
 
 interface Page<T> {
   total: number;
@@ -117,7 +117,7 @@ export interface Strike {
   attr: Record<string, unknown>;
 }
 
-export function createAdminApi(authApi: AuthApi, baseUrl: string) {
+export function createAdminApi(authApi: WebKitApi, baseUrl: string) {
   const client = authApi.createClient(baseUrl);
 
   return {

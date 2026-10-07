@@ -1,13 +1,18 @@
+import { AuthUser } from './auth/user';
+import { roleLabels, type UserRole } from './auth/role';
 import {
-  AuthUser,
-  createAuthApi,
-  roleLabels,
-  type UserRole,
-} from './auth/index';
+  createApiClient,
+  createAuthAwareApiClient,
+  type ApiClientOptions,
+} from './auth/client';
+import { createAuthSession } from './auth/session';
+import { createAuthRequests } from './auth/requests';
+import { createLoginBridge } from './auth/login';
 import { computed, readonly, ref, type App, type DeepReadonly } from 'vue';
 import type { RouteLocationRaw } from 'vue-router';
 
 import { createAttention } from './attentionContext';
+import { accountActionsKey, loadMyStrikesKey } from './auth/context';
 import { webKitKey } from './context';
 import { Notify } from './notifications';
 import { createWebTheme } from './theme';
@@ -105,10 +110,20 @@ export function createWebKit(options: WebKitOptions): WebKit {
   } catch {
     // Keep the session in memory when browser storage is blocked.
   }
-  const api = createAuthApi({
+  const authUrl = new URL(normalizedOptions.auth.url);
+  const authClient = createApiClient(new URL('api/v1/', authUrl).toString());
+  const session = createAuthSession({
     autoStart: false,
     app: normalizedOptions.auth.app,
-    url: normalizedOptions.auth.url,
+    requestLogout: () =>
+      authClient.post('auth/logout', { credentials: 'include' }).text(),
+    requestRefresh: (app) =>
+      authClient
+        .post('auth/refresh', {
+          credentials: 'include',
+          searchParams: { app },
+        })
+        .text(),
     storage: storage
       ? {
           key:
@@ -120,7 +135,22 @@ export function createWebKit(options: WebKitOptions): WebKit {
   });
   const profile = ref<AuthUser>();
   let unsubscribe: (() => void) | undefined;
-  const attention = createAttention(api);
+  const requests = createAuthRequests(
+    createAuthAwareApiClient(authClient, session.accessToken),
+  );
+  const accountActions = Object.freeze({
+    ...createLoginBridge(
+      authUrl,
+      normalizedOptions.auth.app,
+      session.accessToken.refresh,
+    ),
+    toggleAdminMode: session.toggleAdminMode,
+  });
+  const attention = createAttention({
+    watchUser: session.subscribe,
+    getAttentionStatus: requests.getAttentionStatus,
+    updateMyStrikeReadState: requests.updateMyStrikeReadState,
+  });
   // 谓词闭包读取 profile，解构出去后也不会拿到过期快照。
   const predicates = {
     hasRoleAtLeast: (role: UserRole) =>
@@ -159,10 +189,10 @@ export function createWebKit(options: WebKitOptions): WebKit {
     started = true;
     try {
       theme.start();
-      unsubscribe = api.watchUser((user) => {
+      unsubscribe = session.subscribe((user) => {
         profile.value = user;
       });
-      api.start();
+      session.start();
       attention.start();
     } catch (error) {
       dispose();
@@ -177,14 +207,25 @@ export function createWebKit(options: WebKitOptions): WebKit {
     attention.dispose();
     unsubscribe?.();
     unsubscribe = undefined;
-    api.dispose();
+    session.dispose();
     profile.value = undefined;
     if (started) Notify.dismissAll();
   }
 
   const context: WebKitContext = Object.freeze({
     options: normalizedOptions,
-    api,
+    api: Object.freeze({
+      createClient(baseUrl: string, options: ApiClientOptions = {}) {
+        return createAuthAwareApiClient(
+          createApiClient(baseUrl, options),
+          session.accessToken,
+        );
+      },
+      checkSignedIn: session.checkSignedIn,
+      logout: session.logout,
+      banUser: requests.banUser,
+      createStrike: requests.createStrike,
+    }),
     whoami,
     attention: attention.context,
     theme: theme.context,
@@ -202,6 +243,8 @@ export function createWebKit(options: WebKitOptions): WebKit {
       try {
         start();
         app.provide(webKitKey, context);
+        app.provide(accountActionsKey, accountActions);
+        app.provide(loadMyStrikesKey, requests.getMyStrikes);
         app.onUnmount(dispose);
       } catch (error) {
         dispose();

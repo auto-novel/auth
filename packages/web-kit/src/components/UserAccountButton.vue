@@ -27,6 +27,7 @@ import {
 import { RouterLink, type RouteLocationRaw } from 'vue-router';
 
 import { useWebKit } from '../context';
+import { useAccountActions } from '../auth/context';
 import type { WebKitMenuOption } from '../types';
 import XTime from '../ui/XTime.vue';
 import AccountMenuOptions from './AccountMenuOptions.vue';
@@ -34,12 +35,13 @@ import AccountMenuOptions from './AccountMenuOptions.vue';
 defineProps<{ options: WebKitMenuOption[] }>();
 
 const {
-  api: authApi,
+  api,
   attention,
   options: kitOptions,
   whoami,
   theme: webTheme,
 } = useWebKit();
+const accountActions = useAccountActions();
 const loginFrame = useTemplateRef('loginFrame');
 const menuOpen = ref(false);
 const loginOpen = ref(false);
@@ -86,7 +88,7 @@ const accountLabel = computed(() => {
 });
 
 const loginFrameSrc = computed(() =>
-  authApi.createLoginUrl(webTheme.theme.value),
+  accountActions.createLoginUrl(webTheme.theme.value),
 );
 
 watch(menuOpen, (open) => {
@@ -106,7 +108,7 @@ function closeLogin() {
 
 async function handleMessage(event: MessageEvent) {
   if (!loginOpen.value || completingLogin.value) return;
-  const completion = authApi.handleLoginMessage(
+  const completion = accountActions.handleLoginMessage(
     event,
     loginFrame.value?.contentWindow,
   );
@@ -127,7 +129,7 @@ async function handleMessage(event: MessageEvent) {
 async function logout() {
   menuOpen.value = false;
   try {
-    await authApi.logout();
+    await api.logout();
   } catch {
     // The auth session clears the local session even if the remote session has expired.
   }
@@ -201,7 +203,7 @@ async function focusLoginFrame() {
               type="button"
               class="block w-full cursor-pointer px-3 py-2.5 text-left transition-colors hover:bg-hover"
               :aria-pressed="whoami.asAdmin"
-              @click="authApi.toggleAdminMode()"
+              @click="accountActions.toggleAdminMode()"
             >
               <span class="block text-sm font-medium text-ink">
                 {{ whoami.roleLabel }}{{ whoami.asAdmin ? '+' : '' }}

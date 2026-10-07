@@ -1,4 +1,5 @@
-import type { AttentionStatus, AuthApi, AuthUser } from './auth/index';
+import type { AttentionStatus, StrikeReadState } from './auth/requests';
+import type { AuthUser } from './auth/user';
 import { readonly, ref, type DeepReadonly, type Ref } from 'vue';
 
 export interface AttentionContext {
@@ -13,10 +14,11 @@ interface AttentionSession {
   request?: Promise<void>;
 }
 
-type AttentionApi = Pick<
-  AuthApi,
-  'watchUser' | 'getAttentionStatus' | 'updateMyStrikeReadState'
->;
+interface AttentionApi {
+  watchUser(listener: (user?: AuthUser) => void): () => void;
+  getAttentionStatus(): Promise<AttentionStatus>;
+  updateMyStrikeReadState(throughId: number): Promise<StrikeReadState>;
+}
 
 const POLL_INTERVAL = 60 * 1000;
 

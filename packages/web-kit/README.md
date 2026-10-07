@@ -50,7 +50,7 @@ web-kit 的生命周期契约：
 
 kit、组件/主题/提醒/布局上下文的对象外壳均被冻结，类型中的字段也只读，不能替换状态引用或方法。`whoami` 中的用户字段、提醒 `status` 均深只读，修改主题和提醒状态应调用公开方法。主题仅公开只读的 `theme`、`isDark` 和 `toggleTheme()`，不暴露内部生命周期。
 
-配置是复制后冻结的快照，包括 `strikes.to` 的 params、query、state 及其中的数组/记录；修改传入的配置对象不会改变 kit，也不会冻结调用者的原对象。冻结上下文不会阻止 Ref 随内部状态更新；`api` 只禁止替换引用，其原有接口与调用能力不变。
+配置是复制后冻结的快照，包括 `strikes.to` 的 params、query、state 及其中的数组/记录；修改传入的配置对象不会改变 kit，也不会冻结调用者的原对象。冻结上下文不会阻止 Ref 随内部状态更新；`api` 的对象外壳也被冻结，仅暴露宿主需要的业务方法。
 
 创建后 `whoami` 处于未登录状态，主题使用初始浅色，启动时才恢复存储状态。
 `start()` 只启动同步，不等待网络登录检查；需要等待时，在启动后调用 `await webKit.api.checkSignedIn()`。
@@ -141,7 +141,16 @@ const options: WebKitMenuOption[] = [
 
 ## 认证 API
 
-认证实现内置于 web-kit。认证接口、角色工具和类型可从包主入口导入；独立认证客户端也可使用不加载 Vue 组件的 `@novelia/web-kit/auth` 入口。已安装 kit 的应用通过 `useWebKit().api` 复用会话。详见 [认证 API 文档](./AUTH.md)。
+认证会话由 `createWebKit()` 统一创建和管理。角色工具和类型可从包主入口导入。已安装 kit 的应用通过 `useWebKit().api` 复用会话，其类型为 `WebKitApi`，仅提供：
+
+- `createClient(baseUrl, options?)`：创建携带当前会话的业务客户端。
+- `checkSignedIn()`：等待登录检查并返回登录状态。
+- `logout()`：退出当前账号。
+- `banUser(request)`、`createStrike(request)`：宿主管理操作。
+
+用户状态通过响应式 `whoami` 获取，提醒通过 `attention` 读取和更新。登录交互、管理模式切换及处罚记录请求由内置组件处理；认证会话的启动和销毁统一由 kit 管理。`kit.api` 与 `useWebKit().api` 是同一个只读对象，不包含底层会话的生命周期、订阅或登录消息处理方法。
+
+宿主业务工厂若接收 `kit.api`，参数使用 `WebKitApi`（或 `WebKitContext['api']`）。业务客户端可单独设置超时，例如 `api.createClient('/api/', { timeout: 60_000 })`；认证请求使用默认超时。管理模式仅影响界面交互，业务操作仍由服务端校验权限。
 
 ## 处罚记录
 

@@ -24,6 +24,8 @@ registerHooks({
 });
 
 const { useWebKit } = await import('../src/context.ts');
+const { useAccountActions, useMyStrikesLoader } =
+  await import('../src/auth/context.ts');
 let moduleId = 0;
 async function freshFactory() {
   return (await import(`../src/create.ts?test=${++moduleId}`)).createWebKit;
@@ -230,7 +232,7 @@ test('single owner, context-only hooks, same-app idempotence, and unmount cleanu
   try {
     kit.install(app);
     kit.install(app);
-    assert.equal(provide.mock.callCount(), 1);
+    assert.equal(provide.mock.callCount(), 3);
     assert.equal(onUnmount.mock.callCount(), 1);
     assert.equal(counts.timers, 2); // auth refresh + attention polling
     assert.equal(kit.theme.theme.value, 'dark');
@@ -264,9 +266,169 @@ test('single owner, context-only hooks, same-app idempotence, and unmount cleanu
     assert.equal(kit.theme.theme.value, themeAfterDispose);
     assert.throws(() => kit.install(app), /disposed/);
     assert.throws(() => kit.install(otherApp), /disposed/);
-    assert.equal(provide.mock.callCount(), 1);
+    assert.equal(provide.mock.callCount(), 3);
     assert.equal(onUnmount.mock.callCount(), 1);
   } finally {
     kit.dispose();
   }
+});
+
+test('public API hides session internals while sharing authentication with built-in features', async (t) => {
+  fakeBrowser(t);
+  const requests = [];
+  t.mock.method(globalThis, 'fetch', async (request) => {
+    requests.push(request);
+    const path = new URL(request.url).pathname;
+    if (path.endsWith('/me/strikes')) {
+      return Response.json({ total: 0, items: [], latestStrikeId: 0 });
+    }
+    if (path.endsWith('/admin/strikes')) return Response.json({ id: 42 });
+    return Response.json({ strikes: { hasUnread: true } });
+  });
+  const createWebKit = await freshFactory();
+  const kit = createWebKit(options);
+  const client = kit.api.createClient('https://business.example/api/');
+  const app = createApp({});
+  try {
+    kit.install(app);
+    const context = app.runWithContext(useWebKit);
+    const accountActions = app.runWithContext(useAccountActions);
+    const loadMyStrikes = app.runWithContext(useMyStrikesLoader);
+    assert.equal(context.api, kit.api);
+    assert.deepEqual(Object.keys(accountActions).sort(), [
+      'createLoginUrl',
+      'handleLoginMessage',
+      'toggleAdminMode',
+    ]);
+    assert.deepEqual(Object.keys(context.api).sort(), [
+      'banUser',
+      'checkSignedIn',
+      'createClient',
+      'createStrike',
+      'logout',
+    ]);
+    assert.equal(Object.isFrozen(context.api), true);
+    for (const name of [
+      'start',
+      'dispose',
+      'watchUser',
+      'createLoginUrl',
+      'handleLoginMessage',
+      'getAttentionStatus',
+      'updateMyStrikeReadState',
+      'getMyStrikes',
+      'setAdminMode',
+      'toggleAdminMode',
+    ]) {
+      assert.equal(name in context.api, false, name);
+    }
+    assert.throws(() => {
+      context.api.logout = () => {};
+    }, TypeError);
+    assert.equal(await context.api.checkSignedIn(), true);
+    await client.get('posts');
+    await context.api.banUser({ username: 'other', reason: 'test' });
+    assert.deepEqual(
+      await context.api.createStrike({
+        username: 'other',
+        reason: 'test',
+        evidence: 'test',
+        point: 1,
+      }),
+      { id: 42 },
+    );
+    const businessRequest = requests.find(
+      (request) => new URL(request.url).hostname === 'business.example',
+    );
+    const banRequest = requests.find((request) =>
+      request.url.endsWith('/admin/user/ban'),
+    );
+    assert.match(businessRequest.headers.get('Authorization'), /^Bearer /);
+    assert.equal(
+      banRequest.headers.get('Authorization'),
+      businessRequest.headers.get('Authorization'),
+    );
+    const loginUrl = new URL(accountActions.createLoginUrl('dark'));
+    assert.equal(loginUrl.searchParams.get('app'), 'test');
+    assert.equal(loginUrl.searchParams.get('theme'), 'dark');
+    assert.deepEqual(await loadMyStrikes({ page: 1, pageSize: 20 }), {
+      total: 0,
+      items: [],
+      latestStrikeId: 0,
+    });
+    await context.attention.refresh();
+    assert.equal(context.attention.status.value.strikes.hasUnread, true);
+    await context.api.logout();
+    assert.equal(context.whoami.value.isSignedIn, false);
+    assert.equal(context.attention.status.value, undefined);
+    assert.equal(await context.api.checkSignedIn(), false);
+  } finally {
+    kit.dispose();
+  }
+});
+
+test('login accepts only its iframe and refreshes the shared kit session', async (t) => {
+  const { now } = fakeBrowser(t);
+  const token = `header.${Buffer.from(
+    JSON.stringify({
+      uid: 2,
+      sub: 'admin',
+      role: 'admin',
+      crat: now,
+      iat: now,
+      exp: now + 3600,
+    }),
+  ).toString('base64url')}.signature`;
+  const refreshes = [];
+  t.mock.method(globalThis, 'fetch', async (request) => {
+    if (new URL(request.url).pathname.endsWith('/auth/refresh')) {
+      refreshes.push(request);
+      return new Response(token);
+    }
+    return Response.json({ strikes: { hasUnread: false } });
+  });
+  const createWebKit = await freshFactory();
+  const kit = createWebKit(options);
+  const app = createApp({});
+  try {
+    kit.install(app);
+    const account = app.runWithContext(useAccountActions);
+    const frame = {};
+    const event = {
+      origin: 'https://web.example',
+      source: frame,
+      data: { type: 'login_success' },
+    };
+    for (const invalid of [
+      { ...event, origin: 'https://other.example' },
+      { ...event, source: {} },
+      { ...event, data: null },
+      { ...event, data: 'login_success' },
+      { ...event, data: { type: 'other' } },
+    ]) {
+      assert.equal(account.handleLoginMessage(invalid, frame), undefined);
+    }
+    assert.equal(account.handleLoginMessage(event, null), undefined);
+    assert.equal(refreshes.length, 0);
+    await account.handleLoginMessage(event, frame);
+    assert.equal(refreshes.length, 1);
+    assert.equal(new URL(refreshes[0].url).searchParams.get('app'), 'test');
+    assert.equal(refreshes[0].credentials, 'include');
+    assert.equal(kit.whoami.value.user.username, 'admin');
+    assert.equal(kit.whoami.value.asAdmin, false);
+    account.toggleAdminMode();
+    assert.equal(kit.whoami.value.asAdmin, true);
+    await kit.attention.refresh();
+    kit.dispose();
+    await assert.rejects(account.handleLoginMessage(event, frame), /disposed/);
+    assert.equal(refreshes.length, 1);
+  } finally {
+    kit.dispose();
+  }
+});
+
+test('the standalone auth package entry is unavailable', () => {
+  assert.throws(() => import.meta.resolve('@novelia/web-kit/auth'), {
+    code: 'ERR_PACKAGE_PATH_NOT_EXPORTED',
+  });
 });
