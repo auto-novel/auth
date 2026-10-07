@@ -8,7 +8,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./package.json": "./package.json",
-    "./styles.css": "./src/styles.css"
+    "./styles.css": "./src/styles.css",
+    "./auth": "./src/auth/index.ts"
   },
   "files": [
     "src"
@@ -27,8 +28,8 @@
     "vue-router": "^5.2.0"
   },
   "dependencies": {
-    "@novelia/auth-api": "workspace:*",
     "date-fns": "^4.4.0",
+    "ky": "^2.1.0",
     "reka-ui": "^2.10.5"
   },
   "devDependencies": {

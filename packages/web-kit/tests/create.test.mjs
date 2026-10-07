@@ -10,7 +10,7 @@ registerHooks({
     if (
       specifier.startsWith('.') &&
       !/\.[a-z]+$/i.test(specifier) &&
-      /\/packages\/(web-kit|auth-api)\/src\//.test(context.parentURL ?? '')
+      /\/packages\/web-kit\/src\//.test(context.parentURL ?? '')
     ) {
       return nextResolve(
         specifier === './notifications'

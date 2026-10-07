@@ -1,4 +1,4 @@
-import type { AttentionStatus, AuthApi, AuthUser } from '@novelia/auth-api';
+import type { AttentionStatus, AuthApi, AuthUser } from './auth/index';
 import { readonly, ref, type DeepReadonly, type Ref } from 'vue';
 
 export interface AttentionContext {

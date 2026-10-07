@@ -7,7 +7,6 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/admin/package.json ./apps/admin/package.json
 COPY apps/login/package.json ./apps/login/package.json
 COPY packages/web-kit/package.json ./packages/web-kit/package.json
-COPY packages/auth-api/package.json ./packages/auth-api/package.json
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
     pnpm --filter 'auth-login...' --filter 'auth-admin...' install --prod --frozen-lockfile
 
@@ -18,7 +17,6 @@ ARG VITE_BUILD_TIME
 COPY apps/login/. ./apps/login/
 COPY apps/admin/. ./apps/admin/
 COPY packages/web-kit/. ./packages/web-kit/
-COPY packages/auth-api/. ./packages/auth-api/
 RUN VITE_COMMIT_SHA="${VITE_COMMIT_SHA}" \
     VITE_BUILD_TIME="${VITE_BUILD_TIME}" \
     pnpm --filter auth-login --filter auth-admin build

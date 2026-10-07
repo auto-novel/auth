@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { isKnownRole, isRoleAtLeast, roles } from '../src/role.ts';
+import { isKnownRole, isRoleAtLeast, roles } from '../src/auth/role.ts';
 
 test('role comparison follows the server role hierarchy', () => {
   assert.deepEqual(roles, [

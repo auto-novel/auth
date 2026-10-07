@@ -3,7 +3,7 @@ import {
   createAuthApi,
   roleLabels,
   type UserRole,
-} from '@novelia/auth-api';
+} from './auth/index';
 import { computed, readonly, ref, type App, type DeepReadonly } from 'vue';
 import type { RouteLocationRaw } from 'vue-router';
 
@@ -132,7 +132,7 @@ export function createWebKit(options: WebKitOptions): WebKit {
     const user = profile.value;
     const role = user?.role;
     return {
-      // 将 auth-api 的秒时间戳转为毫秒，并保持对外快照只读。
+      // 将 认证会话的秒时间戳转为毫秒，并保持对外快照只读。
       user: user
         ? readonly({ ...user, createdAt: user.createdAt * 1000 })
         : undefined,

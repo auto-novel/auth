@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { AuthUser } from '../src/user.ts';
+import { AuthUser } from '../src/auth/user.ts';
 
 const createdAt = 1_700_000_000;
 const thirtyDaysLater = createdAt * 1000 + 30 * 24 * 60 * 60 * 1000;

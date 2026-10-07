@@ -1,4 +1,4 @@
-import type { AuthApi, AuthUser, UserRole } from '@novelia/auth-api';
+import type { AuthApi, AuthUser, UserRole } from './auth/index';
 import type { App, Component, ComputedRef, DeepReadonly } from 'vue';
 import type { RouteLocationRaw } from 'vue-router';
 
@@ -71,7 +71,7 @@ export type WhoamiUser = DeepReadonly<AuthUser>;
 
 /**
  * 会话视图：登录状态、角色判定和派生展示字段的统一入口。
- * 权限规则由 `@novelia/auth-api` 的 `AuthUser` 提供，这里只做响应式包装。
+ * 权限规则由 认证模块的 `AuthUser` 提供，这里只做响应式包装。
  */
 export interface Whoami {
   /** 会话用户快照；未登录为 `undefined`。 */

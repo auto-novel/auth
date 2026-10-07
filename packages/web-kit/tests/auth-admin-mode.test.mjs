@@ -2,13 +2,13 @@ import assert from 'node:assert/strict';
 import { registerHooks } from 'node:module';
 import test from 'node:test';
 
-import { AuthUser } from '../src/user.ts';
+import { AuthUser } from '../src/auth/user.ts';
 
 registerHooks({
   resolve(specifier, context, nextResolve) {
     if (
       specifier === './role' &&
-      context.parentURL?.endsWith('/src/session.ts')
+      context.parentURL?.endsWith('/src/auth/session.ts')
     ) {
       return nextResolve('./role.ts', context);
     }
@@ -16,7 +16,7 @@ registerHooks({
   },
 });
 
-const { createAuthSession } = await import('../src/session.ts');
+const { createAuthSession } = await import('../src/auth/session.ts');
 
 function makeToken(role, id = 1) {
   const payload = {

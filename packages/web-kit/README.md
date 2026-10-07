@@ -135,9 +135,13 @@ const options: WebKitMenuOption[] = [
 
 内置菜单及注入位置不变：侧栏注入项在主题切换之前；账号注入项在账号信息及其分割线之后、处罚记录和退出账号之前。宿主只能在这些位置组织自己的菜单，不能通过注入配置重排内置项。
 
-会话信息用 `useWebKit()` 拿：`{ api, whoami }`。`whoami` 是 `ComputedRef<Whoami>`，含 `user`、`isSignedIn`、`isAdmin`、`asAdmin`、`roleLabel`，以及 `hasRoleAtLeast(role)`、`isAtLeastDaysOld(days)` 两个判定方法；判定规则沿用 auth-api 的 `AuthUser`，站点自己的准入策略（如注册满 30 天）在宿主里用这两者组合，不要塞进 kit。`whoami.user.createdAt` 已归一化为毫秒时间戳，可直接给 `XTime` 或 `Date`，不要再 `* 1000`；它也不再是 `AuthUser` 的秒口径，账号年龄一律走 `isAtLeastDaysOld(days)`。
+会话信息用 `useWebKit()` 拿：`{ api, whoami }`。`whoami` 是 `ComputedRef<Whoami>`，含 `user`、`isSignedIn`、`isAdmin`、`asAdmin`、`roleLabel`，以及 `hasRoleAtLeast(role)`、`isAtLeastDaysOld(days)` 两个判定方法；判定规则使用内置认证模块的 `AuthUser`，站点自己的准入策略（如注册满 30 天）在宿主里用这两者组合，不要塞进 kit。`whoami.user.createdAt` 已归一化为毫秒时间戳，可直接给 `XTime` 或 `Date`，不要再 `* 1000`；它也不再是 `AuthUser` 的秒口径，账号年龄一律走 `isAtLeastDaysOld(days)`。
 
 页面内容区要滚回顶部时用 `useWebKitLayout().scrollToTop()`，别自己去查 DOM；不在布局里它会退化成滚动窗口。
+
+## 认证 API
+
+认证实现内置于 web-kit。认证接口、角色工具和类型可从包主入口导入；独立认证客户端也可使用不加载 Vue 组件的 `@novelia/web-kit/auth` 入口。已安装 kit 的应用通过 `useWebKit().api` 复用会话。详见 [认证 API 文档](./AUTH.md)。
 
 ## 处罚记录
 

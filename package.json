@@ -10,7 +10,7 @@
     "dev:local": "pnpm --filter auth-login dev:local",
     "dev:native": "pnpm --filter auth-login dev:native",
     "dev:web-kit": "pnpm --filter @novelia/web-kit dev",
-    "build": "pnpm --filter @novelia/auth-api build && pnpm --filter @novelia/web-kit build && pnpm --filter auth-login build && pnpm --filter auth-admin build",
+    "build": "pnpm --filter @novelia/web-kit build && pnpm --filter auth-login build && pnpm --filter auth-admin build",
     "preview": "pnpm --filter auth-login preview",
     "preview:web-kit": "pnpm --filter @novelia/web-kit preview"
   },

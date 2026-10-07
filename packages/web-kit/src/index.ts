@@ -35,7 +35,7 @@ export {
   type MyStrikePage,
   type StrikeReadState,
   type UserRole,
-} from '@novelia/auth-api';
+} from './auth/index';
 
 export {
   MyStrikeListView,

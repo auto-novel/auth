@@ -129,7 +129,7 @@ async function logout() {
   try {
     await authApi.logout();
   } catch {
-    // auth-api clears the local session even if the remote session has expired.
+    // The auth session clears the local session even if the remote session has expired.
   }
 }
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { MyStrike } from '@novelia/auth-api';
+import type { MyStrike } from '../auth/index';
 import { GavelOutlined } from '@vicons/material';
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
