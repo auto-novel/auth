@@ -1,4 +1,4 @@
-import { format, formatDistance, isValid, toDate } from 'date-fns';
+import { format, formatDistanceStrict, isValid, toDate } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 
 /** XTime 接收入参：Date、毫秒时间戳，或可被 Date 解析的字符串。 */
@@ -37,7 +37,7 @@ export function formatRelativeTime(
   date: Date,
   base?: XTimeValue | undefined,
 ): string {
-  return formatDistance(date, timeValueToDate(base) ?? new Date(), {
+  return formatDistanceStrict(date, timeValueToDate(base) ?? new Date(), {
     addSuffix: true,
     locale: zhCN,
   });
