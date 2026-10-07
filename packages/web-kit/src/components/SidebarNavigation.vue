@@ -66,9 +66,10 @@ async function navigate(event: MouseEvent, option: WebKitMenuOption) {
       />
       <CollapsibleRoot
         v-else-if="option.type === 'group'"
-        :open="expanded.has(option.key)"
+        :open="!collapsed && expanded.has(option.key)"
         @update:open="
-          $event ? expanded.add(option.key) : expanded.delete(option.key)
+          !collapsed &&
+          ($event ? expanded.add(option.key) : expanded.delete(option.key))
         "
       >
         <CollapsibleTrigger as-child>
@@ -99,7 +100,7 @@ async function navigate(event: MouseEvent, option: WebKitMenuOption) {
             />
           </button>
         </CollapsibleTrigger>
-        <CollapsibleContent>
+        <CollapsibleContent v-if="!collapsed">
           <SidebarNavigation
             class="mt-1"
             :options="option.children"
