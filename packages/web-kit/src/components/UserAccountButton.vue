@@ -29,6 +29,7 @@ import { RouterLink, type RouteLocationRaw } from 'vue-router';
 
 import { useWebKit } from '../context';
 import type { WebKitMenuOption } from '../types';
+import XTime from '../ui/XTime.vue';
 
 defineProps<{ options: WebKitMenuOption[] }>();
 
@@ -86,10 +87,7 @@ const accountLabel = computed(() => {
 
 const createdAt = computed(() => {
   const timestamp = whoami.value.user?.createdAt;
-  if (!timestamp) return '未知日期';
-  return new Intl.DateTimeFormat('zh-CN', { dateStyle: 'medium' }).format(
-    timestamp * 1000,
-  );
+  return timestamp ? timestamp * 1000 : undefined;
 });
 
 const loginFrameSrc = computed(() =>
@@ -215,7 +213,10 @@ async function focusLoginFrame() {
             <p v-else class="text-sm font-medium text-ink">
               {{ whoami.roleLabel }}
             </p>
-            <p class="mt-0.5 text-xs text-muted">注册于 {{ createdAt }}</p>
+            <p class="mt-0.5 text-xs text-muted">
+              注册于
+              <XTime :time="createdAt" preset="date" />
+            </p>
           </DropdownMenuLabel>
           <DropdownMenuSeparator class="border-t border-divider" />
           <div class="p-1">

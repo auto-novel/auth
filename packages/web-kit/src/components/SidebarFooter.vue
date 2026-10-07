@@ -2,6 +2,8 @@
 import { AccessTimeOutlined, CommitOutlined } from '@vicons/material';
 import { computed } from 'vue';
 
+import XTime from '../ui/XTime.vue';
+
 const props = defineProps<{
   repoUrl: string;
   buildTime: string;
@@ -9,15 +11,6 @@ const props = defineProps<{
   collapsed?: boolean;
 }>();
 
-const builtAt = computed(() => {
-  const date = new Date(props.buildTime);
-  return Number.isNaN(date.getTime()) ? undefined : date;
-});
-const formattedBuildTime = computed(() =>
-  builtAt.value
-    ? builtAt.value.toLocaleString('zh-CN', { hour12: false })
-    : '未知时间',
-);
 const shortCommit = computed(() => props.commitSha.slice(0, 12) || 'unknown');
 const commitUrl = computed(() =>
   props.commitSha && props.commitSha !== 'unknown'
@@ -35,15 +28,14 @@ const commitUrl = computed(() =>
     aria-label="构建信息"
   >
     <div class="mb-1.5 border-t border-divider" />
-    <div
-      class="sidebar-build-info-item"
-      :title="`构建于 ${formattedBuildTime}`"
-    >
+    <div class="sidebar-build-info-item">
       <AccessTimeOutlined class="size-[15px] flex-none" aria-hidden="true" />
       <span class="flex-none">构建于</span>
-      <time class="truncate text-ink" :datetime="builtAt?.toISOString()">
-        {{ formattedBuildTime }}
-      </time>
+      <XTime
+        class="truncate text-ink"
+        :time="buildTime"
+        preset="datetime-numeric"
+      />
     </div>
     <div class="sidebar-build-info-item">
       <CommitOutlined class="size-4 flex-none" aria-hidden="true" />

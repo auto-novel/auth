@@ -3,20 +3,28 @@ import { formatISO } from 'date-fns';
 import { computed } from 'vue';
 
 import {
+  formatRelativeTime,
   formatTimeValue,
-  TIME_DEFAULT_FORMAT,
+  TIME_PRESETS,
   timeValueToDate,
 } from '../utils/time';
 import type { XTimeProps } from './types';
 
 const props = withDefaults(defineProps<XTimeProps>(), {
-  format: TIME_DEFAULT_FORMAT,
+  preset: 'datetime',
 });
 
 const date = computed(() => timeValueToDate(props.time));
-const text = computed(() =>
-  date.value ? formatTimeValue(date.value, props.format, props.to) : '',
-);
+const text = computed(() => {
+  const value = date.value;
+  if (!value) return '';
+
+  if (props.format) return formatTimeValue(value, props.format);
+
+  return props.preset === 'relative'
+    ? formatRelativeTime(value, props.to)
+    : formatTimeValue(value, TIME_PRESETS[props.preset]);
+});
 const machineTime = computed(() => (date.value ? formatISO(date.value) : ''));
 </script>
 

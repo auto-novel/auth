@@ -58,6 +58,7 @@ export type {
   XPaginationProps,
   XSelectOption,
   XSelectProps,
+  XTimePreset,
   XTimeProps,
   XTimeValue,
 } from './ui/types';

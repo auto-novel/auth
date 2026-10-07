@@ -65,13 +65,17 @@ const relativeBase = new Date('2025-06-05T15:07:30+08:00');
     <section class="border-border bg-surface rounded-lg border p-5">
       <h2 class="mb-3 font-medium">时间</h2>
       <dl class="grid gap-2 text-sm sm:grid-cols-[8rem_1fr]">
-        <dt class="text-muted">默认格式</dt>
+        <dt class="text-muted">默认预设</dt>
         <dd><XTime :time="sampleTime" /></dd>
+        <dt class="text-muted">date 预设</dt>
+        <dd><XTime :time="sampleTime" preset="date" /></dd>
+        <dt class="text-muted">datetime-numeric</dt>
+        <dd><XTime :time="sampleTime" preset="datetime-numeric" /></dd>
         <dt class="text-muted">自定义格式</dt>
-        <dd><XTime :time="sampleTime" format="yyyy年M月d日 HH:mm" /></dd>
+        <dd><XTime :time="sampleTime" format="yyyy/M/d HH:mm:ss" /></dd>
         <dt class="text-muted">相对时间</dt>
         <dd>
-          <XTime :time="sampleTime" format="relative" :to="relativeBase" />
+          <XTime :time="sampleTime" preset="relative" :to="relativeBase" />
         </dd>
         <dt class="text-muted">非法值</dt>
         <dd>

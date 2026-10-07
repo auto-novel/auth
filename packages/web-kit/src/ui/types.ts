@@ -1,8 +1,8 @@
 import type { Component } from 'vue';
 
-import type { XTimeValue } from '../utils/time';
+import type { XTimePreset, XTimeValue } from '../utils/time';
 
-export type { XTimeValue };
+export type { XTimePreset, XTimeValue };
 
 export type XButtonVariant =
   | 'primary'
@@ -80,8 +80,10 @@ export interface XSelectProps {
 export interface XTimeProps {
   /** 时间值：Date、毫秒时间戳，或可被 Date 解析的字符串；空值/非法值不渲染。 */
   time?: XTimeValue;
-  /** date-fns 格式串；传 `relative` 输出相对时间（如“3 分钟前”）。 */
+  /** 格式预设，默认 `datetime`；传了非空 `format` 时忽略。 */
+  preset?: XTimePreset;
+  /** date-fns 格式串，优先于 `preset`。 */
   format?: string;
-  /** `relative` 的基准时间，默认当前时刻。 */
+  /** `preset="relative"` 的基准时间，默认当前时刻。 */
   to?: XTimeValue;
 }

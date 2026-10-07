@@ -8,6 +8,7 @@ import { useWebKit } from '../context';
 import { useWebKitLayout } from '../layoutContext';
 import XAsyncContent from '../ui/XAsyncContent.vue';
 import XPagination from '../ui/XPagination.vue';
+import XTime from '../ui/XTime.vue';
 import { getApiErrorMessage } from '../utils/apiError';
 
 const PAGE_SIZE = 20;
@@ -30,16 +31,6 @@ const page = computed(() => {
 const totalPages = computed(() =>
   Math.max(1, Math.ceil(total.value / PAGE_SIZE)),
 );
-
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat('zh-CN', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(new Date(value));
-}
 
 async function loadStrikes() {
   const currentRequestId = ++requestId;
@@ -140,9 +131,7 @@ onBeforeUnmount(() => requestId++);
                     {{ strike.reason }}
                   </h2>
                   <p class="mt-1 text-xs text-muted">
-                    <time :datetime="strike.createdAt">
-                      {{ formatDate(strike.createdAt) }}
-                    </time>
+                    <XTime :time="strike.createdAt" />
                     <span aria-hidden="true">·</span>
                     记录 #{{ strike.id }}
                   </p>
@@ -176,9 +165,7 @@ onBeforeUnmount(() => requestId++);
 
               <p v-if="strike.revokedAt" class="mt-3 text-xs text-muted">
                 撤销于
-                <time :datetime="strike.revokedAt">
-                  {{ formatDate(strike.revokedAt) }}
-                </time>
+                <XTime :time="strike.revokedAt" />
               </p>
             </article>
           </div>
