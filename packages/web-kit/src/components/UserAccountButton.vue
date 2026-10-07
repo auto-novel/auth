@@ -195,23 +195,31 @@ async function focusLoginFrame() {
           :collision-padding="8"
           class="account-menu z-40 outline-none"
         >
-          <DropdownMenuLabel class="px-3 py-2.5">
+          <DropdownMenuLabel class="p-0">
             <button
               v-if="whoami.isAdmin"
               type="button"
-              class="cursor-pointer text-sm font-medium text-ink"
+              class="block w-full cursor-pointer px-3 py-2.5 text-left transition-colors hover:bg-hover"
               :aria-pressed="whoami.asAdmin"
               @click="authApi.toggleAdminMode()"
             >
-              {{ whoami.roleLabel }}{{ whoami.asAdmin ? '+' : '' }}
+              <span class="block text-sm font-medium text-ink">
+                {{ whoami.roleLabel }}{{ whoami.asAdmin ? '+' : '' }}
+              </span>
+              <span class="mt-0.5 block text-xs text-muted">
+                注册于
+                <XTime :time="whoami.user?.createdAt" preset="date" />
+              </span>
             </button>
-            <p v-else class="text-sm font-medium text-ink">
-              {{ whoami.roleLabel }}
-            </p>
-            <p class="mt-0.5 text-xs text-muted">
-              注册于
-              <XTime :time="whoami.user?.createdAt" preset="date" />
-            </p>
+            <div v-else class="px-3 py-2.5">
+              <p class="text-sm font-medium text-ink">
+                {{ whoami.roleLabel }}
+              </p>
+              <p class="mt-0.5 text-xs text-muted">
+                注册于
+                <XTime :time="whoami.user?.createdAt" preset="date" />
+              </p>
+            </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator class="border-t border-divider" />
           <div class="p-1">
