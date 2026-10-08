@@ -1,5 +1,7 @@
 import ky, { isHTTPError, isTimeoutError } from 'ky';
 
+import { getApiErrorDetail } from '../utils/apiError';
+
 export interface AccessTokenProvider {
   get(): string | undefined;
   ready?(): Promise<void>;
@@ -28,19 +30,9 @@ export function createApiClient(
       beforeError: [
         ({ error }) => {
           if (isHTTPError(error)) {
-            const status = error.response.status;
-            let detail: string | undefined;
-            if (typeof error.data === 'string') detail = error.data.trim();
-            else if (error.data !== undefined) {
-              try {
-                detail = JSON.stringify(error.data);
-              } catch {
-                // Fall back to the status-based message below.
-              }
-            }
-            error.message = detail
-              ? `请求失败[${status}] ${detail}`
-              : `请求失败[${status}]`;
+            error.message =
+              getApiErrorDetail(error.data) ??
+              `请求失败[${error.response.status}]`;
           } else if (isTimeoutError(error)) {
             error.message = '请求超时，请稍后再试';
           }

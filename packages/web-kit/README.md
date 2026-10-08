@@ -201,7 +201,7 @@ Notify.dismissAll();
 
 ## 错误文案
 
-自己的请求可以复用同一套解析（认得 ky 抛出的错误，会依次尝试 `message`、`error`、`detail`，再退到响应正文）：
+客户端与 `getApiErrorMessage` 共用错误文案解析：优先使用 ky 已解析的 `error.data`，依次提取 `message`、`error`、`detail`，也支持字符串文案。普通响应会读取正文的副本；客户端没有可用文案时显示 `请求失败[状态码]`，超时仍显示 `请求超时，请稍后再试`。自己的请求也可以复用：
 
 ```ts
 import { getApiErrorMessage, Notify } from '@novelia/web-kit';
