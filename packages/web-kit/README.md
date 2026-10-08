@@ -53,7 +53,7 @@ kit、组件/主题/提醒/布局上下文的对象外壳均被冻结，类型�
 配置是复制后冻结的快照，包括 `strikes.to` 的 params、query、state 及其中的数组/记录；修改传入的配置对象不会改变 kit，也不会冻结调用者的原对象。冻结上下文不会阻止 Ref 随内部状态更新；`api` 的对象外壳也被冻结，仅暴露宿主需要的业务方法。
 
 创建后 `whoami` 处于未登录状态，主题使用初始浅色，启动时才恢复存储状态。
-`start()` 只启动同步，不等待网络登录检查；需要等待时，在启动后调用 `await webKit.api.checkSignedIn()`。
+`start()` 只启动同步，不等待网络登录检查；需要等待时，在启动后调用 `await webKit.checkSignedIn()`。
 请先安装 kit 再安装 router，确保首次路由守卫使用已启动的会话；创建业务客户端仍可在启动前完成。
 
 这里的单实例以浏览器中的包模块为边界，不支持 SSR 服务端按请求创建 kit，也不要在应用入口的热更新回调中重复创建。
@@ -141,16 +141,29 @@ const options: WebKitMenuOption[] = [
 
 ## 认证 API
 
-认证会话由 `createWebKit()` 统一创建和管理。角色工具和类型可从包主入口导入。已安装 kit 的应用通过 `useWebKit().api` 复用会话，其类型为 `WebKitApi`，仅提供：
+认证会话由 `createWebKit()` 统一创建和管理。角色工具和类型可从包主入口导入。组件通过 `useWebKit()` 统一取得 `whoami`、`theme` 和以下方法，公开类型为 `WebKitContext`：
 
 - `createClient(baseUrl, options?)`：创建携带当前会话的业务客户端。
 - `checkSignedIn()`：等待登录检查并返回登录状态。
 - `logout()`：退出当前账号。
 - `banUser(request)`、`createStrike(request)`：宿主管理操作。
 
-用户状态通过响应式 `whoami` 获取，提醒通过 `attention` 读取和更新。登录交互、管理模式切换及处罚记录请求由内置组件处理；认证会话的启动和销毁统一由 kit 管理。`kit.api` 与 `useWebKit().api` 是同一个只读对象，不包含底层会话的生命周期、订阅或登录消息处理方法。
+用户状态通过响应式 `whoami` 获取。登录交互、管理模式切换、提醒和处罚记录请求由内置组件处理；认证会话的启动和销毁统一由 kit 管理。配置和提醒状态仅供内置组件使用，不属于公开上下文。
 
-宿主业务工厂若接收 `kit.api`，参数使用 `WebKitApi`（或 `WebKitContext['api']`）。业务客户端可单独设置超时，例如 `api.createClient('/api/', { timeout: 60_000 })`；认证请求使用默认超时。管理模式仅影响界面交互，业务操作仍由服务端校验权限。
+`createWebKit()` 返回的实例提供同一组状态和方法，额外提供 `start`、`install`、`dispose`，供应用初始化和组件外代码使用；注入的上下文不暴露生命周期。
+
+```ts
+// 组件内：统一通过 useWebKit 获取能力
+const { whoami, theme, banUser } = useWebKit();
+
+// 初始化时：业务 API 工厂只接收它需要的客户端
+const client = kit.createClient('/api/', { timeout: 60_000 });
+const businessApi = createBusinessApi(client);
+```
+
+客户端类型可以使用 `ReturnType<WebKitContext['createClient']>`。业务客户端可单独设置超时，认证请求使用默认超时。管理模式仅影响界面交互，业务操作仍由服务端校验权限。
+
+迁移旧调用时，将 `kit.api.method()` 改为 `kit.method()`，将 `useWebKit().api` 的方法直接从 `useWebKit()` 解构。不再导出 `WebKitApi`、`webKitKey`、`WebKitResolvedOptions` 或 `AttentionContext`；宿主需要的配置在初始化时自行保留。
 
 ## 处罚记录
 
@@ -171,16 +184,7 @@ createWebKit({ /* ... */ strikes: { to: { name: 'strikes' } } });
 
 关掉入口时，账号按钮上的未读红点也一起关掉。
 
-未读状态和账号按钮同源，想在别处用（比如自己画一个角标）：
-
-```ts
-import { useWebKit } from '@novelia/web-kit';
-
-const { attention } = useWebKit();
-
-attention.status.value?.strikes.hasUnread;
-attention.refresh();
-```
+未读提醒由账号按钮和内置处罚记录页面共享，轮询与已读状态由 kit 内部管理。
 
 ## 通知
 
@@ -197,7 +201,7 @@ Notify.error('保存失败');
 Notify.dismissAll();
 ```
 
-已启动的 kit 释放时也会清空通知。原来的 `useWebKit().notifications.notify` 改用 `Notify`，`notifications.dismissAll()` 改用 `Notify.dismissAll()`；不再导出 `Notifications` 类型或 `attentionKey`。提醒状态从 `useWebKit().attention` 读取，主题从 `useWebKit().theme` 读取；两个上下文都只提供状态和公开方法，生命周期由 kit 管理。`useWebKit()` 是唯一的 kit 上下文入口，其他 hook 只在有独立注入源时才单独存在（目前只有 `useWebKitLayout()`）。
+已启动的 kit 释放时也会清空通知。原来的 `useWebKit().notifications.notify` 改用 `Notify`，`notifications.dismissAll()` 改用 `Notify.dismissAll()`；不再导出 `Notifications` 类型或 `attentionKey`。主题从 `useWebKit().theme` 读取；提醒状态由内置组件管理，生命周期由 kit 管理。`useWebKit()` 是唯一的 kit 上下文入口，其他 hook 只在有独立注入源时才单独存在（目前只有 `useWebKitLayout()`）。
 
 ## 错误文案
 

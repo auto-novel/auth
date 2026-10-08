@@ -23,7 +23,7 @@ registerHooks({
   },
 });
 
-const { useWebKit } = await import('../src/context.ts');
+const { useWebKit, useWebKitInternals } = await import('../src/context.ts');
 const { useAccountActions, useMyStrikesLoader } =
   await import('../src/auth/context.ts');
 let moduleId = 0;
@@ -130,7 +130,7 @@ test('one successful create, no notification rebinding, and final idempotent dis
     kit.start();
     assert.deepEqual(counts, afterStart);
     assert.equal(kit.theme.theme.value, 'dark');
-    assert.equal(kit.options.auth.url, 'https://web.example/auth/');
+    assert.equal('options' in kit, false);
     assert.equal(kit.whoami.value.user.username, 'member');
     // JWT 的秒时间戳在会话解析时转为毫秒，kit 保持同一单位。
     assert.equal(kit.whoami.value.user.createdAt, now * 1000);
@@ -243,24 +243,29 @@ test('single owner, context-only hooks, same-app idempotence, and unmount cleanu
   try {
     kit.install(app);
     kit.install(app);
-    assert.equal(provide.mock.callCount(), 3);
+    assert.equal(provide.mock.callCount(), 4);
     assert.equal(onUnmount.mock.callCount(), 1);
     assert.equal(counts.timers, 2); // auth refresh + attention polling
     assert.equal(kit.theme.theme.value, 'dark');
     const context = app.runWithContext(useWebKit);
-    assert.equal(context.api, kit.api);
+    const { attention, options: internalOptions } =
+      app.runWithContext(useWebKitInternals);
+    assert.equal(internalOptions.auth.url, 'https://web.example/auth/');
+    for (const name of Object.keys(context)) {
+      assert.equal(context[name], kit[name], name);
+    }
     assert.equal(context.whoami, kit.whoami);
     assert.equal('install' in context, false);
     assert.equal('dispose' in context, false);
-    assert.equal(context.attention, kit.attention);
+    assert.equal('attention' in context, false);
     assert.equal(context.theme, kit.theme);
     assert.equal('start' in kit.theme, false);
     assert.equal('dispose' in kit.theme, false);
     assert.throws(() => kit.install(otherApp), /another app/);
     assert.equal(otherProvide.mock.callCount(), 0);
-    await kit.attention.refresh();
+    await attention.refresh();
     assert.equal(counts.fetches, 1);
-    assert.equal(kit.attention.status.value.strikes.hasUnread, true);
+    assert.equal(attention.status.value.strikes.hasUnread, true);
 
     Notify.success('clear on unmount');
     const unmountCleanup = onUnmount.mock.calls[0].arguments[0];
@@ -277,7 +282,7 @@ test('single owner, context-only hooks, same-app idempotence, and unmount cleanu
     assert.equal(kit.theme.theme.value, themeAfterDispose);
     assert.throws(() => kit.install(app), /disposed/);
     assert.throws(() => kit.install(otherApp), /disposed/);
-    assert.equal(provide.mock.callCount(), 3);
+    assert.equal(provide.mock.callCount(), 4);
     assert.equal(onUnmount.mock.callCount(), 1);
   } finally {
     kit.dispose();
@@ -298,30 +303,40 @@ test('public API hides session internals while sharing authentication with built
   });
   const createWebKit = await freshFactory();
   const kit = createWebKit(options);
-  const client = kit.api.createClient('https://business.example/api/');
+  const client = kit.createClient('https://business.example/api/');
   const app = createApp({});
   try {
     kit.install(app);
     const context = app.runWithContext(useWebKit);
+    const { attention, options: internalOptions } =
+      app.runWithContext(useWebKitInternals);
+    assert.equal(internalOptions.auth.url, 'https://web.example/auth/');
     const accountActions = app.runWithContext(useAccountActions);
     const loadMyStrikes = app.runWithContext(useMyStrikesLoader);
-    assert.equal(context.api, kit.api);
+    for (const name of Object.keys(context)) {
+      assert.equal(context[name], kit[name], name);
+    }
     assert.deepEqual(Object.keys(accountActions).sort(), [
       'createLoginUrl',
       'handleLoginMessage',
       'toggleAdminMode',
     ]);
-    assert.deepEqual(Object.keys(context.api).sort(), [
+    assert.deepEqual(Object.keys(context).sort(), [
       'banUser',
       'checkSignedIn',
       'createClient',
       'createStrike',
       'logout',
+      'theme',
+      'whoami',
     ]);
-    assert.equal(Object.isFrozen(context.api), true);
+    assert.equal(Object.isFrozen(context), true);
     for (const name of [
       'start',
       'dispose',
+      'api',
+      'options',
+      'attention',
       'watchUser',
       'createLoginUrl',
       'handleLoginMessage',
@@ -330,16 +345,16 @@ test('public API hides session internals while sharing authentication with built
       'getMyStrikes',
       'toggleAdminMode',
     ]) {
-      assert.equal(name in context.api, false, name);
+      assert.equal(name in context, false, name);
     }
     assert.throws(() => {
-      context.api.logout = () => {};
+      context.logout = () => {};
     }, TypeError);
-    assert.equal(await context.api.checkSignedIn(), true);
+    assert.equal(await context.checkSignedIn(), true);
     await client.get('posts');
-    await context.api.banUser({ username: 'other', reason: 'test' });
+    await context.banUser({ username: 'other', reason: 'test' });
     assert.deepEqual(
-      await context.api.createStrike({
+      await context.createStrike({
         username: 'other',
         reason: 'test',
         evidence: 'test',
@@ -366,12 +381,12 @@ test('public API hides session internals while sharing authentication with built
       items: [],
       latestStrikeId: 0,
     });
-    await context.attention.refresh();
-    assert.equal(context.attention.status.value.strikes.hasUnread, true);
-    await context.api.logout();
+    await attention.refresh();
+    assert.equal(attention.status.value.strikes.hasUnread, true);
+    await context.logout();
     assert.equal(context.whoami.value.isSignedIn, false);
-    assert.equal(context.attention.status.value, undefined);
-    assert.equal(await context.api.checkSignedIn(), false);
+    assert.equal(attention.status.value, undefined);
+    assert.equal(await context.checkSignedIn(), false);
   } finally {
     kit.dispose();
   }
@@ -403,6 +418,7 @@ test('login accepts only its iframe and refreshes the shared kit session', async
   try {
     kit.install(app);
     const account = app.runWithContext(useAccountActions);
+    const { attention } = app.runWithContext(useWebKitInternals);
     const { hasRoleAtLeast, isAtLeastDaysOld } = kit.whoami.value;
     assert.equal(kit.whoami.value.isAdmin, false);
     assert.equal(kit.whoami.value.asAdmin, false);
@@ -438,8 +454,8 @@ test('login accepts only its iframe and refreshes the shared kit session', async
     assert.equal(kit.whoami.value.asAdmin, false);
     account.toggleAdminMode();
     assert.equal(kit.whoami.value.asAdmin, true);
-    await kit.attention.refresh();
-    await kit.api.logout();
+    await attention.refresh();
+    await kit.logout();
     assert.equal(kit.whoami.value.isAdmin, false);
     assert.equal(kit.whoami.value.asAdmin, false);
     assert.equal(hasRoleAtLeast('member'), false);

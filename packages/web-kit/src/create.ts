@@ -13,7 +13,7 @@ import type { RouteLocationRaw } from 'vue-router';
 
 import { createAttention } from './attentionContext';
 import { accountActionsKey, loadMyStrikesKey } from './auth/context';
-import { webKitKey } from './context';
+import { webKitKey, webKitInternalsKey } from './context';
 import { Notify } from './notifications';
 import { createWebTheme } from './theme';
 import type { WebKit, WebKitContext, WebKitOptions, Whoami } from './types';
@@ -210,21 +210,17 @@ export function createWebKit(options: WebKitOptions): WebKit {
   }
 
   const context: WebKitContext = Object.freeze({
-    options: normalizedOptions,
-    api: Object.freeze({
-      createClient(baseUrl: string, options: ApiClientOptions = {}) {
-        return createAuthAwareApiClient(
-          createApiClient(baseUrl, options),
-          session.accessToken,
-        );
-      },
-      checkSignedIn: session.checkSignedIn,
-      logout: session.logout,
-      banUser: requests.banUser,
-      createStrike: requests.createStrike,
-    }),
+    createClient(baseUrl: string, options: ApiClientOptions = {}) {
+      return createAuthAwareApiClient(
+        createApiClient(baseUrl, options),
+        session.accessToken,
+      );
+    },
+    checkSignedIn: session.checkSignedIn,
+    logout: session.logout,
+    banUser: requests.banUser,
+    createStrike: requests.createStrike,
     whoami,
-    attention: attention.context,
     theme: theme.context,
   });
   const kit: WebKit = {
@@ -240,6 +236,13 @@ export function createWebKit(options: WebKitOptions): WebKit {
       try {
         start();
         app.provide(webKitKey, context);
+        app.provide(
+          webKitInternalsKey,
+          Object.freeze({
+            options: normalizedOptions,
+            attention: attention.context,
+          }),
+        );
         app.provide(accountActionsKey, accountActions);
         app.provide(loadMyStrikesKey, requests.getMyStrikes);
         app.onUnmount(dispose);

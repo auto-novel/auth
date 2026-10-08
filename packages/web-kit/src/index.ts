@@ -10,7 +10,7 @@ import XPagination from './ui/XPagination.vue';
 import XSelect from './ui/XSelect.vue';
 import XTime from './ui/XTime.vue';
 import XTooltip from './ui/XTooltip.vue';
-import { useWebKit, webKitKey } from './context';
+import { useWebKit } from './context';
 import { Notify } from './notifications';
 import { getApiErrorMessage } from './utils/apiError';
 import { useWebKitLayout } from './layoutContext';
@@ -52,19 +52,15 @@ export {
   getApiErrorMessage,
   useWebKit,
   useWebKitLayout,
-  webKitKey,
 };
-export type { AttentionContext } from './attentionContext';
 export type { LayoutContext } from './layoutContext';
 export type { AppNotification } from './notifications';
 export type { WebTheme } from './theme';
 export type {
   WebKit,
-  WebKitApi,
   WebKitContext,
   WebKitMenuOption,
   WebKitOptions,
-  WebKitResolvedOptions,
   WebKitStrikeOptions,
   Whoami,
   WhoamiUser,

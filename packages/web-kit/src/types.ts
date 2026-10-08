@@ -9,7 +9,6 @@ import type {
 import type { App, Component, ComputedRef, DeepReadonly } from 'vue';
 import type { RouteLocationRaw } from 'vue-router';
 
-import type { AttentionContext } from './attentionContext';
 import type { WebTheme } from './theme';
 
 export interface WebKitStrikeOptions {
@@ -33,11 +32,6 @@ export interface WebKitOptions {
   };
   strikes?: WebKitStrikeOptions;
   themeStorageKey?: string;
-}
-
-/** `createWebKit` 补齐默认值后的配置，供 kit 内部组件依赖。 */
-export interface WebKitResolvedOptions extends Omit<WebKitOptions, 'strikes'> {
-  strikes: Required<WebKitStrikeOptions>;
 }
 
 /** 宿主注入的菜单项；不指定 type 时兼容原有的站内链接。 */
@@ -87,8 +81,8 @@ export interface Whoami {
   isAtLeastDaysOld(days: number): boolean;
 }
 
-/** 宿主可调用的认证与管理接口；会话生命周期由 kit 统一管理。 */
-export interface WebKitApi {
+/** 宿主共享的状态与操作；会话生命周期由 kit 统一管理。 */
+export interface WebKitContext {
   readonly createClient: (
     baseUrl: string,
     options?: ApiClientOptions,
@@ -99,14 +93,7 @@ export interface WebKitApi {
   readonly createStrike: (
     request: CreateStrikeRequest,
   ) => Promise<CreateStrikeResponse>;
-}
-
-export interface WebKitContext {
-  readonly options: DeepReadonly<WebKitResolvedOptions>;
-  readonly api: WebKitApi;
   readonly whoami: ComputedRef<Whoami>;
-  /** 处罚提醒状态，与账号菜单里的未读红点同源。 */
-  readonly attention: AttentionContext;
   readonly theme: WebTheme;
 }
 

@@ -4,7 +4,7 @@ import { GavelOutlined } from '@vicons/material';
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
-import { useWebKit } from '../context';
+import { useWebKit, useWebKitInternals } from '../context';
 import { useMyStrikesLoader } from '../auth/context';
 import { useWebKitLayout } from '../layoutContext';
 import XAsyncContent from '../ui/XAsyncContent.vue';
@@ -16,7 +16,8 @@ const PAGE_SIZE = 20;
 
 const route = useRoute();
 const router = useRouter();
-const { attention, whoami } = useWebKit();
+const { whoami } = useWebKit();
+const { attention } = useWebKitInternals();
 const loadMyStrikes = useMyStrikesLoader();
 const { scrollToTop } = useWebKitLayout();
 const strikes = ref<MyStrike[]>([]);

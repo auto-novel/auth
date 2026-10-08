@@ -26,7 +26,7 @@ import {
 } from 'vue';
 import { RouterLink, type RouteLocationRaw } from 'vue-router';
 
-import { useWebKit } from '../context';
+import { useWebKit, useWebKitInternals } from '../context';
 import { useAccountActions } from '../auth/context';
 import type { WebKitMenuOption } from '../types';
 import XTime from '../ui/XTime.vue';
@@ -34,13 +34,8 @@ import AccountMenuOptions from './AccountMenuOptions.vue';
 
 defineProps<{ options: WebKitMenuOption[] }>();
 
-const {
-  api,
-  attention,
-  options: kitOptions,
-  whoami,
-  theme: webTheme,
-} = useWebKit();
+const { logout: signOut, whoami, theme: webTheme } = useWebKit();
+const { attention, options: kitOptions } = useWebKitInternals();
 const accountActions = useAccountActions();
 const loginFrame = useTemplateRef('loginFrame');
 const menuOpen = ref(false);
@@ -129,7 +124,7 @@ async function handleMessage(event: MessageEvent) {
 async function logout() {
   menuOpen.value = false;
   try {
-    await api.logout();
+    await signOut();
   } catch {
     // The auth session clears the local session even if the remote session has expired.
   }

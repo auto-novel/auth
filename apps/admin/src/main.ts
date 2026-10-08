@@ -24,15 +24,19 @@ const webKit = createWebKit({
 });
 
 router.beforeEach(async () => {
-  await webKit.api.checkSignedIn();
+  await webKit.checkSignedIn();
 });
 
 createApp(App)
   .provide(
     adminApiKey,
     createAdminApi(
-      webKit.api,
-      new URL('api/v1/', webKit.options.auth.url).toString(),
+      webKit.createClient(
+        new URL(
+          'api/v1/',
+          new URL(__AUTH_URL__, window.location.origin),
+        ).toString(),
+      ),
     ),
   )
   .use(webKit)
