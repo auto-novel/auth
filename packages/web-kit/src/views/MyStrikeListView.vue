@@ -73,7 +73,7 @@ function changePage(nextPage: number) {
   scrollToTop({ behavior: 'smooth' });
 }
 
-watch([whoami, page], loadStrikes, { immediate: true });
+watch([() => whoami.value.user?.id, page], loadStrikes, { immediate: true });
 onBeforeUnmount(() => requestId++);
 </script>
 
