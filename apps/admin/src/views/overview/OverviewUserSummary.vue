@@ -91,12 +91,12 @@ const metrics = computed(() => [
   background: rgba(59, 130, 246, 0.11);
 }
 .summary-icon.restricted {
-  color: #f0a020;
-  background: rgba(240, 160, 32, 0.12);
+  color: var(--color-warning);
+  background: var(--color-warning-soft);
 }
 .summary-icon.banned {
-  color: #d03050;
-  background: rgba(208, 48, 80, 0.11);
+  color: var(--color-error);
+  background: var(--color-error-soft);
 }
 .summary-value {
   font-size: 24px;

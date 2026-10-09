@@ -174,7 +174,7 @@ async function focusLoginFrame() {
             >
               <span
                 v-if="hasUnreadStrikes"
-                class="size-1.5 rounded-full bg-red-600 ring-2 ring-surface"
+                class="size-1.5 rounded-full bg-error ring-2 ring-surface"
               />
             </Transition>
           </span>
@@ -227,7 +227,7 @@ async function focusLoginFrame() {
                 <span class="min-w-0 flex-1">处罚记录</span>
                 <span
                   v-if="hasUnreadStrikes"
-                  class="rounded-full bg-red-50 px-1.5 py-0.5 text-[10px] leading-none font-medium text-red-600"
+                  class="rounded-full bg-error-soft px-1.5 py-0.5 text-[10px] leading-none font-medium text-error-strong"
                   aria-hidden="true"
                 >
                   新
@@ -284,7 +284,13 @@ async function focusLoginFrame() {
 
       <p
         v-if="loginError"
-        class="absolute bottom-4 left-1/2 w-[min(420px,calc(100%-2rem))] -translate-x-1/2 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 shadow"
+        class="absolute bottom-4 left-1/2 w-[min(420px,calc(100%-2rem))] -translate-x-1/2 rounded-md border border-error-border bg-surface px-4 py-3 text-sm text-error-strong shadow"
+        style="
+          background-image: linear-gradient(
+            var(--color-error-soft),
+            var(--color-error-soft)
+          );
+        "
         role="alert"
       >
         {{ loginError }}

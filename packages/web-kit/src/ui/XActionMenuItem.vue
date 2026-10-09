@@ -12,7 +12,7 @@ defineEmits<{ activate: [] }>();
   <DropdownMenuItem
     :disabled="disabled"
     class="account-menu-item select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
-    :class="{ 'text-error': danger }"
+    :class="{ 'text-error-strong': danger }"
     @select="$emit('activate')"
   >
     <slot />

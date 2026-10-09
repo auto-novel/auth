@@ -13,10 +13,10 @@ const props = withDefaults(defineProps<XButtonProps>(), {
 const variantClass = computed(
   () =>
     ({
-      primary: 'rounded-sm bg-primary text-white hover:bg-primary-hover',
+      primary: 'rounded-sm bg-primary text-on-primary hover:bg-primary-hover',
       outline:
         'rounded-sm border border-border text-muted hover:border-primary hover:text-primary',
-      danger: 'rounded-sm bg-red-600 text-white hover:bg-red-700',
+      danger: 'rounded-sm bg-error text-on-error hover:bg-error-hover',
       ghost: 'rounded-sm text-muted hover:bg-paper hover:text-primary',
       'ghost-active': 'rounded-sm text-primary hover:bg-paper',
       subtle: 'rounded-sm text-muted hover:bg-divider/40 hover:text-ink',

@@ -55,7 +55,7 @@ const retryClass = computed(() => (props.size === 'compact' ? 'mt-4' : 'mt-5'));
       <div>
         <slot v-if="errorIcon" name="error-icon">
           <div
-            class="mx-auto grid size-12 place-items-center rounded-full bg-red-50 text-red-500"
+            class="mx-auto grid size-12 place-items-center rounded-full bg-error-soft text-error-strong"
             aria-hidden="true"
           >
             !

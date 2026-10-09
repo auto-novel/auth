@@ -148,7 +148,7 @@ onBeforeUnmount(() => requestId++);
                     :class="
                       strike.revokedAt
                         ? 'bg-paper text-muted'
-                        : 'bg-red-50 text-red-700'
+                        : 'bg-error-soft text-error-strong'
                     "
                   >
                     {{ strike.revokedAt ? '已撤销' : '生效中' }}

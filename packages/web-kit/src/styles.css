@@ -10,7 +10,17 @@
   --color-popover: #ffffff;
   --color-modal: #ffffff;
   --color-success: #18a058;
+  --color-success-soft: rgb(8 120 63 / 10%);
+  --color-info: #1d4ed8;
+  --color-info-soft: rgb(29 78 216 / 10%);
   --color-error: #d03050;
+  --color-error-hover: #b32844;
+  --color-error-strong: #a81f3b;
+  --color-error-soft: rgb(208 48 80 / 10%);
+  --color-error-border: rgb(208 48 80 / 30%);
+  --color-on-error: #ffffff;
+  --color-warning: #b45309;
+  --color-warning-soft: rgb(180 83 9 / 10%);
   --radius-floating: 3px;
   --shadow-floating:
     0 3px 6px -4px rgb(0 0 0 / 12%), 0 6px 16px rgb(0 0 0 / 8%),
@@ -23,6 +33,7 @@
   --color-primary: #18a058;
   --color-primary-hover: #36ad6a;
   --color-primary-soft: rgb(24 160 88 / 10%);
+  --color-on-primary: #ffffff;
   --font-sans:
     v-sans, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
     sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
@@ -44,7 +55,17 @@
     --color-popover: #48484e;
     --color-modal: #2c2c32;
     --color-success: #63e2b7;
+    --color-success-soft: rgb(99 226 183 / 15%);
+    --color-info: #93c5fd;
+    --color-info-soft: rgb(147 197 253 / 15%);
     --color-error: #e88080;
+    --color-error-hover: #d97070;
+    --color-error-strong: #ffbcbc;
+    --color-error-soft: rgb(232 128 128 / 15%);
+    --color-error-border: rgb(232 128 128 / 30%);
+    --color-on-error: #0b0b0d;
+    --color-warning: #f2c97d;
+    --color-warning-soft: rgb(242 201 125 / 15%);
     --shadow-floating:
       0 3px 6px -4px rgb(0 0 0 / 24%), 0 6px 12px rgb(0 0 0 / 16%),
       0 9px 18px 8px rgb(0 0 0 / 10%);
@@ -64,6 +85,7 @@
     --color-purple-600: #d8b4fe;
     --color-red-50: #450a0a;
     --color-red-600: #fca5a5;
+    --color-on-primary: #0b0b0d;
   }
 
   :root.theme-transition,
