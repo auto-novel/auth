@@ -23,7 +23,7 @@ defineProps<{ options: WebKitMenuOption[] }>();
       class="my-1 border-t border-divider"
     />
     <DropdownMenuSub v-else-if="option.type === 'group'">
-      <DropdownMenuSubTrigger class="account-menu-item">
+      <DropdownMenuSubTrigger class="menu-item">
         <span
           class="grid size-4 flex-none place-items-center"
           aria-hidden="true"
@@ -44,7 +44,7 @@ defineProps<{ options: WebKitMenuOption[] }>();
       </DropdownMenuPortal>
     </DropdownMenuSub>
     <DropdownMenuItem v-else-if="option.type === 'external'" as-child>
-      <a v-bind="externalLinkAttrs(option)" class="account-menu-item">
+      <a v-bind="externalLinkAttrs(option)" class="menu-item">
         <span
           class="grid size-4 flex-none place-items-center"
           aria-hidden="true"
@@ -60,7 +60,7 @@ defineProps<{ options: WebKitMenuOption[] }>();
       </a>
     </DropdownMenuItem>
     <DropdownMenuItem v-else as-child>
-      <RouterLink :to="option.to" class="account-menu-item">
+      <RouterLink :to="option.to" class="menu-item">
         <span
           class="grid size-4 flex-none place-items-center"
           aria-hidden="true"

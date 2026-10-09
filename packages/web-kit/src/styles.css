@@ -1,3 +1,5 @@
+@import './components/sidebar.css';
+
 @source './components';
 @source './notifications';
 @source './ui';
@@ -139,101 +141,66 @@
   margin-inline: auto;
 }
 
-@utility account-trigger {
-  display: flex;
-  min-height: 2.25rem;
-  align-items: center;
-  gap: 0.25rem;
-  border-radius: 0.1875rem;
-  padding-inline: 0.75rem;
-  color: var(--color-ink);
-  font-size: 0.875rem;
-  font-weight: 400;
-  transition: background-color 150ms ease;
-
-  &:hover {
-    background: var(--color-hover);
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--color-primary);
-    outline-offset: 2px;
-  }
-}
-
 @utility floating-panel {
   border-radius: var(--radius-floating);
   background: var(--color-popover);
   box-shadow: var(--shadow-floating);
 }
 
-@utility account-menu {
-  @apply floating-panel;
-  z-index: 40;
-  width: 12rem;
-  overflow: hidden;
-  padding-block: 0.25rem;
-}
+@layer components {
+  .account-trigger {
+    display: flex;
+    min-height: 2.25rem;
+    align-items: center;
+    gap: 0.25rem;
+    border-radius: 0.1875rem;
+    padding-inline: 0.75rem;
+    color: var(--color-ink);
+    font-size: 0.875rem;
+    font-weight: 400;
+    transition: background-color 150ms ease;
 
-@utility account-menu-item {
-  display: flex;
-  width: 100%;
-  align-items: center;
-  gap: 0.5rem;
-  border-radius: var(--radius-floating);
-  padding: 0.5rem 0.75rem;
-  color: var(--color-ink);
-  font-size: 0.875rem;
-  text-align: left;
-  outline: none;
-  transition: background-color 150ms ease;
+    &:hover {
+      background: var(--color-hover);
+    }
 
-  &:hover,
-  &[data-highlighted] {
-    background: var(--color-hover);
+    &:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
+    }
   }
 
-  &:focus-visible {
-    outline: 2px solid var(--color-primary);
-    outline-offset: -2px;
+  .account-menu {
+    @apply floating-panel;
+    z-index: 40;
+    width: 12rem;
+    overflow: hidden;
+    padding-block: 0.25rem;
   }
-}
 
-@utility web-kit-sidebar-item {
-  display: flex;
-  width: 100%;
-  min-width: 0;
-  height: 42px;
-  align-items: center;
-  gap: 8px;
-  overflow: hidden;
-  border-radius: 3px;
-  padding-inline: var(--web-kit-item-padding, 1.5rem);
-  padding-inline-start: calc(
-    var(--web-kit-item-padding, 1.5rem) + var(--web-kit-item-indent, 0px)
-  );
-  font-size: 14px;
-  font-weight: 400;
-  text-align: left;
-  text-decoration: none;
-  cursor: pointer;
-  transition:
-    padding 300ms cubic-bezier(0.4, 0, 0.2, 1),
-    color 300ms cubic-bezier(0.4, 0, 0.2, 1),
-    background-color 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  .menu-item {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: var(--radius-floating);
+    padding: 0.5rem 0.75rem;
+    color: var(--color-ink);
+    font-size: 0.875rem;
+    text-align: left;
+    outline: none;
+    transition: background-color 150ms ease;
 
-  &:focus-visible {
-    outline: 2px solid var(--color-primary);
-    outline-offset: -2px;
+    &:hover,
+    &[data-highlighted] {
+      background: var(--color-hover);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: -2px;
+    }
   }
-}
-
-@utility web-kit-sidebar-label {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  transition: opacity 150ms ease;
 }
 
 @media (prefers-reduced-motion: reduce) {

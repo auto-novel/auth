@@ -58,7 +58,7 @@ function handleChange(value: AcceptableValue) {
               v-for="option in options"
               :key="option.value"
               :value="option.value"
-              class="account-menu-item relative cursor-default pl-8 select-none"
+              class="menu-item relative cursor-default pl-8 select-none"
             >
               <SelectItemIndicator class="absolute left-2 text-primary">
                 <CheckOutlined class="size-4" aria-hidden="true" />

@@ -222,7 +222,7 @@ async function focusLoginFrame() {
           <div class="p-1">
             <AccountMenuOptions :options="options" />
             <DropdownMenuItem v-if="strikesEnabled" as-child>
-              <RouterLink :to="strikesTo" class="account-menu-item">
+              <RouterLink :to="strikesTo" class="menu-item">
                 <GavelOutlined class="size-4" aria-hidden="true" />
                 <span class="min-w-0 flex-1">处罚记录</span>
                 <span
@@ -237,7 +237,7 @@ async function focusLoginFrame() {
                 </span>
               </RouterLink>
             </DropdownMenuItem>
-            <DropdownMenuItem class="account-menu-item" @select="logout">
+            <DropdownMenuItem class="menu-item" @select="logout">
               <ExitToAppOutlined class="size-4" aria-hidden="true" />
               退出账号
             </DropdownMenuItem>

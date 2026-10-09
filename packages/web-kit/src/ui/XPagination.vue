@@ -49,7 +49,7 @@ defineEmits<{
           <XButton
             variant="ghost"
             size="icon-sm"
-            class="text-xs font-medium data-[selected]:bg-primary data-[selected]:text-on-primary data-[selected]:hover:bg-primary-hover data-[selected]:hover:text-on-primary"
+            class="text-xs font-medium data-selected:bg-primary data-selected:text-on-primary data-selected:hover:bg-primary-hover data-selected:hover:text-on-primary"
           >
             {{ item.value }}
           </XButton>

@@ -27,7 +27,7 @@ const { items, dismiss } = notifications;
     <ToastRoot
       v-for="notification in items"
       :key="notification.id"
-      class="floating-panel pointer-events-auto flex max-w-full items-center gap-2.5 px-5 py-2.5 outline-none data-[swipe=cancel]:translate-y-0 data-[swipe=end]:translate-y-[var(--reka-toast-swipe-end-y)] data-[swipe=move]:translate-y-[var(--reka-toast-swipe-move-y)] data-[swipe=cancel]:transition-transform data-[swipe=end]:transition-transform"
+      class="floating-panel pointer-events-auto flex max-w-full items-center gap-2.5 px-5 py-2.5 outline-none data-[swipe=cancel]:translate-y-0 data-[swipe=end]:translate-y-(--reka-toast-swipe-end-y) data-[swipe=move]:translate-y-(--reka-toast-swipe-move-y) data-[swipe=cancel]:transition-transform data-[swipe=end]:transition-transform"
       @update:open="
         (open) => {
           if (!open) dismiss(notification.id);
@@ -53,7 +53,7 @@ const { items, dismiss } = notifications;
 
     <ToastPortal>
       <ToastViewport
-        class="pointer-events-none fixed top-3 left-1/2 z-[100] flex max-h-[calc(100vh-2rem)] w-max max-w-[calc(100%-2rem)] -translate-x-1/2 flex-col items-center gap-2 outline-none sm:max-w-[min(720px,calc(100%-2rem))]"
+        class="pointer-events-none fixed top-3 left-1/2 z-100 flex max-h-[calc(100vh-2rem)] w-max max-w-[calc(100%-2rem)] -translate-x-1/2 flex-col items-center gap-2 outline-none sm:max-w-[min(720px,calc(100%-2rem))]"
         label="通知（{hotkey}）"
       />
     </ToastPortal>
