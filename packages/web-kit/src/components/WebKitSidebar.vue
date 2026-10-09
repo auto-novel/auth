@@ -14,6 +14,7 @@ defineProps<{
   collapsed?: boolean;
   fullWidth?: boolean;
   mobileHeader?: boolean;
+  panel?: 'surface' | 'modal';
 }>();
 
 const emit = defineEmits<{
@@ -28,8 +29,9 @@ const showMascot = ref(false);
 
 <template>
   <aside
-    class="web-kit-sidebar flex h-full flex-col overflow-hidden border-r border-divider bg-surface"
+    class="web-kit-sidebar flex h-full flex-col overflow-hidden border-r border-divider"
     :class="[
+      panel === 'modal' ? 'bg-modal' : 'bg-surface',
       fullWidth ? 'w-full' : collapsed ? 'w-16' : 'w-60',
       { 'is-collapsed': collapsed },
     ]"

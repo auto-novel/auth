@@ -158,6 +158,7 @@ watch(
               :selected="selectedNavigationKey"
               full-width
               mobile-header
+              panel="modal"
               @select="selectNavigation"
             />
             <DialogClose as-child>
