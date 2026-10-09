@@ -16,6 +16,8 @@
   "scripts": {
     "build": "pnpm run typecheck",
     "dev": "vite playground",
+    "build:playground": "pnpm run typecheck:playground && vite build playground",
+    "typecheck:playground": "vue-tsc -b playground/tsconfig.json",
     "preview": "vite preview playground",
     "test": "node --test tests/*.test.mjs",
     "typecheck": "vue-tsc -b"

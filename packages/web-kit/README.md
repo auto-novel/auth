@@ -2,6 +2,17 @@
 
 论坛前台共用的 Vue 组件库：认证会话、响应式布局、侧边栏、账号菜单、主题切换、全局通知和处罚记录页。
 
+## Playground
+
+在仓库根目录运行 `pnpm dev:web-kit`，打开 Vite 输出的地址即可调试，无需登录或连接后端。
+
+- 首页：会话、通知、浮层和时间组件示例。
+- **Tailwind 主题**（`/#/theme`）：全部语义颜色 token 及当前值、背景层级、文字搭配、状态提示、保留的 Tailwind 色号覆盖、按钮的普通/禁用状态，以及选择框、分页、菜单、提示框和确认框。页面按钮与侧栏共用主题切换，支持观察浅色与深色效果；可用鼠标悬停和 Tab 检查交互状态。
+
+展示页直接使用包内主题和组件，不维护另一套配色。修改源码后由 Vite 热更新。
+
+验证 playground：`pnpm --filter @novelia/web-kit typecheck:playground`；构建预览：`pnpm --filter @novelia/web-kit build:playground`，随后运行 `pnpm preview:web-kit`。
+
 ## 依赖
 
 以下包需要宿主自己装：`vue` `^3.5.41`、`vue-router` `^5.2.0`、`@vicons/material` `^0.13.0`、`tailwindcss` `^4.3.3`。

@@ -1,0 +1,9 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "../node_modules/.tmp/tsconfig.playground.tsbuildinfo",
+    "types": ["vite/client"]
+  },
+  "include": ["./**/*.ts", "./**/*.vue"],
+  "exclude": ["vite.config.ts"]
+}

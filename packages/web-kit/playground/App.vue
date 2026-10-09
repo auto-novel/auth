@@ -2,6 +2,7 @@
 import {
   HomeOutlined,
   OpenInNewOutlined,
+  PaletteOutlined,
   PersonOutlined,
   ReportOutlined,
 } from '@vicons/material';
@@ -16,6 +17,7 @@ const route = useRoute();
 
 const navigationOptions: WebKitMenuOption[] = [
   { key: 'home', label: '首页', icon: HomeOutlined, to: '/' },
+  { key: 'theme', label: 'Tailwind 主题', icon: PaletteOutlined, to: '/theme' },
   {
     key: 'account',
     type: 'group',

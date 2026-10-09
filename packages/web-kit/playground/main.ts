@@ -21,6 +21,11 @@ const router = createRouter({
   routes: [
     { path: '/', name: 'home', component: HomeView },
     {
+      path: '/theme',
+      name: 'theme',
+      component: () => import('./ThemeView.vue'),
+    },
+    {
       path: '/profile',
       name: 'profile',
       component: () => import('./ProfileView.vue'),
