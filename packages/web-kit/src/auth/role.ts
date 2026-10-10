@@ -13,25 +13,9 @@ export const roleLabels: Readonly<Record<UserRole, string>> &
 
 export const roles = Object.keys(knownRoleLabels);
 
-const roleLevels: Readonly<Record<UserRole, number>> = {
-  admin: 4,
-  trusted: 3,
-  member: 2,
-  restricted: 1,
-  banned: 0,
-};
-
 export function isKnownRole(role: unknown): role is UserRole {
   return (
     typeof role === 'string' &&
-    Object.prototype.hasOwnProperty.call(roleLevels, role)
-  );
-}
-
-export function isRoleAtLeast(role: unknown, requiredRole: unknown): boolean {
-  return (
-    isKnownRole(role) &&
-    isKnownRole(requiredRole) &&
-    roleLevels[role] >= roleLevels[requiredRole]
+    Object.prototype.hasOwnProperty.call(knownRoleLabels, role)
   );
 }

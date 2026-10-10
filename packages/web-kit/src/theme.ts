@@ -1,6 +1,6 @@
 import { computed, readonly, watch, type ComputedRef, type Ref } from 'vue';
 
-import { createStoredRef } from './storage';
+import { useLocalStorage } from './storage';
 
 export type Theme = 'light' | 'dark';
 
@@ -11,12 +11,13 @@ export interface WebTheme {
 }
 
 const TRANSITION_DURATION = 200;
+const THEME_STORAGE_KEY = 'web-kit:theme:v1';
 const THEME_COLORS: Record<Theme, string> = {
   dark: '#101014',
   light: '#ffffff',
 };
 
-export function createWebTheme(storageKey: string, area?: Storage) {
+export function createWebTheme() {
   let transitionTimer: number | undefined;
 
   function preferredTheme(): Theme {
@@ -57,11 +58,9 @@ export function createWebTheme(storageKey: string, area?: Storage) {
   }
 
   // 存储里没有有效主题时跟随系统偏好；无效值由存储层顺带删除。
-  const currentTheme = createStoredRef<Theme>({
-    key: storageKey,
-    storage: area,
-    decode: (raw) => (raw === 'light' || raw === 'dark' ? raw : undefined),
-    encode: (theme) => theme,
+  const currentTheme = useLocalStorage<Theme>(THEME_STORAGE_KEY, {
+    validate: (value) =>
+      value === 'light' || value === 'dark' ? value : undefined,
     fallback: preferredTheme,
   });
 

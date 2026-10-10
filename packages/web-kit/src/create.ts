@@ -1,5 +1,3 @@
-import { isAccountAtLeastDaysOld, type SessionUser } from './auth/user';
-import { isRoleAtLeast, roleLabels, type UserRole } from './auth/role';
 import {
   createApiClient,
   createAuthAwareApiClient,
@@ -8,19 +6,16 @@ import {
 import { createAuthSession } from './auth/session';
 import { createAuthRequests } from './auth/requests';
 import { createLoginBridge } from './auth/login';
-import { computed, readonly, ref, type App, type DeepReadonly } from 'vue';
+import { type App, type DeepReadonly } from 'vue';
 import type { RouteLocationRaw } from 'vue-router';
 
 import { createAttention } from './attentionContext';
 import { accountActionsKey, loadMyStrikesKey } from './auth/context';
 import { webKitKey, webKitInternalsKey } from './context';
 import { createWebTheme } from './theme';
-import type { WebKit, WebKitContext, WebKitOptions, Whoami } from './types';
+import type { WebKit, WebKitContext, WebKitOptions } from './types';
 
 let created = false;
-
-const SESSION_STORAGE_KEY = 'web-kit:session:v1';
-const THEME_STORAGE_KEY = 'web-kit:theme:v1';
 
 /** 相对地址需要浏览器环境；绝对地址在任何环境都能解析。 */
 function resolveAuthUrl(url: string): string {
@@ -103,18 +98,10 @@ export function createWebKit(options: WebKitOptions): WebKit {
       to: snapshotRouteTarget(options.strikes?.to ?? '/strikes'),
     }),
   });
-  let storage: Storage | undefined;
-  try {
-    storage = window.localStorage;
-  } catch {
-    // Keep the session in memory when browser storage is blocked.
-  }
   const authUrl = new URL(normalizedOptions.auth.url);
   const authClient = createApiClient(new URL('api/v1/', authUrl).toString());
   const session = createAuthSession({
     app: normalizedOptions.auth.app,
-    storageKey: SESSION_STORAGE_KEY,
-    storageArea: storage,
     requestLogout: () =>
       authClient.post('auth/logout', { credentials: 'include' }).text(),
     requestRefresh: (app) =>
@@ -124,10 +111,6 @@ export function createWebKit(options: WebKitOptions): WebKit {
           searchParams: { app },
         })
         .text(),
-  });
-  const profile = ref<SessionUser>();
-  session.subscribe((user) => {
-    profile.value = user;
   });
   const requests = createAuthRequests(
     createAuthAwareApiClient(authClient, session.accessToken),
@@ -141,31 +124,11 @@ export function createWebKit(options: WebKitOptions): WebKit {
     toggleAdminMode: session.toggleAdminMode,
   });
   const attention = createAttention({
-    watchUser: session.subscribe,
+    whoami: session.whoami,
     getAttentionStatus: requests.getAttentionStatus,
     updateMyStrikeReadState: requests.updateMyStrikeReadState,
   });
-  // 谓词闭包读取 profile，解构出去后也不会拿到过期快照。
-  const predicates = {
-    hasRoleAtLeast: (role: UserRole) =>
-      isRoleAtLeast(profile.value?.role, role),
-    isAtLeastDaysOld: (days: number) =>
-      isAccountAtLeastDaysOld(profile.value, days),
-  };
-  const whoami = computed<Whoami>(() => {
-    const user = profile.value;
-    const role = user?.role;
-    const isAdmin = isRoleAtLeast(role, 'admin');
-    return {
-      user: user ? readonly({ ...user }) : undefined,
-      isSignedIn: user !== undefined,
-      isAdmin,
-      asAdmin: isAdmin && user?.adminMode === true,
-      roleLabel: role ? (roleLabels[role] ?? role) : '未知角色',
-      ...predicates,
-    };
-  });
-  const theme = createWebTheme(THEME_STORAGE_KEY, storage);
+  const theme = createWebTheme();
   let owner: App | undefined;
 
   const context: WebKitContext = Object.freeze({
@@ -179,7 +142,7 @@ export function createWebKit(options: WebKitOptions): WebKit {
     logout: session.logout,
     banUser: requests.banUser,
     createStrike: requests.createStrike,
-    whoami,
+    whoami: session.whoami,
     theme,
   });
   const kit: WebKit = {

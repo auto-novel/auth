@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { setImmediate } from 'node:timers/promises';
 import test from 'node:test';
 
+import { computed, shallowRef } from 'vue';
 import { createAttention } from '../src/attentionContext.ts';
 
 const attentionStatus = (hasUnread) => ({ strikes: { hasUnread } });
@@ -33,17 +34,12 @@ function setup(t) {
     },
   );
   const clearInterval = t.mock.method(globalThis, 'clearInterval', () => {});
-  let listener;
   const reads = [];
   const writes = [];
+  // 会话 ref 由测试写入，attention 只拿到只读视图。
+  const user = shallowRef();
   const api = {
-    watchUser(callback) {
-      listener = callback;
-      callback(undefined);
-      return () => {
-        listener = undefined;
-      };
-    },
+    whoami: computed(() => ({ user: user.value })),
     getAttentionStatus() {
       const request = deferred();
       reads.push(request);
@@ -68,7 +64,7 @@ function setup(t) {
     clearInterval,
     setInterval,
     login(id) {
-      listener?.(id === undefined ? undefined : { id });
+      user.value = id === undefined ? undefined : { id };
     },
     tick() {
       interval();

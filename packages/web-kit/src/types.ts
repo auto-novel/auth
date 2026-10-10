@@ -1,12 +1,11 @@
-import type { SessionUser } from './auth/user';
-import type { UserRole } from './auth/role';
+import type { Whoami } from './auth/whoami';
 import type { ApiClient, ApiClientOptions } from './auth/client';
 import type {
   BanUserRequest,
   CreateStrikeRequest,
   CreateStrikeResponse,
 } from './auth/requests';
-import type { App, Component, ComputedRef, DeepReadonly } from 'vue';
+import type { App, Component, ComputedRef } from 'vue';
 import type { RouteLocationRaw } from 'vue-router';
 
 import type { WebTheme } from './theme';
@@ -61,23 +60,6 @@ export type WebKitMenuOption =
       icon?: Component;
       children: WebKitMenuOption[];
     };
-
-/** 只读会话用户快照，createdAt 使用 Unix 毫秒。 */
-export type WhoamiUser = DeepReadonly<SessionUser>;
-
-/** 会话视图：登录状态、角色判定和派生展示字段的统一入口。 */
-export interface Whoami {
-  /** 会话用户快照；未登录为 `undefined`。 */
-  readonly user: WhoamiUser | undefined;
-  readonly isSignedIn: boolean;
-  readonly isAdmin: boolean;
-  /** 角色至少为 admin 且已打开管理模式，与账号菜单里的 “+” 同源。 */
-  readonly asAdmin: boolean;
-  /** 本地化的角色名，未登录或角色未知时为“未知角色”。 */
-  readonly roleLabel: string;
-  hasRoleAtLeast(role: UserRole): boolean;
-  isAtLeastDaysOld(days: number): boolean;
-}
 
 /** 宿主共享的状态与操作；会话生命周期由 kit 统一管理。 */
 export interface WebKitContext {

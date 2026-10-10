@@ -1,6 +1,13 @@
 import type { AttentionStatus, StrikeReadState } from './auth/requests';
-import type { SessionUser } from './auth/user';
-import { readonly, ref, type DeepReadonly, type Ref } from 'vue';
+import type { Whoami, WhoamiUser } from './auth/whoami';
+import {
+  readonly,
+  ref,
+  watch,
+  type ComputedRef,
+  type DeepReadonly,
+  type Ref,
+} from 'vue';
 
 export interface AttentionContext {
   readonly status: DeepReadonly<Ref<AttentionStatus | undefined>>;
@@ -15,7 +22,7 @@ interface AttentionSession {
 }
 
 interface AttentionApi {
-  watchUser(listener: (user?: SessionUser) => void): () => void;
+  whoami: ComputedRef<Whoami>;
   getAttentionStatus(): Promise<AttentionStatus>;
   updateMyStrikeReadState(throughId: number): Promise<StrikeReadState>;
 }
@@ -99,7 +106,7 @@ export function createAttention(api: AttentionApi) {
     if (document.visibilityState === 'visible') void refresh();
   }
 
-  function handleUser(user: SessionUser | undefined) {
+  function handleUser(user: WhoamiUser | undefined) {
     if (user?.id === session?.userId) return;
     session = user ? { userId: user.id } : undefined;
     status.value = undefined;
@@ -110,7 +117,12 @@ export function createAttention(api: AttentionApi) {
   if (typeof document !== 'undefined') {
     document.addEventListener('visibilitychange', refreshWhenVisible);
   }
-  api.watchUser(handleUser);
+  // immediate + sync：创建时补一次当前用户，之后登录/登出都在同一个 tick 内
+  // 切换状态与轮询定时器，与页面读取 whoami 的时机一致。
+  watch(() => api.whoami.value.user, handleUser, {
+    immediate: true,
+    flush: 'sync',
+  });
   syncTimer();
 
   const context: AttentionContext = Object.freeze({

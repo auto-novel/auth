@@ -157,7 +157,7 @@ const options: WebKitMenuOption[] = [
 
 ## 认证 API
 
-认证会话由 `createWebKit()` 统一创建和管理。角色工具和类型可从包主入口导入。组件通过 `useWebKit()` 统一取得 `whoami`、`theme` 和以下方法，公开类型为 `WebKitContext`：
+认证会话由 `createWebKit()` 统一创建和管理。`whoami` 及其用户快照、角色和账号年龄判定由 auth 层统一提供，kit 直接透传；内部提醒也读取同一个 `whoami.user`。`Whoami`、`WhoamiUser` 类型与角色工具可从包主入口导入。组件通过 `useWebKit()` 统一取得 `whoami`、`theme` 和以下方法，公开类型为 `WebKitContext`：
 
 - `createClient(baseUrl, options?)`：创建携带当前会话的业务客户端。
 - `checkSignedIn()`：等待登录检查并返回登录状态。

@@ -16,9 +16,10 @@ import { getApiErrorMessage } from './utils/apiError';
 import { useWebKitLayout } from './layoutContext';
 
 export { createWebKit } from './create';
+export { useLocalStorage, useSessionStorage, useStorage } from './storage';
+export type { StoredRefOptions } from './storage';
 export {
   isKnownRole,
-  isRoleAtLeast,
   roleLabels,
   roles,
   type UserRole,
@@ -56,14 +57,13 @@ export {
 export type { LayoutContext } from './layoutContext';
 export type { AppNotification } from './notifications';
 export type { WebTheme } from './theme';
+export type { Whoami, WhoamiUser } from './auth/whoami';
 export type {
   WebKit,
   WebKitContext,
   WebKitMenuOption,
   WebKitOptions,
   WebKitStrikeOptions,
-  Whoami,
-  WhoamiUser,
 } from './types';
 export type {
   XActionMenuItemProps,

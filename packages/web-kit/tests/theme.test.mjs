@@ -40,7 +40,7 @@ function makeArea(initial = []) {
   };
 }
 
-function useBrowser(t, { prefersDark = false } = {}) {
+function useBrowser(t, { storage, prefersDark = false } = {}) {
   const meta = { content: '' };
   const root = {
     dataset: {},
@@ -60,6 +60,7 @@ function useBrowser(t, { prefersDark = false } = {}) {
   };
   const windowEvents = new EventTarget();
   windowEvents.matchMedia = () => ({ matches: prefersDark });
+  windowEvents.localStorage = storage;
 
   const previous = {
     document: Object.getOwnPropertyDescriptor(globalThis, 'document'),
@@ -96,17 +97,19 @@ function storageEvent(area, key) {
 }
 
 test('主题优先用存储值，无效值退回系统偏好并删除该键', (t) => {
-  const { meta, root } = useBrowser(t, { prefersDark: true });
+  const { meta, root, windowEvents } = useBrowser(t, { prefersDark: true });
 
-  const stored = makeArea([[THEME_KEY, 'light']]);
-  const theme = createWebTheme(THEME_KEY, stored);
+  const stored = makeArea([[THEME_KEY, JSON.stringify('light')]]);
+  windowEvents.localStorage = stored;
+  const theme = createWebTheme();
   assert.equal(theme.theme.value, 'light');
   assert.equal(root.dataset.theme, 'light');
   assert.equal(meta.content, '#ffffff');
   assert.equal(stored.calls.writes, 0);
 
-  const invalid = makeArea([[THEME_KEY, 'blue']]);
-  const fallback = createWebTheme(THEME_KEY, invalid);
+  const invalid = makeArea([[THEME_KEY, JSON.stringify('blue')]]);
+  windowEvents.localStorage = invalid;
+  const fallback = createWebTheme();
   assert.equal(fallback.theme.value, 'dark');
   assert.equal(fallback.isDark.value, true);
   assert.equal(root.dataset.theme, 'dark');
@@ -115,26 +118,26 @@ test('主题优先用存储值，无效值退回系统偏好并删除该键', (t
 });
 
 test('toggleTheme 落盘一次并切换根元素主题', (t) => {
-  const { meta, root } = useBrowser(t);
-  const area = makeArea([[THEME_KEY, 'light']]);
-  const theme = createWebTheme(THEME_KEY, area);
+  const area = makeArea([[THEME_KEY, JSON.stringify('light')]]);
+  const { meta, root } = useBrowser(t, { storage: area });
+  const theme = createWebTheme();
 
   theme.toggleTheme();
   assert.equal(theme.theme.value, 'dark');
   assert.equal(theme.isDark.value, true);
-  assert.equal(area.values.get(THEME_KEY), 'dark');
+  assert.equal(area.values.get(THEME_KEY), JSON.stringify('dark'));
   assert.equal(area.calls.writes, 1);
   assert.equal(root.dataset.theme, 'dark');
   assert.equal(meta.content, '#101014');
 });
 
 test('其他标签页切换主题时同步且不回写', (t) => {
-  const { meta, root, windowEvents } = useBrowser(t);
-  const area = makeArea([[THEME_KEY, 'light']]);
-  const theme = createWebTheme(THEME_KEY, area);
+  const area = makeArea([[THEME_KEY, JSON.stringify('light')]]);
+  const { meta, root, windowEvents } = useBrowser(t, { storage: area });
+  const theme = createWebTheme();
 
   // 模拟另一个标签页写入并广播 storage 事件。
-  area.values.set(THEME_KEY, 'dark');
+  area.values.set(THEME_KEY, JSON.stringify('dark'));
   windowEvents.dispatchEvent(storageEvent(area, THEME_KEY));
 
   assert.equal(theme.theme.value, 'dark');
