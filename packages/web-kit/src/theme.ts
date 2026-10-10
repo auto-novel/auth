@@ -1,12 +1,12 @@
 import { computed, readonly, ref, type ComputedRef, type Ref } from 'vue';
 
+export type Theme = 'light' | 'dark';
+
 export interface WebTheme {
-  readonly theme: Readonly<Ref<'light' | 'dark'>>;
+  readonly theme: Readonly<Ref<Theme>>;
   readonly isDark: ComputedRef<boolean>;
   readonly toggleTheme: () => void;
 }
-
-type Theme = 'light' | 'dark';
 
 const TRANSITION_DURATION = 200;
 const THEME_COLORS: Record<Theme, string> = {
@@ -36,12 +36,19 @@ export function createWebTheme(storageKey: string, storage?: Storage) {
       : 'light';
   }
 
+  function endTransition() {
+    if (transitionTimer === undefined) return;
+    globalThis.clearTimeout(transitionTimer);
+    transitionTimer = undefined;
+    document.documentElement.classList.remove('theme-transition');
+  }
+
   function applyTheme(theme: Theme, animated = false) {
     if (typeof document === 'undefined') return;
     const root = document.documentElement;
 
     if (animated) {
-      window.clearTimeout(transitionTimer);
+      endTransition();
       root.classList.add('theme-transition');
       void root.offsetWidth;
     }
@@ -52,14 +59,13 @@ export function createWebTheme(storageKey: string, storage?: Storage) {
       ?.setAttribute('content', THEME_COLORS[theme]);
 
     if (animated) {
-      transitionTimer = window.setTimeout(() => {
-        root.classList.remove('theme-transition');
-        transitionTimer = undefined;
-      }, TRANSITION_DURATION);
+      transitionTimer = globalThis.setTimeout(
+        endTransition,
+        TRANSITION_DURATION,
+      );
     }
   }
 
-  /** 读取已保存（或系统）主题并写入 `<html>`。由 kit.start 触发。 */
   function start() {
     if (started || disposed) return;
     started = true;
@@ -82,13 +88,7 @@ export function createWebTheme(storageKey: string, storage?: Storage) {
 
   function dispose() {
     disposed = true;
-    if (transitionTimer !== undefined && typeof window !== 'undefined') {
-      window.clearTimeout(transitionTimer);
-      if (typeof document !== 'undefined') {
-        document.documentElement.classList.remove('theme-transition');
-      }
-    }
-    transitionTimer = undefined;
+    endTransition();
   }
 
   const context: WebTheme = Object.freeze({

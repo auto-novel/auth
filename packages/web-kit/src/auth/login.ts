@@ -1,3 +1,5 @@
+import type { Theme } from '../theme';
+
 /** 登录 iframe 的地址和消息协议；刷新始终复用 kit 会话。 */
 export function createLoginBridge(
   authUrl: URL,
@@ -5,7 +7,7 @@ export function createLoginBridge(
   refresh: () => Promise<string | undefined>,
 ) {
   return {
-    createLoginUrl(theme: 'dark' | 'light') {
+    createLoginUrl(theme: Theme) {
       const url = new URL(authUrl);
       url.searchParams.set('app', app);
       url.searchParams.set('theme', theme);
