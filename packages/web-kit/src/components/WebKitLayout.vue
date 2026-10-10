@@ -28,6 +28,7 @@ import { useRoute } from 'vue-router';
 
 import { layoutKey } from '../layoutContext';
 import { selectedGroupKeys } from '../menu';
+import { useSidebarPreference } from '../sidebar';
 import type { WebKitMenuOption } from '../types';
 import UserAccountButton from './UserAccountButton.vue';
 import WebKitSidebar from './WebKitSidebar.vue';
@@ -54,7 +55,10 @@ function getViewportMode(): ViewportMode {
 
 const viewportMode = ref<ViewportMode>('desktop');
 const mobileMenuOpen = ref(false);
-const sidebarCollapsed = ref(false);
+const sidebarPreference = useSidebarPreference();
+const sidebarCollapsed = computed(
+  () => viewportMode.value === 'tablet' || sidebarPreference.value,
+);
 const isMobile = computed(() => viewportMode.value === 'mobile');
 const expanded = ref(new Set<string>());
 const activeGroups = computed(
@@ -93,8 +97,10 @@ function updateViewport() {
   if (nextMode === viewportMode.value) return;
   viewportMode.value = nextMode;
   mobileMenuOpen.value = false;
-  if (nextMode === 'tablet') sidebarCollapsed.value = true;
-  if (nextMode === 'desktop') sidebarCollapsed.value = false;
+}
+
+function toggleSidebar() {
+  sidebarPreference.value = !sidebarPreference.value;
 }
 
 onMounted(() => {
@@ -103,7 +109,6 @@ onMounted(() => {
     '(min-width: 768px) and (max-width: 1023px)',
   );
   viewportMode.value = getViewportMode();
-  sidebarCollapsed.value = viewportMode.value === 'tablet';
   mobileMediaQuery.addEventListener('change', updateViewport);
   tabletMediaQuery.addEventListener('change', updateViewport);
 });
@@ -190,7 +195,7 @@ watch(
           :aria-label="sidebarCollapsed ? '展开侧边栏' : '收起侧边栏'"
           :title="sidebarCollapsed ? '展开侧边栏' : '收起侧边栏'"
           :aria-expanded="!sidebarCollapsed"
-          @click="sidebarCollapsed = !sidebarCollapsed"
+          @click="toggleSidebar"
         >
           <component
             :is="sidebarCollapsed ? ChevronRightOutlined : ChevronLeftOutlined"
