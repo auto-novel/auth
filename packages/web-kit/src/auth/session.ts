@@ -131,13 +131,6 @@ export function createAuthSession(options: AuthSessionOptions) {
   let initialized = false;
   let refreshRequest: Promise<string | undefined> | undefined;
   let sessionVersion = 0;
-  let started = false;
-
-  function assertActive() {
-    if (!started) {
-      throw new Error('Auth session has not started; call start() first');
-    }
-  }
 
   function notify(listener: (user?: SessionUser) => void) {
     try {
@@ -158,7 +151,6 @@ export function createAuthSession(options: AuthSessionOptions) {
   }
 
   function toggleAdminMode(): boolean {
-    assertActive();
     const nextMode = !adminMode && profile?.role === 'admin';
     if (adminMode === nextMode) return adminMode;
     adminMode = nextMode;
@@ -187,7 +179,6 @@ export function createAuthSession(options: AuthSessionOptions) {
 
   function onStorage(event: StorageEvent) {
     if (
-      !started ||
       !storage ||
       event.storageArea !== options.storage?.target ||
       (event.key !== null && event.key !== options.storage.key)
@@ -207,11 +198,6 @@ export function createAuthSession(options: AuthSessionOptions) {
   }
 
   function refreshAccessToken(): Promise<string | undefined> {
-    try {
-      assertActive();
-    } catch (error) {
-      return Promise.reject(error);
-    }
     if (refreshRequest) return refreshRequest;
     const app = options.app;
     const version = sessionVersion;
@@ -242,7 +228,6 @@ export function createAuthSession(options: AuthSessionOptions) {
   }
 
   async function checkSignedIn() {
-    assertActive();
     if (!initialized) {
       try {
         await refreshAccessToken();
@@ -251,7 +236,6 @@ export function createAuthSession(options: AuthSessionOptions) {
         // check can retry while preserving any locally available profile.
       }
     }
-    assertActive();
     return profile !== undefined;
   }
 
@@ -265,49 +249,41 @@ export function createAuthSession(options: AuthSessionOptions) {
     refresh: refreshAccessToken,
   } satisfies AccessTokenProvider;
 
-  function start() {
-    if (started) return;
-    started = true;
-    const storedSession = storage?.get();
-    profile = storedSession?.profile;
-    adminMode = storedSession?.adminMode ?? false;
-    initialized = profile !== undefined;
-    for (const listener of listeners) notify(listener);
+  const storedSession = storage?.get();
+  profile = storedSession?.profile;
+  adminMode = storedSession?.adminMode ?? false;
+  initialized = profile !== undefined;
 
-    if (
-      storage &&
-      typeof window !== 'undefined' &&
-      typeof window.addEventListener === 'function'
-    ) {
-      window.addEventListener('storage', onStorage);
-    }
-
-    void checkSignedIn().catch(() => undefined);
-    globalThis.setInterval(() => {
-      if (
-        profile &&
-        Date.now() - profile.issuedAt * 1000 >= ACCESS_TOKEN_REFRESH_AGE
-      ) {
-        void refreshAccessToken().catch(() => undefined);
-      }
-    }, ACCESS_TOKEN_REFRESH_INTERVAL);
+  if (
+    storage &&
+    typeof window !== 'undefined' &&
+    typeof window.addEventListener === 'function'
+  ) {
+    window.addEventListener('storage', onStorage);
   }
+
+  void checkSignedIn().catch(() => undefined);
+  globalThis.setInterval(() => {
+    if (
+      profile &&
+      Date.now() - profile.issuedAt * 1000 >= ACCESS_TOKEN_REFRESH_AGE
+    ) {
+      void refreshAccessToken().catch(() => undefined);
+    }
+  }, ACCESS_TOKEN_REFRESH_INTERVAL);
 
   return {
     accessToken,
     checkSignedIn,
     toggleAdminMode,
     async logout() {
-      assertActive();
       // Ignore refreshes started before logout, including their errors.
       sessionVersion++;
       refreshRequest = undefined;
       initialized = true;
       setAccessToken();
-      assertActive();
       return options.requestLogout();
     },
-    start,
     subscribe,
   };
 }

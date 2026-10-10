@@ -38,5 +38,4 @@ const router = createRouter({
   ],
 });
 
-// 先装 kit 再装 router，保证首个路由守卫拿到已启动的会话。
 createApp(App).use(webKit).use(router).mount('#app');

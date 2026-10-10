@@ -110,27 +110,20 @@ function fakeBrowser(t) {
   return { counts, now, timers };
 }
 
-test('one successful create, no notification rebinding, and singleton rejection', async (t) => {
+test('create restores session and theme, and rejects a second create', async (t) => {
   const { counts, now } = fakeBrowser(t);
   const createWebKit = await freshFactory();
   Notify.success('before creation');
-  const beforeCreate = { ...counts };
   const kit = createWebKit(options);
-  assert.deepEqual(counts, beforeCreate);
-  assert.equal(kit.whoami.value.user, undefined);
-  assert.equal(kit.whoami.value.isSignedIn, false);
+  assert.equal(kit.whoami.value.user.username, 'member');
+  assert.equal(kit.whoami.value.isSignedIn, true);
   assert.equal(kit.whoami.value.isAdmin, false);
   assert.equal(kit.whoami.value.asAdmin, false);
-  assert.equal(kit.whoami.value.hasRoleAtLeast('member'), false);
-  assert.equal(kit.whoami.value.isAtLeastDaysOld(0), false);
-  assert.equal(kit.theme.theme.value, 'light');
-  kit.start();
-  const afterStart = { ...counts };
-  kit.start();
-  assert.deepEqual(counts, afterStart);
+  assert.equal(kit.whoami.value.hasRoleAtLeast('member'), true);
+  assert.equal(kit.whoami.value.isAtLeastDaysOld(0), true);
   assert.equal(kit.theme.theme.value, 'dark');
   assert.equal('options' in kit, false);
-  assert.equal(kit.whoami.value.user.username, 'member');
+  assert.equal('start' in kit, false);
   // JWT 的秒时间戳在会话解析时转为毫秒，kit 保持同一单位。
   assert.equal(kit.whoami.value.user.createdAt, now * 1000);
   const thirtyDaysLater = now * 1000 + 30 * 24 * 60 * 60 * 1000;
@@ -146,11 +139,10 @@ test('one successful create, no notification rebinding, and singleton rejection'
   kit.whoami.value.user.username = 'tampered';
   assert.equal(kit.whoami.value.user.username, 'member');
   assert.ok(warnings.mock.callCount() > 0);
-  assert.equal(kit.whoami.value.isSignedIn, true);
   assert.equal('notifications' in kit, false);
-  assert.equal(counts.added, 1);
+  assert.equal(counts.reads, 2); // session + theme
+  assert.equal(counts.added, 1); // storage listener
   assert.equal(counts.timers, 2); // auth refresh + attention polling
-  assert.equal(counts.fetches, 0);
   assert.equal(notifications.items.value[0].message, 'before creation');
 
   const before = { ...counts };
@@ -188,12 +180,8 @@ test('invalid initial URL does not consume the singleton or allocate resources',
   );
   assert.deepEqual(counts, before);
   const kit = createWebKit(options);
-  assert.deepEqual(counts, before);
-  assert.equal(kit.whoami.value.isSignedIn, false);
-  kit.start();
   assert.equal(kit.whoami.value.isSignedIn, true);
   assert.equal(counts.timers, 2); // auth refresh + attention polling
-  assert.equal(counts.fetches, 0);
 });
 
 test('single owner, context-only hooks, and same-app idempotence', async (t) => {
@@ -226,9 +214,10 @@ test('single owner, context-only hooks, and same-app idempotence', async (t) => 
   assert.throws(() => kit.install(otherApp), /another app/);
   assert.equal(otherProvide.mock.callCount(), 0);
   await attention.refresh();
-  assert.equal(counts.fetches, 1);
   assert.equal(attention.status.value.strikes.hasUnread, true);
+  assert.ok(counts.fetches >= 1);
 
+  assert.equal('start' in kit, false);
   assert.equal('dispose' in kit, false);
 });
 

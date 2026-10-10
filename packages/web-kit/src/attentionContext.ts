@@ -25,7 +25,6 @@ const POLL_INTERVAL = 60 * 1000;
 export function createAttention(api: AttentionApi) {
   const status = ref<AttentionStatus>();
   let session: AttentionSession | undefined;
-  let started = false;
   let timer: number | undefined;
 
   async function synchronize(current: AttentionSession) {
@@ -88,7 +87,7 @@ export function createAttention(api: AttentionApi) {
 
   /** 只在已登录时保留轮询定时器。 */
   function syncTimer() {
-    if (started && session) {
+    if (session) {
       timer ??= globalThis.setInterval(refreshWhenVisible, POLL_INTERVAL);
       return;
     }
@@ -108,16 +107,11 @@ export function createAttention(api: AttentionApi) {
     if (session) void refresh();
   }
 
-  /** 订阅会话并挂上定时器与可见性监听。由 kit.start 触发。 */
-  function start() {
-    if (started) return;
-    started = true;
-    if (typeof document !== 'undefined') {
-      document.addEventListener('visibilitychange', refreshWhenVisible);
-    }
-    api.watchUser(handleUser);
-    syncTimer();
+  if (typeof document !== 'undefined') {
+    document.addEventListener('visibilitychange', refreshWhenVisible);
   }
+  api.watchUser(handleUser);
+  syncTimer();
 
   const context: AttentionContext = Object.freeze({
     status: readonly(status),
@@ -125,5 +119,5 @@ export function createAttention(api: AttentionApi) {
     updateStrikeReadState,
   });
 
-  return { context, start };
+  return context;
 }

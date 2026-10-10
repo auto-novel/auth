@@ -130,6 +130,9 @@ export function createWebKit(options: WebKitOptions): WebKit {
       : undefined,
   });
   const profile = ref<SessionUser>();
+  session.subscribe((user) => {
+    profile.value = user;
+  });
   const requests = createAuthRequests(
     createAuthAwareApiClient(authClient, session.accessToken),
   );
@@ -167,20 +170,7 @@ export function createWebKit(options: WebKitOptions): WebKit {
     };
   });
   const theme = createWebTheme(THEME_STORAGE_KEY, storage);
-
   let owner: App | undefined;
-  let started = false;
-
-  function start() {
-    if (started) return;
-    started = true;
-    theme.start();
-    session.subscribe((user) => {
-      profile.value = user;
-    });
-    session.start();
-    attention.start();
-  }
 
   const context: WebKitContext = Object.freeze({
     createClient(baseUrl: string, options: ApiClientOptions = {}) {
@@ -194,23 +184,21 @@ export function createWebKit(options: WebKitOptions): WebKit {
     banUser: requests.banUser,
     createStrike: requests.createStrike,
     whoami,
-    theme: theme.context,
+    theme,
   });
   const kit: WebKit = {
     ...context,
-    start,
     install(app: App) {
       if (owner === app) return;
       if (owner)
         throw new Error('Web kit is already installed in another app.');
       owner = app;
-      start();
       app.provide(webKitKey, context);
       app.provide(
         webKitInternalsKey,
         Object.freeze({
           options: normalizedOptions,
-          attention: attention.context,
+          attention,
         }),
       );
       app.provide(accountActionsKey, accountActions);

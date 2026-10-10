@@ -17,7 +17,6 @@ const THEME_COLORS: Record<Theme, string> = {
 export function createWebTheme(storageKey: string, storage?: Storage) {
   const currentTheme = ref<Theme>('light');
   let transitionTimer: number | undefined;
-  let started = false;
 
   function storedTheme(): Theme | undefined {
     try {
@@ -65,17 +64,9 @@ export function createWebTheme(storageKey: string, storage?: Storage) {
     }
   }
 
-  function start() {
-    if (started) return;
-    started = true;
-    currentTheme.value = storedTheme() ?? preferredTheme();
-    applyTheme(currentTheme.value);
-  }
-
   const isDark = computed(() => currentTheme.value === 'dark');
 
   function toggleTheme() {
-    if (!started) return;
     currentTheme.value = isDark.value ? 'light' : 'dark';
     applyTheme(currentTheme.value, true);
     try {
@@ -85,10 +76,13 @@ export function createWebTheme(storageKey: string, storage?: Storage) {
     }
   }
 
+  currentTheme.value = storedTheme() ?? preferredTheme();
+  applyTheme(currentTheme.value);
+
   const context: WebTheme = Object.freeze({
     theme: readonly(currentTheme),
     isDark,
     toggleTheme,
   });
-  return { context, start };
+  return context;
 }

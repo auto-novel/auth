@@ -96,7 +96,5 @@ export interface WebKitContext {
 }
 
 export interface WebKit extends WebKitContext {
-  /** 启动会话、主题和提醒；重复调用无副作用，install 也会调用它。 */
-  readonly start: () => void;
   readonly install: (app: App) => void;
 }

@@ -52,7 +52,6 @@ test('admin mode persists only for the same administrator account', async (t) =>
     requestLogout: async () => '',
     requestRefresh: async () => nextToken,
   });
-  session.start();
   const observed = [];
   const unsubscribe = session.subscribe((user) => {
     observed.push(user?.adminMode);
@@ -77,7 +76,6 @@ test('admin mode persists only for the same administrator account', async (t) =>
       requestLogout: async () => '',
       requestRefresh: async () => nextToken,
     });
-    restored.start();
     const restoredValues = [];
     restored.subscribe((user) => restoredValues.push(user?.adminMode));
     assert.deepEqual(restoredValues, [true]);
@@ -114,7 +112,6 @@ test('admin mode follows storage changes from another tab', (t) => {
     requestLogout: async () => '',
     requestRefresh: async () => makeToken('admin'),
   });
-  session.start();
   const observed = [];
   session.subscribe((user) => {
     observed.push(user?.adminMode);
@@ -155,7 +152,6 @@ test('session users use milliseconds after restoring and refreshing a JWT', asyn
     requestLogout: async () => '',
     requestRefresh: async () => makeToken('admin'),
   });
-  session.start();
   let user;
   session.subscribe((value) => {
     user = value;

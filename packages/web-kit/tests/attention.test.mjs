@@ -16,7 +16,7 @@ function deferred() {
   return { promise, resolve, reject };
 }
 
-function setup(t, { autoStart = true } = {}) {
+function setup(t) {
   const previousDocument = globalThis.document;
   const document = new EventTarget();
   document.visibilityState = 'visible';
@@ -56,13 +56,12 @@ function setup(t, { autoStart = true } = {}) {
     },
   };
   const controller = createAttention(api);
-  if (autoStart) controller.start();
   t.after(() => {
     if (previousDocument === undefined) delete globalThis.document;
     else globalThis.document = previousDocument;
   });
   return {
-    ...controller,
+    context: controller,
     reads,
     writes,
     addListener,
@@ -207,31 +206,6 @@ test('account changes discard pending acknowledgements and old responses', async
   h.reads[1].resolve(attentionStatus(true));
   await stale;
   assert.equal(h.context.status.value.strikes.hasUnread, false);
-});
-
-test('does nothing until start() is called', async (t) => {
-  const h = setup(t, { autoStart: false });
-
-  assert.equal(h.addListener.mock.callCount(), 0);
-  assert.equal(h.setInterval.mock.callCount(), 0);
-  h.login(1);
-  await h.context.refresh();
-  await setImmediate();
-  assert.equal(h.reads.length, 0);
-
-  h.start();
-  assert.equal(h.setInterval.mock.callCount(), 0);
-  assert.equal(
-    h.addListener.mock.calls.some(
-      (call) => call.arguments[0] === 'visibilitychange',
-    ),
-    true,
-  );
-
-  h.login(1);
-  await setImmediate();
-  assert.equal(h.reads.length, 1);
-  assert.equal(h.setInterval.mock.callCount(), 1);
 });
 
 test('polls only while signed in', async (t) => {
