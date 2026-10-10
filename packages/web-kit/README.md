@@ -49,6 +49,13 @@ createApp(App).use(webKit).use(router).mount('#app');
 
 `createWebKit` 在应用入口只调用一次；同一模块运行环境中再次调用会报错，不会覆盖配置或创建新会话。`auth.url` 可以是相对地址，按当前页面解析。
 
+kit 只读写自己固定的两个 `localStorage` 键，不接受宿主改名：
+
+- `web-kit:session:v1`：访问令牌和管理模式开关，值形如 `{"token":"…","adminMode":false}`，退出登录或令牌失效时删除；同一键的 `storage` 事件用于跨标签页同步登录态。
+- `web-kit:theme:v1`：`"light"` 或 `"dark"`，只有点击 `toggleTheme()` 才写入。
+
+浏览器禁用存储时两个功能都降级为仅内存，不影响使用。
+
 web-kit 的生命周期契约：
 
 - `createWebKit()` 只构造配置与内存状态，不读取会话/主题存储内容、不发请求、不注册监听器或定时器，也不修改页面主题。
@@ -230,7 +237,7 @@ try {
 
 ## 主题
 
-主题在启动时写入 `<html data-theme>`，无已保存偏好时采用当时的系统主题，切换后写 `localStorage`（键默认 `<auth.app>-web-theme`，可用 `themeStorageKey` 覆盖）。侧边栏底部的按钮已经接好了，业务里要用就 `useWebKit().theme`，拿 `{ isDark, theme, toggleTheme }`。
+主题在启动时写入 `<html data-theme>`，无已保存偏好时采用当时的系统主题，切换后写 `localStorage`（固定键 `web-kit:theme:v1`）。侧边栏底部的按钮已经接好了，业务里要用就 `useWebKit().theme`，拿 `{ isDark, theme, toggleTheme }`。
 
 ## 侧栏构建信息
 

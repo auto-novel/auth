@@ -11,10 +11,8 @@ const webKit = createWebKit({
   auth: {
     app: 'auth',
     url: __AUTH_URL__,
-    storageKey: 'auth-admin-session',
   },
   brand: 'Auth',
-  themeStorageKey: 'auth-admin-theme',
   strikes: { enabled: false },
   repository: {
     url: 'https://github.com/auto-novel/auth',

@@ -22,7 +22,6 @@ export interface WebKitOptions {
   auth: {
     app: string;
     url: string;
-    storageKey?: string;
   };
   brand: string;
   repository?: {
@@ -31,7 +30,6 @@ export interface WebKitOptions {
     commitSha: string;
   };
   strikes?: WebKitStrikeOptions;
-  themeStorageKey?: string;
 }
 
 /** 宿主注入的菜单项；不指定 type 时兼容原有的站内链接。 */

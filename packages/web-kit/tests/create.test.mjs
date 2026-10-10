@@ -48,8 +48,8 @@ function fakeBrowser(t) {
   };
   const token = `header.${Buffer.from(JSON.stringify(payload)).toString('base64url')}.signature`;
   const values = new Map([
-    ['test-session', JSON.stringify({ token, adminMode: false })],
-    ['test-web-theme', 'dark'],
+    ['web-kit:session:v1', JSON.stringify({ token, adminMode: false })],
+    ['web-kit:theme:v1', 'dark'],
   ]);
   const counts = {
     reads: 0,

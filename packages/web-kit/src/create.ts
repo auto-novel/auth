@@ -20,6 +20,9 @@ import type { WebKit, WebKitContext, WebKitOptions, Whoami } from './types';
 
 let created = false;
 
+const SESSION_STORAGE_KEY = 'web-kit:session:v1';
+const THEME_STORAGE_KEY = 'web-kit:theme:v1';
+
 /** 相对地址需要浏览器环境；绝对地址在任何环境都能解析。 */
 function resolveAuthUrl(url: string): string {
   const base =
@@ -102,7 +105,6 @@ export function createWebKit(options: WebKitOptions): WebKit {
       enabled: options.strikes?.enabled ?? true,
       to: snapshotRouteTarget(options.strikes?.to ?? '/strikes'),
     }),
-    themeStorageKey: options.themeStorageKey,
   });
   let storage: Storage | undefined;
   try {
@@ -125,9 +127,7 @@ export function createWebKit(options: WebKitOptions): WebKit {
         .text(),
     storage: storage
       ? {
-          key:
-            normalizedOptions.auth.storageKey ??
-            `${normalizedOptions.auth.app}-session`,
+          key: SESSION_STORAGE_KEY,
           target: storage,
         }
       : undefined,
@@ -170,11 +170,7 @@ export function createWebKit(options: WebKitOptions): WebKit {
       ...predicates,
     };
   });
-  const theme = createWebTheme(
-    normalizedOptions.themeStorageKey ??
-      `${normalizedOptions.auth.app}-web-theme`,
-    storage,
-  );
+  const theme = createWebTheme(THEME_STORAGE_KEY, storage);
 
   let owner: App | undefined;
   let started = false;
