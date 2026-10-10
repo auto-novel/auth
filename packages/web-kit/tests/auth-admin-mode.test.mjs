@@ -6,10 +6,14 @@ import { isReadonly, watch } from 'vue';
 
 registerHooks({
   resolve(specifier, context, nextResolve) {
-    if (context.parentURL?.endsWith('/src/auth/session.ts')) {
-      if (specifier === './role') return nextResolve('./role.ts', context);
-      if (specifier === '../storage')
-        return nextResolve('../storage.ts', context);
+    // 源码里的相对导入不带扩展名，Node 直接解析会失败；只在 web-kit 源码内补
+    // .ts，不影响依赖包自己的解析。
+    if (
+      specifier.startsWith('.') &&
+      !/\.[a-z]+$/i.test(specifier) &&
+      /\/packages\/web-kit\/src\//.test(context.parentURL ?? '')
+    ) {
+      return nextResolve(`${specifier}.ts`, context);
     }
     return nextResolve(specifier, context);
   },

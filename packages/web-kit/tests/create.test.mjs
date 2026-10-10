@@ -24,8 +24,6 @@ registerHooks({
 });
 
 const { useWebKit, useWebKitInternals } = await import('../src/context.ts');
-const { useAccountActions, useMyStrikesLoader } =
-  await import('../src/auth/context.ts');
 let moduleId = 0;
 async function freshFactory() {
   return (await import(`../src/create.ts?test=${++moduleId}`)).createWebKit;
@@ -194,7 +192,8 @@ test('single owner, context-only hooks, and same-app idempotence', async (t) => 
   const otherProvide = t.mock.method(otherApp, 'provide');
   kit.install(app);
   kit.install(app);
-  assert.equal(provide.mock.callCount(), 4);
+  // webKitKey + webKitInternalsKey，install 幂等不再重复 provide。
+  assert.equal(provide.mock.callCount(), 2);
   assert.equal(counts.timers, 2); // auth refresh + attention polling
   assert.equal(kit.theme.theme.value, 'dark');
   const context = app.runWithContext(useWebKit);
@@ -239,11 +238,22 @@ test('public API hides session internals while sharing authentication with built
   const app = createApp({});
   kit.install(app);
   const context = app.runWithContext(useWebKit);
-  const { attention, options: internalOptions } =
-    app.runWithContext(useWebKitInternals);
+  const internals = app.runWithContext(useWebKitInternals);
+  const {
+    attention,
+    options: internalOptions,
+    accountActions,
+    loadMyStrikes,
+  } = internals;
   assert.equal(internalOptions.auth.url, 'https://web.example/auth/');
-  const accountActions = app.runWithContext(useAccountActions);
-  const loadMyStrikes = app.runWithContext(useMyStrikesLoader);
+  // 内置组件依赖只剩一个内部上下文，形状固定且不可被宿主改写。
+  assert.deepEqual(Object.keys(internals).sort(), [
+    'accountActions',
+    'attention',
+    'loadMyStrikes',
+    'options',
+  ]);
+  assert.equal(Object.isFrozen(internals), true);
   for (const name of Object.keys(context)) {
     assert.equal(context[name], kit[name], name);
   }
@@ -344,8 +354,8 @@ test('login accepts only its iframe and refreshes the shared kit session', async
   const kit = createWebKit(options);
   const app = createApp({});
   kit.install(app);
-  const account = app.runWithContext(useAccountActions);
-  const { attention } = app.runWithContext(useWebKitInternals);
+  const { attention, accountActions: account } =
+    app.runWithContext(useWebKitInternals);
   const { hasRoleAtLeast, isAtLeastDaysOld } = kit.whoami.value;
   assert.equal(kit.whoami.value.isAdmin, false);
   assert.equal(kit.whoami.value.asAdmin, false);

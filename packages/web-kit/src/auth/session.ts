@@ -2,9 +2,10 @@ import { isHTTPError } from 'ky';
 import { computed, readonly, shallowRef, watch } from 'vue';
 
 import { useLocalStorage } from '../storage';
-import type { AccessTokenProvider } from './client';
-import { isKnownRole, roleLabels, type UserRole } from './role';
-import type { Whoami, WhoamiUser } from './whoami';
+import type { AccessTokenProvider } from '../api/client';
+
+import { isKnownRole, roleLabels } from './whoami';
+import type { UserRole, Whoami, WhoamiUser } from './whoami';
 
 interface AccessTokenProfile extends Omit<WhoamiUser, 'adminMode'> {
   token: string;

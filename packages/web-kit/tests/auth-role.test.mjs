@@ -2,14 +2,18 @@ import assert from 'node:assert/strict';
 import { registerHooks } from 'node:module';
 import test from 'node:test';
 
-import { isKnownRole, roles } from '../src/auth/role.ts';
+import { isKnownRole, roles } from '../src/auth/whoami.ts';
 
 registerHooks({
   resolve(specifier, context, nextResolve) {
-    if (context.parentURL?.endsWith('/src/auth/session.ts')) {
-      if (specifier === './role') return nextResolve('./role.ts', context);
-      if (specifier === '../storage')
-        return nextResolve('../storage.ts', context);
+    // 源码里的相对导入不带扩展名，Node 直接解析会失败；只在 web-kit 源码内补
+    // .ts，不影响依赖包自己的解析。
+    if (
+      specifier.startsWith('.') &&
+      !/\.[a-z]+$/i.test(specifier) &&
+      /\/packages\/web-kit\/src\//.test(context.parentURL ?? '')
+    ) {
+      return nextResolve(`${specifier}.ts`, context);
     }
     return nextResolve(specifier, context);
   },

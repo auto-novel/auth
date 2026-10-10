@@ -1,14 +1,15 @@
 import type { Whoami } from './auth/whoami';
-import type { ApiClient, ApiClientOptions } from './auth/client';
+import type { ApiClientOptions } from './api/client';
 import type {
   BanUserRequest,
   CreateStrikeRequest,
   CreateStrikeResponse,
-} from './auth/requests';
+} from './api/requests';
 import type { App, Component, ComputedRef } from 'vue';
 import type { RouteLocationRaw } from 'vue-router';
 
 import type { WebTheme } from './theme';
+import type { KyInstance } from 'ky';
 
 export interface WebKitStrikeOptions {
   /** 是否在账号菜单中显示内置的“处罚记录”入口，默认 `true`。 */
@@ -66,7 +67,7 @@ export interface WebKitContext {
   readonly createClient: (
     baseUrl: string,
     options?: ApiClientOptions,
-  ) => ApiClient;
+  ) => KyInstance;
   readonly checkSignedIn: () => Promise<boolean>;
   readonly logout: () => Promise<string>;
   readonly banUser: (request: BanUserRequest) => Promise<string>;

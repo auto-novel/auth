@@ -27,7 +27,6 @@ import {
 import { RouterLink, type RouteLocationRaw } from 'vue-router';
 
 import { useWebKit, useWebKitInternals } from '../context';
-import { useAccountActions } from '../auth/context';
 import type { WebKitMenuOption } from '../types';
 import XTime from '../ui/XTime.vue';
 import AccountMenuOptions from './AccountMenuOptions.vue';
@@ -35,8 +34,7 @@ import AccountMenuOptions from './AccountMenuOptions.vue';
 defineProps<{ options: WebKitMenuOption[] }>();
 
 const { logout: signOut, whoami, theme: webTheme } = useWebKit();
-const { attention, options: kitOptions } = useWebKitInternals();
-const accountActions = useAccountActions();
+const { attention, options: kitOptions, accountActions } = useWebKitInternals();
 const loginFrame = useTemplateRef('loginFrame');
 const menuOpen = ref(false);
 const loginOpen = ref(false);

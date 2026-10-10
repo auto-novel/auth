@@ -2,15 +2,14 @@ import {
   createApiClient,
   createAuthAwareApiClient,
   type ApiClientOptions,
-} from './auth/client';
+} from './api/client';
 import { createAuthSession } from './auth/session';
-import { createAuthRequests } from './auth/requests';
+import { createAuthApi } from './api/requests';
 import { createLoginBridge } from './auth/login';
 import { type App, type DeepReadonly } from 'vue';
 import type { RouteLocationRaw } from 'vue-router';
 
 import { createAttention } from './attentionContext';
-import { accountActionsKey, loadMyStrikesKey } from './auth/context';
 import { webKitKey, webKitInternalsKey } from './context';
 import { createWebTheme } from './theme';
 import type { WebKit, WebKitContext, WebKitOptions } from './types';
@@ -112,9 +111,7 @@ export function createWebKit(options: WebKitOptions): WebKit {
         })
         .text(),
   });
-  const requests = createAuthRequests(
-    createAuthAwareApiClient(authClient, session.accessToken),
-  );
+  const authApi = createAuthApi(authClient, session.accessToken);
   const accountActions = Object.freeze({
     ...createLoginBridge(
       authUrl,
@@ -125,23 +122,20 @@ export function createWebKit(options: WebKitOptions): WebKit {
   });
   const attention = createAttention({
     whoami: session.whoami,
-    getAttentionStatus: requests.getAttentionStatus,
-    updateMyStrikeReadState: requests.updateMyStrikeReadState,
+    getAttentionStatus: authApi.getAttentionStatus,
+    updateMyStrikeReadState: authApi.updateMyStrikeReadState,
   });
   const theme = createWebTheme();
   let owner: App | undefined;
 
   const context: WebKitContext = Object.freeze({
     createClient(baseUrl: string, options: ApiClientOptions = {}) {
-      return createAuthAwareApiClient(
-        createApiClient(baseUrl, options),
-        session.accessToken,
-      );
+      return createAuthAwareApiClient(baseUrl, options, session.accessToken);
     },
     checkSignedIn: session.checkSignedIn,
     logout: session.logout,
-    banUser: requests.banUser,
-    createStrike: requests.createStrike,
+    banUser: authApi.banUser,
+    createStrike: authApi.createStrike,
     whoami: session.whoami,
     theme,
   });
@@ -158,10 +152,10 @@ export function createWebKit(options: WebKitOptions): WebKit {
         Object.freeze({
           options: normalizedOptions,
           attention,
+          accountActions,
+          loadMyStrikes: authApi.getMyStrikes,
         }),
       );
-      app.provide(accountActionsKey, accountActions);
-      app.provide(loadMyStrikesKey, requests.getMyStrikes);
     },
   };
 

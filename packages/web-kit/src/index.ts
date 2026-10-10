@@ -16,15 +16,10 @@ import { getApiErrorMessage } from './utils/apiError';
 import { useWebKitLayout } from './layoutContext';
 
 export { createWebKit } from './create';
+export { isKnownRole, roleLabels, roles } from './auth/whoami';
 export { useLocalStorage, useSessionStorage, useStorage } from './storage';
 export type { StoredRefOptions } from './storage';
-export {
-  isKnownRole,
-  roleLabels,
-  roles,
-  type UserRole,
-} from './auth/role';
-export type { ApiClientOptions as AuthClientOptions } from './auth/client';
+export type { ApiClientOptions as AuthClientOptions } from './api/client';
 export type {
   AttentionStatus,
   BanUserRequest,
@@ -34,7 +29,7 @@ export type {
   MyStrikeListParams,
   MyStrikePage,
   StrikeReadState,
-} from './auth/requests';
+} from './api/requests';
 
 export {
   MyStrikeListView,
@@ -57,7 +52,7 @@ export {
 export type { LayoutContext } from './layoutContext';
 export type { AppNotification } from './notifications';
 export type { WebTheme } from './theme';
-export type { Whoami, WhoamiUser } from './auth/whoami';
+export type { UserRole, Whoami, WhoamiUser } from './auth/whoami';
 export type {
   WebKit,
   WebKitContext,

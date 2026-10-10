@@ -1,4 +1,5 @@
-import type { ApiClient } from './client';
+import type { KyInstance } from 'ky';
+import { createAuthAwareApiClientInner, type AccessTokenProvider } from './client';
 
 export interface BanUserRequest {
   username: string;
@@ -55,7 +56,11 @@ export interface AttentionStatus {
   strikes: StrikeReadState;
 }
 
-export function createAuthRequests(client: ApiClient) {
+export function createAuthApi(
+  authClient: KyInstance,
+  provider: AccessTokenProvider,
+) {
+  const client = createAuthAwareApiClientInner(authClient, provider);
   return {
     banUser(request: BanUserRequest) {
       return client.post('admin/user/ban', { json: request }).text();

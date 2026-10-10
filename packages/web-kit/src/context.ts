@@ -1,11 +1,13 @@
 import { inject, type DeepReadonly, type InjectionKey } from 'vue';
 
+import type { MyStrikeListParams, MyStrikePage } from './api/requests';
 import type {
   WebKitContext,
   WebKitOptions,
   WebKitStrikeOptions,
 } from './types';
 import type { AttentionContext } from './attentionContext';
+import type { createLoginBridge } from './auth/login';
 
 export const webKitKey: InjectionKey<WebKitContext> = Symbol('web-kit');
 
@@ -17,6 +19,13 @@ export function useWebKit(): WebKitContext {
   return kit;
 }
 
+/** 登录 iframe 的能力，加上管理模式开关。 */
+type AccountActions = ReturnType<typeof createLoginBridge> & {
+  toggleAdminMode(): boolean;
+};
+
+type LoadMyStrikes = (params: MyStrikeListParams) => Promise<MyStrikePage>;
+
 /** 内置组件依赖，不从包入口导出。 */
 interface WebKitInternals {
   readonly options: DeepReadonly<
@@ -25,6 +34,8 @@ interface WebKitInternals {
     }
   >;
   readonly attention: AttentionContext;
+  readonly accountActions: AccountActions;
+  readonly loadMyStrikes: LoadMyStrikes;
 }
 
 export const webKitInternalsKey: InjectionKey<WebKitInternals> =

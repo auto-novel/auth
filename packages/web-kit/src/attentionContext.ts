@@ -1,4 +1,4 @@
-import type { AttentionStatus, StrikeReadState } from './auth/requests';
+import type { AttentionStatus, StrikeReadState } from './api/requests';
 import type { Whoami, WhoamiUser } from './auth/whoami';
 import {
   readonly,

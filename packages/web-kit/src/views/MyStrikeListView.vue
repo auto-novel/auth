@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import type { MyStrike } from '../auth/requests';
+import type { MyStrike } from '../api/requests';
 import { GavelOutlined } from '@vicons/material';
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 import { useWebKit, useWebKitInternals } from '../context';
-import { useMyStrikesLoader } from '../auth/context';
 import { useWebKitLayout } from '../layoutContext';
 import XAsyncContent from '../ui/XAsyncContent.vue';
 import XPagination from '../ui/XPagination.vue';
@@ -17,8 +16,7 @@ const PAGE_SIZE = 20;
 const route = useRoute();
 const router = useRouter();
 const { whoami } = useWebKit();
-const { attention } = useWebKitInternals();
-const loadMyStrikes = useMyStrikesLoader();
+const { attention, loadMyStrikes } = useWebKitInternals();
 const { scrollToTop } = useWebKitLayout();
 const strikes = ref<MyStrike[]>([]);
 const total = ref(0);

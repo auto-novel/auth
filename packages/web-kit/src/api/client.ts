@@ -1,4 +1,4 @@
-import ky, { isHTTPError, isTimeoutError } from 'ky';
+import ky, { isHTTPError, isTimeoutError, type KyInstance } from 'ky';
 
 import { getApiErrorDetail } from '../utils/apiError';
 
@@ -43,10 +43,8 @@ export function createApiClient(
   });
 }
 
-export type ApiClient = ReturnType<typeof createApiClient>;
-
-export function createAuthAwareApiClient(
-  client: ApiClient,
+export function createAuthAwareApiClientInner(
+  client: KyInstance,
   accessToken: AccessTokenProvider,
 ) {
   return client.extend({
@@ -79,4 +77,13 @@ export function createAuthAwareApiClient(
       ],
     },
   });
+}
+
+export function createAuthAwareApiClient(
+  baseUrl: string,
+  options: ApiClientOptions,
+  provider: AccessTokenProvider,
+) {
+  const client = createApiClient(baseUrl, options);
+  return createAuthAwareApiClientInner(client, provider);
 }

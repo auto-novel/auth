@@ -9,7 +9,7 @@ registerHooks({
   resolve(specifier, context, nextResolve) {
     if (
       specifier === '../utils/apiError' &&
-      context.parentURL?.endsWith('/src/auth/client.ts')
+      context.parentURL?.endsWith('/src/api/client.ts')
     ) {
       return nextResolve('../utils/apiError.ts', context);
     }
@@ -17,7 +17,7 @@ registerHooks({
   },
 });
 
-const { createApiClient } = await import('../src/auth/client.ts');
+const { createApiClient } = await import('../src/api/client.ts');
 
 function responseWith(body) {
   return { response: { text: async () => body } };

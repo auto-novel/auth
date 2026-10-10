@@ -60,13 +60,14 @@ web-kit 的生命周期契约：
 
 - `createWebKit()` 构造并启动 kit：恢复本地会话和主题、注册监听器与定时器，并发起一次登录检查。每个模块运行环境只能调用一次。
 - `install` 把上下文注入 Vue 应用。一个 kit 只能安装到一个 Vue 应用，同一应用重复安装无副作用，跨应用安装会报错。不注册全局组件，组件仍要按需 import。
+- `install` 只提供两个注入键：宿主用的 `useWebKit()`，以及内置组件用的内部上下文。配置快照、提醒状态、登录桥接和处罚记录加载器全部挂在内部上下文里，随应用一并注入，不从包入口导出。
 
 kit 与页面同生命周期：没有停止或销毁接口，也不重置单实例创建限制。
 组件通过 `useWebKit()` 获取上下文，不取得 `install`；会话、主题和提醒的整个生命周期都由 kit 管理，随页面结束。
 
 kit、组件/主题/提醒/布局上下文的对象外壳均被冻结，类型中的字段也只读，不能替换状态引用或方法。`whoami` 中的用户字段、提醒 `status` 均深只读，修改主题和提醒状态应调用公开方法。主题仅公开只读的 `theme`、`isDark` 和 `toggleTheme()`，不暴露内部生命周期。
 
-配置是复制后冻结的快照，包括 `strikes.to` 的 params、query、state 及其中的数组/记录；修改传入的配置对象不会改变 kit，也不会冻结调用者的原对象。冻结上下文不会阻止 Ref 随内部状态更新；`api` 的对象外壳也被冻结，仅暴露宿主需要的业务方法。
+配置是复制后冻结的快照，包括 `strikes.to` 的 params、query、state 及其中的数组/记录；修改传入的配置对象不会改变 kit，也不会冻结调用者的原对象。冻结上下文不会阻止 Ref 随内部状态更新；`useWebKit()` 返回的对象外壳也被冻结，仅暴露宿主需要的业务方法。
 
 `createWebKit()` 会同步恢复存储中的会话和主题；没有有效会话时 `whoami` 处于未登录状态。
 它只恢复本地状态，不等待网络登录检查；需要等待时调用 `await webKit.checkSignedIn()`。
@@ -179,7 +180,7 @@ const businessApi = createBusinessApi(client);
 
 客户端类型可以使用 `ReturnType<WebKitContext['createClient']>`。业务客户端可单独设置超时，认证请求使用默认超时。管理模式仅影响界面交互，业务操作仍由服务端校验权限。
 
-迁移旧调用时，将 `kit.api.method()` 改为 `kit.method()`，将 `useWebKit().api` 的方法直接从 `useWebKit()` 解构。不再导出 `WebKitApi`、`webKitKey`、`WebKitResolvedOptions` 或 `AttentionContext`；宿主需要的配置在初始化时自行保留。
+迁移旧调用时，将 `kit.api.method()` 改为 `kit.method()`，将 `useWebKit().api` 的方法直接从 `useWebKit()` 解构。不再导出 `WebKitApi`、`webKitKey`、`WebKitResolvedOptions` 或 `AttentionContext`；宿主需要的配置在初始化时自行保留。内置组件原本分三个注入键取依赖，现已合并到同一个内部上下文，宿主不受影响。
 
 ## 处罚记录
 
