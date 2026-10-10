@@ -40,6 +40,25 @@ function makeArea(initial = []) {
   };
 }
 
+// 可控的 MediaQueryList：setMatches 更新匹配结果并派发 change。
+function makeMediaQueryList(initial) {
+  const listeners = new Set();
+  const query = {
+    matches: initial,
+    addEventListener(type, listener) {
+      if (type === 'change') listeners.add(listener);
+    },
+    removeEventListener(type, listener) {
+      if (type === 'change') listeners.delete(listener);
+    },
+    setMatches(matches) {
+      query.matches = matches;
+      for (const listener of listeners) listener({ matches });
+    },
+  };
+  return query;
+}
+
 function useBrowser(t, { storage, prefersDark = false } = {}) {
   const meta = { content: '' };
   const root = {
@@ -59,7 +78,8 @@ function useBrowser(t, { storage, prefersDark = false } = {}) {
         : null,
   };
   const windowEvents = new EventTarget();
-  windowEvents.matchMedia = () => ({ matches: prefersDark });
+  const media = makeMediaQueryList(prefersDark);
+  windowEvents.matchMedia = () => media;
   windowEvents.localStorage = storage;
 
   const previous = {
@@ -84,7 +104,7 @@ function useBrowser(t, { storage, prefersDark = false } = {}) {
     }
   });
 
-  return { meta, root, windowEvents };
+  return { media, meta, root, windowEvents };
 }
 
 function storageEvent(area, key) {
@@ -103,6 +123,7 @@ test('主题优先用存储值，无效值退回系统偏好并删除该键', (t
   windowEvents.localStorage = stored;
   const theme = createWebTheme();
   assert.equal(theme.theme.value, 'light');
+  assert.equal(theme.preference.value, 'light');
   assert.equal(root.dataset.theme, 'light');
   assert.equal(meta.content, '#ffffff');
   assert.equal(stored.calls.writes, 0);
@@ -110,11 +131,63 @@ test('主题优先用存储值，无效值退回系统偏好并删除该键', (t
   const invalid = makeArea([[THEME_KEY, JSON.stringify('blue')]]);
   windowEvents.localStorage = invalid;
   const fallback = createWebTheme();
+  assert.equal(fallback.preference.value, 'system');
   assert.equal(fallback.theme.value, 'dark');
   assert.equal(fallback.isDark.value, true);
   assert.equal(root.dataset.theme, 'dark');
   assert.equal(meta.content, '#101014');
   assert.equal(invalid.values.has(THEME_KEY), false);
+});
+
+test('无存储值时默认跟随系统，系统偏好变化实时生效且不落盘', (t) => {
+  const area = makeArea();
+  const { media, meta, root } = useBrowser(t, {
+    storage: area,
+    prefersDark: false,
+  });
+  const theme = createWebTheme();
+
+  assert.equal(theme.preference.value, 'system');
+  assert.equal(theme.theme.value, 'light');
+  assert.equal(root.dataset.theme, 'light');
+  assert.equal(area.calls.writes, 0);
+
+  media.setMatches(true);
+  assert.equal(theme.theme.value, 'dark');
+  assert.equal(theme.isDark.value, true);
+  assert.equal(root.dataset.theme, 'dark');
+  assert.equal(meta.content, '#101014');
+  assert.equal(area.values.has(THEME_KEY), false);
+
+  media.setMatches(false);
+  assert.equal(theme.theme.value, 'light');
+  assert.equal(root.dataset.theme, 'light');
+  assert.equal(meta.content, '#ffffff');
+  assert.equal(area.calls.writes, 0);
+});
+
+test('setPreference 固定具体外观并落盘，之后系统变化不再影响', (t) => {
+  const area = makeArea();
+  const { media, root } = useBrowser(t, { storage: area, prefersDark: false });
+  const theme = createWebTheme();
+
+  theme.setPreference('dark');
+  assert.equal(theme.preference.value, 'dark');
+  assert.equal(theme.theme.value, 'dark');
+  assert.equal(area.values.get(THEME_KEY), JSON.stringify('dark'));
+  assert.equal(area.calls.writes, 1);
+
+  media.setMatches(false);
+  media.setMatches(true);
+  assert.equal(theme.theme.value, 'dark');
+  assert.equal(root.dataset.theme, 'dark');
+  assert.equal(area.calls.writes, 1);
+
+  theme.setPreference('system');
+  assert.equal(theme.preference.value, 'system');
+  assert.equal(area.values.get(THEME_KEY), JSON.stringify('system'));
+  assert.equal(area.calls.writes, 2);
+  assert.equal(theme.theme.value, 'dark');
 });
 
 test('toggleTheme 落盘一次并切换根元素主题', (t) => {
@@ -124,11 +197,32 @@ test('toggleTheme 落盘一次并切换根元素主题', (t) => {
 
   theme.toggleTheme();
   assert.equal(theme.theme.value, 'dark');
+  assert.equal(theme.preference.value, 'dark');
   assert.equal(theme.isDark.value, true);
   assert.equal(area.values.get(THEME_KEY), JSON.stringify('dark'));
   assert.equal(area.calls.writes, 1);
   assert.equal(root.dataset.theme, 'dark');
   assert.equal(meta.content, '#101014');
+});
+
+test('跟随系统时 toggleTheme 写入取反后的具体偏好', (t) => {
+  const area = makeArea();
+  const { media } = useBrowser(t, { storage: area, prefersDark: true });
+  const theme = createWebTheme();
+
+  assert.equal(theme.preference.value, 'system');
+  assert.equal(theme.theme.value, 'dark');
+
+  theme.toggleTheme();
+  assert.equal(theme.preference.value, 'light');
+  assert.equal(theme.theme.value, 'light');
+  assert.equal(area.values.get(THEME_KEY), JSON.stringify('light'));
+  assert.equal(area.calls.writes, 1);
+
+  // 固定后系统偏好变化不再影响当前外观。
+  media.setMatches(true);
+  assert.equal(theme.theme.value, 'light');
+  assert.equal(area.calls.writes, 1);
 });
 
 test('其他标签页切换主题时同步且不回写', (t) => {
@@ -141,8 +235,28 @@ test('其他标签页切换主题时同步且不回写', (t) => {
   windowEvents.dispatchEvent(storageEvent(area, THEME_KEY));
 
   assert.equal(theme.theme.value, 'dark');
+  assert.equal(theme.preference.value, 'dark');
   assert.equal(theme.isDark.value, true);
   assert.equal(root.dataset.theme, 'dark');
   assert.equal(meta.content, '#101014');
+  assert.equal(area.calls.writes, 0);
+});
+
+test("其他标签页切回 'system' 时立即采用当前系统偏好", (t) => {
+  const area = makeArea([[THEME_KEY, JSON.stringify('light')]]);
+  const { root, windowEvents } = useBrowser(t, {
+    storage: area,
+    prefersDark: true,
+  });
+  const theme = createWebTheme();
+
+  assert.equal(theme.theme.value, 'light');
+
+  area.values.set(THEME_KEY, JSON.stringify('system'));
+  windowEvents.dispatchEvent(storageEvent(area, THEME_KEY));
+
+  assert.equal(theme.preference.value, 'system');
+  assert.equal(theme.theme.value, 'dark');
+  assert.equal(root.dataset.theme, 'dark');
   assert.equal(area.calls.writes, 0);
 });

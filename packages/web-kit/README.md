@@ -7,7 +7,7 @@
 在仓库根目录运行 `pnpm dev:web-kit`，打开 Vite 输出的地址即可调试，无需登录或连接后端。
 
 - 首页：会话、通知、浮层和时间组件示例。
-- **Tailwind 主题**（`/#/theme`）：全部语义颜色 token 及当前值、背景层级、文字搭配、状态提示、保留的 Tailwind 色号覆盖、按钮的普通/禁用状态，以及选择框、分页、菜单、提示框和确认框。页面按钮与侧栏共用主题切换，支持观察浅色与深色效果；可用鼠标悬停和 Tab 检查交互状态。
+- **Tailwind 主题**（`/#/theme`）：全部语义颜色 token 及当前值、背景层级、文字搭配、状态提示、保留的 Tailwind 色号覆盖、按钮的普通/禁用状态，以及选择框、分页、菜单、提示框和确认框。页头可在“跟随系统 / 浅色 / 深色”三种偏好间切换，也可用切换按钮按二态取反；控件与侧栏共用同一主题状态，支持观察浅色与深色效果，可用鼠标悬停和 Tab 检查交互状态。
 
 展示页直接使用包内主题和组件，不维护另一套配色。修改源码后由 Vite 热更新。
 
@@ -52,7 +52,7 @@ createApp(App).use(webKit).use(router).mount('#app');
 kit 只读写自己固定的两个 `localStorage` 键，不接受宿主改名：
 
 - `web-kit:session:v1`：访问令牌和管理模式开关，值形如 `{"token":"…","adminMode":false}`，退出登录、令牌过期或值损坏时删除；同一键的 `storage` 事件用于跨标签页同步登录态。
-- `web-kit:theme:v1`：`"light"` 或 `"dark"`，只有点击 `toggleTheme()` 才写入；同一键的 `storage` 事件用于跨标签页同步主题，别的标签页切换后本页立刻跟随，`<html data-theme>` 和 `theme-color` 一起更新。
+- `web-kit:theme:v1`：`"light"`、`"dark"` 或 `"system"`（默认 `"system"`，即跟随系统）；`setPreference()` 和 `toggleTheme()` 会写入，没存过值时不写；同一键的 `storage` 事件用于跨标签页同步主题，别的标签页切换后本页立刻跟随，`<html data-theme>` 和 `theme-color` 一起更新。
 
 两个键共用 `src/storage.ts` 里的同一套封装：解码时校验并删除损坏的值，编码后落盘，异常（浏览器禁用存储、写入失败）降级为仅内存，其他标签页的改动同步进内存且不会回写，因此不会出现两个标签页来回触发 `storage` 事件。浏览器禁用存储时两个功能都降级为仅内存，不影响使用；存储值损坏时按“没有存储值”处理，会话回到未登录，主题回到系统偏好。
 
@@ -65,7 +65,7 @@ web-kit 的生命周期契约：
 kit 与页面同生命周期：没有停止或销毁接口，也不重置单实例创建限制。
 组件通过 `useWebKit()` 获取上下文，不取得 `install`；会话、主题和提醒的整个生命周期都由 kit 管理，随页面结束。
 
-kit、组件/主题/提醒/布局上下文的对象外壳均被冻结，类型中的字段也只读，不能替换状态引用或方法。`whoami` 中的用户字段、提醒 `status` 均深只读，修改主题和提醒状态应调用公开方法。主题仅公开只读的 `theme`、`isDark` 和 `toggleTheme()`，不暴露内部生命周期。
+kit、组件/主题/提醒/布局上下文的对象外壳均被冻结，类型中的字段也只读，不能替换状态引用或方法。`whoami` 中的用户字段、提醒 `status` 均深只读，修改主题和提醒状态应调用公开方法。主题仅公开只读的 `theme`、`preference`、`isDark` 和 `setPreference()`、`toggleTheme()`，不暴露内部生命周期。
 
 配置是复制后冻结的快照，包括 `strikes.to` 的 params、query、state 及其中的数组/记录；修改传入的配置对象不会改变 kit，也不会冻结调用者的原对象。冻结上下文不会阻止 Ref 随内部状态更新；`useWebKit()` 返回的对象外壳也被冻结，仅暴露宿主需要的业务方法。
 
@@ -236,7 +236,7 @@ try {
 
 ## 主题
 
-主题在 kit 创建时写入 `<html data-theme>`，无已保存偏好时采用当时的系统主题，切换后写 `localStorage`（固定键 `web-kit:theme:v1`）。同一键的 `storage` 事件会把其他标签页的切换同步过来，`theme` 这个只读 Ref 随之更新，不需要宿主额外处理。侧边栏底部的按钮已经接好了，业务里要用就 `useWebKit().theme`，拿 `{ isDark, theme, toggleTheme }`。
+主题在 kit 创建时写入 `<html data-theme>`；`data-theme` 始终是实际生效的 `"light"`/`"dark"`，`theme` 是它的只读 Ref。偏好单独放在 `preference` 里，取值 `"light"`、`"dark"` 或 `"system"`，没有已保存偏好时默认 `"system"`：此时 kit 监听 `prefers-color-scheme`，系统在运行中切换外观会立即反映到 `theme`、`<html data-theme>` 和 `theme-color`，并且不写存储。`setPreference()` 显式设定偏好并落盘（固定值或重新跟随系统）；`toggleTheme()` 保持二态语义，按当前生效外观取反后把具体值写回存储，因此不会写回 `"system"`。同一键的 `storage` 事件会把其他标签页的偏好同步过来，不需要宿主额外处理。侧边栏底部的按钮已经接好了，业务里要用就 `useWebKit().theme`，拿 `{ isDark, preference, theme, setPreference, toggleTheme }`，`Theme` 和 `ThemePreference` 类型可从包入口导入。
 
 ## 侧栏构建信息
 

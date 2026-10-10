@@ -51,7 +51,7 @@ export {
 };
 export type { LayoutContext } from './layoutContext';
 export type { AppNotification } from './notifications';
-export type { WebTheme } from './theme';
+export type { Theme, ThemePreference, WebTheme } from './theme';
 export type { UserRole, Whoami, WhoamiUser } from './auth/whoami';
 export type {
   WebKit,

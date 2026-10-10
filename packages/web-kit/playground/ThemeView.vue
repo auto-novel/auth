@@ -19,6 +19,12 @@ const selected = ref('primary');
 const page = ref(2);
 const values = ref<Record<string, string>>({});
 
+const preferenceOptions = [
+  { value: 'system', label: '跟随系统' },
+  { value: 'light', label: '浅色' },
+  { value: 'dark', label: '深色' },
+] as const;
+
 // 使用完整的静态类名，让 Tailwind 能扫描到每个色块的工具类。
 const colorGroups = [
   {
@@ -126,12 +132,31 @@ watch(theme.theme, readThemeValues, { flush: 'post' });
           使用 web-kit 的真实主题变量和 Tailwind 工具类，不另设展示配色。
         </p>
         <p class="mt-1 text-xs text-muted">
-          切换主题后，色块、变量值及组件会同步更新。
+          切换主题后，色块、变量值及组件会同步更新。“跟随系统”会响应操作系统的
+          prefers-color-scheme 变化，切换按钮则按当前外观取反并固定下来。
         </p>
       </div>
-      <XButton variant="outline" @click="theme.toggleTheme">
-        当前：{{ theme.isDark.value ? '深色' : '浅色' }} · 切换主题
-      </XButton>
+      <div class="flex flex-wrap items-center gap-2">
+        <div
+          class="flex flex-wrap items-center gap-2"
+          role="group"
+          aria-label="主题偏好"
+        >
+          <XButton
+            v-for="option in preferenceOptions"
+            :key="option.value"
+            :variant="
+              theme.preference.value === option.value ? 'primary' : 'outline'
+            "
+            @click="theme.setPreference(option.value)"
+          >
+            {{ option.label }}
+          </XButton>
+        </div>
+        <XButton variant="outline" @click="theme.toggleTheme">
+          当前：{{ theme.isDark.value ? '深色' : '浅色' }} · 切换主题
+        </XButton>
+      </div>
     </header>
 
     <section aria-labelledby="theme-palette">
