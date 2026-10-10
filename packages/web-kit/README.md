@@ -60,11 +60,10 @@ web-kit 的生命周期契约：
 
 - `createWebKit()` 只构造配置与内存状态，不读取会话/主题存储内容、不发请求、不注册监听器或定时器，也不修改页面主题。
 - `webKit.start()` 启动认证会话、主题和处罚提醒。`app.use(webKit)` 会自动调用它，通常不需要手动启动；重复启动无副作用。
-- `install` 提供上下文并注册 `app.onUnmount` 清理。一个 kit 只能安装到一个 Vue 应用，同一应用重复安装无副作用，跨应用安装会报错。不注册全局组件，组件仍要按需 import。
-- `webKit.dispose()` 释放订阅、监听器、定时器及内存用户/提醒状态；已启动时还会清空通知，不清除持久化登录会话。未启动时也可释放，重复释放无副作用。
+- `install` 提供上下文。一个 kit 只能安装到一个 Vue 应用，同一应用重复安装无副作用，跨应用安装会报错。不注册全局组件，组件仍要按需 import。
 
-销毁是终态：之后不能启动或安装，也不重置单实例创建限制。同步启动或安装失败会清理已分配资源并销毁 kit，重新启动应用需要重载页面。
-组件通过 `useWebKit()` 获取上下文，不取得 `start`、`install` 或 `dispose`；会话、主题和提醒的生命周期应统一由 kit 管理。
+kit 与页面同生命周期：没有停止或销毁接口，也不重置单实例创建限制；同步启动失败不回滚已分配资源，需要重载页面。
+组件通过 `useWebKit()` 获取上下文，不取得 `start` 或 `install`；会话、主题和提醒的整个生命周期都由 kit 管理，随页面结束。
 
 kit、组件/主题/提醒/布局上下文的对象外壳均被冻结，类型中的字段也只读，不能替换状态引用或方法。`whoami` 中的用户字段、提醒 `status` 均深只读，修改主题和提醒状态应调用公开方法。主题仅公开只读的 `theme`、`isDark` 和 `toggleTheme()`，不暴露内部生命周期。
 
@@ -166,9 +165,9 @@ const options: WebKitMenuOption[] = [
 - `logout()`：退出当前账号。
 - `banUser(request)`、`createStrike(request)`：宿主管理操作。
 
-用户状态通过响应式 `whoami` 获取。登录交互、管理模式切换、提醒和处罚记录请求由内置组件处理；认证会话的启动和销毁统一由 kit 管理。配置和提醒状态仅供内置组件使用，不属于公开上下文。
+用户状态通过响应式 `whoami` 获取。登录交互、管理模式切换、提醒和处罚记录请求由内置组件处理；认证会话的创建与启动统一由 kit 管理，随页面结束。配置和提醒状态仅供内置组件使用，不属于公开上下文。
 
-`createWebKit()` 返回的实例提供同一组状态和方法，额外提供 `start`、`install`、`dispose`，供应用初始化和组件外代码使用；注入的上下文不暴露生命周期。
+`createWebKit()` 返回的实例提供同一组状态和方法，额外提供 `start` 和 `install`，供应用初始化和组件外代码使用；注入的上下文不暴露生命周期。
 
 ```ts
 // 组件内：统一通过 useWebKit 获取能力
@@ -219,7 +218,7 @@ Notify.error('保存失败');
 Notify.dismissAll();
 ```
 
-已启动的 kit 释放时也会清空通知。原来的 `useWebKit().notifications.notify` 改用 `Notify`，`notifications.dismissAll()` 改用 `Notify.dismissAll()`；不再导出 `Notifications` 类型或 `attentionKey`。主题从 `useWebKit().theme` 读取；提醒状态由内置组件管理，生命周期由 kit 管理。`useWebKit()` 是唯一的 kit 上下文入口，其他 hook 只在有独立注入源时才单独存在（目前只有 `useWebKitLayout()`）。
+原来的 `useWebKit().notifications.notify` 改用 `Notify`，`notifications.dismissAll()` 改用 `Notify.dismissAll()`；不再导出 `Notifications` 类型或 `attentionKey`。主题从 `useWebKit().theme` 读取；提醒状态由内置组件管理，生命周期由 kit 管理。`useWebKit()` 是唯一的 kit 上下文入口，其他 hook 只在有独立注入源时才单独存在（目前只有 `useWebKitLayout()`）。
 
 ## 错误文案
 

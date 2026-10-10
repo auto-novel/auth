@@ -58,7 +58,6 @@ function setup(t, { autoStart = true } = {}) {
   const controller = createAttention(api);
   if (autoStart) controller.start();
   t.after(() => {
-    controller.dispose();
     if (previousDocument === undefined) delete globalThis.document;
     else globalThis.document = previousDocument;
   });
@@ -209,29 +208,6 @@ test('account changes discard pending acknowledgements and old responses', async
   await stale;
   assert.equal(h.context.status.value.strikes.hasUnread, false);
 });
-
-for (const operation of ['query', 'write']) {
-  test(`dispose ignores an in-flight ${operation} and removes listeners`, async (t) => {
-    const h = setup(t);
-    h.login(1);
-    const request =
-      operation === 'query'
-        ? h.context.refresh()
-        : h.context.updateStrikeReadState(10);
-    await setImmediate();
-    h.dispose();
-    if (operation === 'query') h.reads[0].resolve(attentionStatus(true));
-    else h.writes[0].resolve({ hasUnread: true });
-    await request;
-    h.login(2);
-    h.visible(true);
-    await h.context.refresh();
-    await h.context.updateStrikeReadState(20);
-    assert.equal(h.context.status.value, undefined);
-    assert.equal(h.reads.length + h.writes.length, 1);
-    assert.equal(h.clearInterval.mock.callCount(), 1);
-  });
-}
 
 test('does nothing until start() is called', async (t) => {
   const h = setup(t, { autoStart: false });

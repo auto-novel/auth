@@ -25,18 +25,15 @@ const POLL_INTERVAL = 60 * 1000;
 export function createAttention(api: AttentionApi) {
   const status = ref<AttentionStatus>();
   let session: AttentionSession | undefined;
-  let disposed = false;
   let started = false;
   let timer: number | undefined;
-  let unsubscribe: (() => void) | undefined;
-  let visibilityTarget: Document | undefined;
 
   async function synchronize(current: AttentionSession) {
-    while (!disposed && session === current) {
+    while (session === current) {
       if (current.pendingThroughId !== undefined) {
         const throughId = current.pendingThroughId;
         const result = await api.updateMyStrikeReadState(throughId);
-        if (disposed || session !== current) return;
+        if (session !== current) return;
         status.value = { ...status.value, strikes: result };
         // Keep any larger boundary queued while the write was in flight.
         if (current.pendingThroughId === throughId) {
@@ -48,7 +45,7 @@ export function createAttention(api: AttentionApi) {
       // Reads and writes share one queue, so a late write response cannot
       // overwrite a newer query. Always query again after acknowledging.
       const result = await api.getAttentionStatus();
-      if (disposed || session !== current) return;
+      if (session !== current) return;
       if (current.pendingThroughId !== undefined) continue;
       status.value = result;
       return;
@@ -57,7 +54,7 @@ export function createAttention(api: AttentionApi) {
 
   function refresh(): Promise<void> {
     const current = session;
-    if (disposed || !current) return Promise.resolve();
+    if (!current) return Promise.resolve();
     if (current.request) return current.request;
     current.request = Promise.resolve()
       .then(() => synchronize(current))
@@ -72,7 +69,7 @@ export function createAttention(api: AttentionApi) {
   }
 
   function updateStrikeReadState(throughId: number): Promise<void> {
-    if (disposed || !session) return Promise.resolve();
+    if (!session) return Promise.resolve();
     if (!Number.isSafeInteger(throughId) || throughId < 0) {
       return Promise.resolve();
     }
@@ -91,7 +88,7 @@ export function createAttention(api: AttentionApi) {
 
   /** 只在已登录时保留轮询定时器。 */
   function syncTimer() {
-    if (started && !disposed && session) {
+    if (started && session) {
       timer ??= globalThis.setInterval(refreshWhenVisible, POLL_INTERVAL);
       return;
     }
@@ -104,7 +101,7 @@ export function createAttention(api: AttentionApi) {
   }
 
   function handleUser(user: SessionUser | undefined) {
-    if (disposed || user?.id === session?.userId) return;
+    if (user?.id === session?.userId) return;
     session = user ? { userId: user.id } : undefined;
     status.value = undefined;
     syncTimer();
@@ -113,30 +110,13 @@ export function createAttention(api: AttentionApi) {
 
   /** 订阅会话并挂上定时器与可见性监听。由 kit.start 触发。 */
   function start() {
-    if (started || disposed) return;
+    if (started) return;
     started = true;
     if (typeof document !== 'undefined') {
-      visibilityTarget = document;
-      visibilityTarget.addEventListener('visibilitychange', refreshWhenVisible);
+      document.addEventListener('visibilitychange', refreshWhenVisible);
     }
-    unsubscribe = api.watchUser(handleUser);
+    api.watchUser(handleUser);
     syncTimer();
-  }
-
-  function dispose() {
-    if (disposed) return;
-    disposed = true;
-    started = false;
-    session = undefined;
-    status.value = undefined;
-    stopTimer();
-    visibilityTarget?.removeEventListener(
-      'visibilitychange',
-      refreshWhenVisible,
-    );
-    visibilityTarget = undefined;
-    unsubscribe?.();
-    unsubscribe = undefined;
   }
 
   const context: AttentionContext = Object.freeze({
@@ -145,5 +125,5 @@ export function createAttention(api: AttentionApi) {
     updateStrikeReadState,
   });
 
-  return { context, start, dispose };
+  return { context, start };
 }

@@ -42,7 +42,8 @@ function makeStorage(initialToken, initialAdminMode) {
   };
 }
 
-test('admin mode persists only for the same administrator account', async () => {
+test('admin mode persists only for the same administrator account', async (t) => {
+  t.mock.method(globalThis, 'setInterval', () => 1);
   const storage = makeStorage(makeToken('member'), true);
   let nextToken = makeToken('admin');
   const session = createAuthSession({
@@ -76,14 +77,10 @@ test('admin mode persists only for the same administrator account', async () => 
       requestLogout: async () => '',
       requestRefresh: async () => nextToken,
     });
-    try {
-      restored.start();
-      const restoredValues = [];
-      restored.subscribe((user) => restoredValues.push(user?.adminMode));
-      assert.deepEqual(restoredValues, [true]);
-    } finally {
-      restored.dispose();
-    }
+    restored.start();
+    const restoredValues = [];
+    restored.subscribe((user) => restoredValues.push(user?.adminMode));
+    assert.deepEqual(restoredValues, [true]);
 
     nextToken = makeToken('admin', 2);
     await session.accessToken.refresh();
@@ -103,11 +100,11 @@ test('admin mode persists only for the same administrator account', async () => 
     assert.equal(storage.getItem('session'), null);
   } finally {
     unsubscribe();
-    session.dispose();
   }
 });
 
-test('admin mode follows storage changes from another tab', () => {
+test('admin mode follows storage changes from another tab', (t) => {
+  t.mock.method(globalThis, 'setInterval', () => 1);
   const storage = makeStorage(makeToken('admin'), false);
   const windowEvents = new EventTarget();
   globalThis.window = windowEvents;
@@ -144,12 +141,12 @@ test('admin mode follows storage changes from another tab', () => {
     dispatchStorageChange();
     assert.deepEqual(observed, [false, true, undefined]);
   } finally {
-    session.dispose();
     delete globalThis.window;
   }
 });
 
-test('session users use milliseconds after restoring and refreshing a JWT', async () => {
+test('session users use milliseconds after restoring and refreshing a JWT', async (t) => {
+  t.mock.method(globalThis, 'setInterval', () => 1);
   const token = makeToken('member');
   const storage = makeStorage(token, false);
   const session = createAuthSession({
@@ -163,17 +160,11 @@ test('session users use milliseconds after restoring and refreshing a JWT', asyn
   session.subscribe((value) => {
     user = value;
   });
-  try {
-    assert.equal(user.createdAt, 1_700_000_000_000);
-    await session.accessToken.refresh();
-    assert.equal(user.role, 'admin');
-    assert.equal(user.createdAt, 1_700_000_000_000);
-    const savedToken = JSON.parse(storage.getItem('session')).token;
-    const claims = JSON.parse(
-      Buffer.from(savedToken.split('.')[1], 'base64url'),
-    );
-    assert.equal(claims.crat, 1_700_000_000);
-  } finally {
-    session.dispose();
-  }
+  assert.equal(user.createdAt, 1_700_000_000_000);
+  await session.accessToken.refresh();
+  assert.equal(user.role, 'admin');
+  assert.equal(user.createdAt, 1_700_000_000_000);
+  const savedToken = JSON.parse(storage.getItem('session')).token;
+  const claims = JSON.parse(Buffer.from(savedToken.split('.')[1], 'base64url'));
+  assert.equal(claims.crat, 1_700_000_000);
 });

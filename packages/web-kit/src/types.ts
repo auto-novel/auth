@@ -99,6 +99,4 @@ export interface WebKit extends WebKitContext {
   /** 启动会话、主题和提醒；重复调用无副作用，install 也会调用它。 */
   readonly start: () => void;
   readonly install: (app: App) => void;
-  /** 释放已启动的资源；重复调用无副作用，释放后不可重新启动。 */
-  readonly dispose: () => void;
 }

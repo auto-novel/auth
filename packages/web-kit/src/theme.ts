@@ -18,7 +18,6 @@ export function createWebTheme(storageKey: string, storage?: Storage) {
   const currentTheme = ref<Theme>('light');
   let transitionTimer: number | undefined;
   let started = false;
-  let disposed = false;
 
   function storedTheme(): Theme | undefined {
     try {
@@ -67,7 +66,7 @@ export function createWebTheme(storageKey: string, storage?: Storage) {
   }
 
   function start() {
-    if (started || disposed) return;
+    if (started) return;
     started = true;
     currentTheme.value = storedTheme() ?? preferredTheme();
     applyTheme(currentTheme.value);
@@ -76,7 +75,7 @@ export function createWebTheme(storageKey: string, storage?: Storage) {
   const isDark = computed(() => currentTheme.value === 'dark');
 
   function toggleTheme() {
-    if (!started || disposed) return;
+    if (!started) return;
     currentTheme.value = isDark.value ? 'light' : 'dark';
     applyTheme(currentTheme.value, true);
     try {
@@ -86,15 +85,10 @@ export function createWebTheme(storageKey: string, storage?: Storage) {
     }
   }
 
-  function dispose() {
-    disposed = true;
-    endTransition();
-  }
-
   const context: WebTheme = Object.freeze({
     theme: readonly(currentTheme),
     isDark,
     toggleTheme,
   });
-  return { context, start, dispose };
+  return { context, start };
 }

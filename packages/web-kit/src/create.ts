@@ -14,7 +14,6 @@ import type { RouteLocationRaw } from 'vue-router';
 import { createAttention } from './attentionContext';
 import { accountActionsKey, loadMyStrikesKey } from './auth/context';
 import { webKitKey, webKitInternalsKey } from './context';
-import { Notify } from './notifications';
 import { createWebTheme } from './theme';
 import type { WebKit, WebKitContext, WebKitOptions, Whoami } from './types';
 
@@ -88,9 +87,7 @@ function snapshotRouteTarget(
 /** 每个模块运行环境只创建一次，并且只安装到一个 Vue 应用。 */
 export function createWebKit(options: WebKitOptions): WebKit {
   if (created) {
-    throw new Error(
-      'createWebKit can only be called once per module runtime, even after dispose().',
-    );
+    throw new Error('createWebKit can only be called once per module runtime.');
   }
   const normalizedOptions = Object.freeze({
     auth: Object.freeze({
@@ -133,7 +130,6 @@ export function createWebKit(options: WebKitOptions): WebKit {
       : undefined,
   });
   const profile = ref<SessionUser>();
-  let unsubscribe: (() => void) | undefined;
   const requests = createAuthRequests(
     createAuthAwareApiClient(authClient, session.accessToken),
   );
@@ -174,35 +170,16 @@ export function createWebKit(options: WebKitOptions): WebKit {
 
   let owner: App | undefined;
   let started = false;
-  let disposed = false;
 
   function start() {
-    if (disposed) throw new Error('Cannot start a disposed web kit.');
     if (started) return;
     started = true;
-    try {
-      theme.start();
-      unsubscribe = session.subscribe((user) => {
-        profile.value = user;
-      });
-      session.start();
-      attention.start();
-    } catch (error) {
-      dispose();
-      throw error;
-    }
-  }
-
-  function dispose() {
-    if (disposed) return;
-    disposed = true;
-    theme.dispose();
-    attention.dispose();
-    unsubscribe?.();
-    unsubscribe = undefined;
-    session.dispose();
-    profile.value = undefined;
-    if (started) Notify.dismissAll();
+    theme.start();
+    session.subscribe((user) => {
+      profile.value = user;
+    });
+    session.start();
+    attention.start();
   }
 
   const context: WebKitContext = Object.freeze({
@@ -222,30 +199,22 @@ export function createWebKit(options: WebKitOptions): WebKit {
   const kit: WebKit = {
     ...context,
     start,
-    dispose,
     install(app: App) {
-      if (disposed) throw new Error('Web kit has been disposed.');
       if (owner === app) return;
       if (owner)
         throw new Error('Web kit is already installed in another app.');
       owner = app;
-      try {
-        start();
-        app.provide(webKitKey, context);
-        app.provide(
-          webKitInternalsKey,
-          Object.freeze({
-            options: normalizedOptions,
-            attention: attention.context,
-          }),
-        );
-        app.provide(accountActionsKey, accountActions);
-        app.provide(loadMyStrikesKey, requests.getMyStrikes);
-        app.onUnmount(dispose);
-      } catch (error) {
-        dispose();
-        throw error;
-      }
+      start();
+      app.provide(webKitKey, context);
+      app.provide(
+        webKitInternalsKey,
+        Object.freeze({
+          options: normalizedOptions,
+          attention: attention.context,
+        }),
+      );
+      app.provide(accountActionsKey, accountActions);
+      app.provide(loadMyStrikesKey, requests.getMyStrikes);
     },
   };
 

@@ -132,17 +132,8 @@ export function createAuthSession(options: AuthSessionOptions) {
   let refreshRequest: Promise<string | undefined> | undefined;
   let sessionVersion = 0;
   let started = false;
-  let disposed = false;
-  let refreshTimer: ReturnType<typeof globalThis.setInterval> | undefined;
-  let eventTarget: Window | undefined;
-  let storageListenerAttached = false;
-
-  function assertNotDisposed() {
-    if (disposed) throw new Error('Auth session has been disposed');
-  }
 
   function assertActive() {
-    assertNotDisposed();
     if (!started) {
       throw new Error('Auth session has not started; call start() first');
     }
@@ -187,7 +178,6 @@ export function createAuthSession(options: AuthSessionOptions) {
   }
 
   function subscribe(listener: (user?: SessionUser) => void) {
-    assertNotDisposed();
     listeners.add(listener);
     notify(listener);
     return () => {
@@ -198,7 +188,6 @@ export function createAuthSession(options: AuthSessionOptions) {
   function onStorage(event: StorageEvent) {
     if (
       !started ||
-      disposed ||
       !storage ||
       event.storageArea !== options.storage?.target ||
       (event.key !== null && event.key !== options.storage.key)
@@ -231,16 +220,13 @@ export function createAuthSession(options: AuthSessionOptions) {
       try {
         const token = await options.requestRefresh(app);
         // A storage event may have replaced this refresh with a valid session.
-        if (version !== sessionVersion)
-          return disposed ? undefined : profile?.token;
+        if (version !== sessionVersion) return profile?.token;
         setAccessToken(token);
-        if (version !== sessionVersion)
-          return disposed ? undefined : profile?.token;
+        if (version !== sessionVersion) return profile?.token;
         initialized = true;
         return token;
       } catch (error) {
-        if (version !== sessionVersion)
-          return disposed ? undefined : profile?.token;
+        if (version !== sessionVersion) return profile?.token;
         if (isHTTPError(error) && error.response.status === 401) {
           setAccessToken();
           if (version === sessionVersion) initialized = true;
@@ -279,73 +265,32 @@ export function createAuthSession(options: AuthSessionOptions) {
     refresh: refreshAccessToken,
   } satisfies AccessTokenProvider;
 
-  function dispose() {
-    if (disposed) return;
-    disposed = true;
-    sessionVersion++;
-    refreshRequest = undefined;
-    listeners.clear();
-    profile = undefined;
-    adminMode = false;
-    initialized = false;
-    try {
-      if (refreshTimer !== undefined) {
-        const timer = refreshTimer;
-        refreshTimer = undefined;
-        globalThis.clearInterval(timer);
-      }
-    } finally {
-      if (storageListenerAttached) {
-        storageListenerAttached = false;
-        eventTarget?.removeEventListener('storage', onStorage);
-      }
-      eventTarget = undefined;
-    }
-  }
-
   function start() {
-    assertNotDisposed();
     if (started) return;
     started = true;
-    try {
-      const storedSession = storage?.get();
-      profile = storedSession?.profile;
-      adminMode = storedSession?.adminMode ?? false;
-      initialized = profile !== undefined;
-      for (const listener of listeners) notify(listener);
-      assertActive();
+    const storedSession = storage?.get();
+    profile = storedSession?.profile;
+    adminMode = storedSession?.adminMode ?? false;
+    initialized = profile !== undefined;
+    for (const listener of listeners) notify(listener);
 
-      eventTarget =
-        storage &&
-        typeof window !== 'undefined' &&
-        typeof window.addEventListener === 'function'
-          ? window
-          : undefined;
-      if (eventTarget) {
-        // Mark first so cleanup also handles an attachment that throws.
-        storageListenerAttached = true;
-        eventTarget.addEventListener('storage', onStorage);
-      }
-
-      void checkSignedIn().catch(() => undefined);
-      assertActive();
-      refreshTimer = globalThis.setInterval(() => {
-        if (
-          !disposed &&
-          profile &&
-          Date.now() - profile.issuedAt * 1000 >= ACCESS_TOKEN_REFRESH_AGE
-        ) {
-          void refreshAccessToken().catch(() => undefined);
-        }
-      }, ACCESS_TOKEN_REFRESH_INTERVAL);
-    } catch (error) {
-      try {
-        dispose();
-      } catch {
-        // Preserve the original startup error after attempting all cleanup.
-      }
-      throw error;
+    if (
+      storage &&
+      typeof window !== 'undefined' &&
+      typeof window.addEventListener === 'function'
+    ) {
+      window.addEventListener('storage', onStorage);
     }
+
+    void checkSignedIn().catch(() => undefined);
+    globalThis.setInterval(() => {
+      if (
+        profile &&
+        Date.now() - profile.issuedAt * 1000 >= ACCESS_TOKEN_REFRESH_AGE
+      ) {
+        void refreshAccessToken().catch(() => undefined);
+      }
+    }, ACCESS_TOKEN_REFRESH_INTERVAL);
   }
 
   return {
@@ -363,7 +308,6 @@ export function createAuthSession(options: AuthSessionOptions) {
       return options.requestLogout();
     },
     start,
-    dispose,
     subscribe,
   };
 }
