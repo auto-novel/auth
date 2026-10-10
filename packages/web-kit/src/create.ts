@@ -113,6 +113,8 @@ export function createWebKit(options: WebKitOptions): WebKit {
   const authClient = createApiClient(new URL('api/v1/', authUrl).toString());
   const session = createAuthSession({
     app: normalizedOptions.auth.app,
+    storageKey: SESSION_STORAGE_KEY,
+    storageArea: storage,
     requestLogout: () =>
       authClient.post('auth/logout', { credentials: 'include' }).text(),
     requestRefresh: (app) =>
@@ -122,12 +124,6 @@ export function createWebKit(options: WebKitOptions): WebKit {
           searchParams: { app },
         })
         .text(),
-    storage: storage
-      ? {
-          key: SESSION_STORAGE_KEY,
-          target: storage,
-        }
-      : undefined,
   });
   const profile = ref<SessionUser>();
   session.subscribe((user) => {

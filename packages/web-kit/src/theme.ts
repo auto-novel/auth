@@ -1,4 +1,6 @@
-import { computed, readonly, ref, type ComputedRef, type Ref } from 'vue';
+import { computed, readonly, watch, type ComputedRef, type Ref } from 'vue';
+
+import { createStoredRef } from './storage';
 
 export type Theme = 'light' | 'dark';
 
@@ -14,18 +16,8 @@ const THEME_COLORS: Record<Theme, string> = {
   light: '#ffffff',
 };
 
-export function createWebTheme(storageKey: string, storage?: Storage) {
-  const currentTheme = ref<Theme>('light');
+export function createWebTheme(storageKey: string, area?: Storage) {
   let transitionTimer: number | undefined;
-
-  function storedTheme(): Theme | undefined {
-    try {
-      const value = storage?.getItem(storageKey);
-      return value === 'light' || value === 'dark' ? value : undefined;
-    } catch {
-      return undefined;
-    }
-  }
 
   function preferredTheme(): Theme {
     if (typeof window === 'undefined' || !window.matchMedia) return 'light';
@@ -64,20 +56,26 @@ export function createWebTheme(storageKey: string, storage?: Storage) {
     }
   }
 
+  // 存储里没有有效主题时跟随系统偏好；无效值由存储层顺带删除。
+  const currentTheme = createStoredRef<Theme>({
+    key: storageKey,
+    storage: area,
+    decode: (raw) => (raw === 'light' || raw === 'dark' ? raw : undefined),
+    encode: (theme) => theme,
+    fallback: preferredTheme,
+  });
+
+  applyTheme(currentTheme.value);
+  // 本页切换和其他标签页的 storage 事件都走这里，跨标签同步同样带过渡。
+  watch(currentTheme, (theme) => applyTheme(theme, true), {
+    flush: 'sync',
+  });
+
   const isDark = computed(() => currentTheme.value === 'dark');
 
   function toggleTheme() {
     currentTheme.value = isDark.value ? 'light' : 'dark';
-    applyTheme(currentTheme.value, true);
-    try {
-      storage?.setItem(storageKey, currentTheme.value);
-    } catch {
-      // Theme changes remain usable without persistence.
-    }
   }
-
-  currentTheme.value = storedTheme() ?? preferredTheme();
-  applyTheme(currentTheme.value);
 
   const context: WebTheme = Object.freeze({
     theme: readonly(currentTheme),

@@ -4,11 +4,10 @@ import test from 'node:test';
 
 registerHooks({
   resolve(specifier, context, nextResolve) {
-    if (
-      specifier === './role' &&
-      context.parentURL?.endsWith('/src/auth/session.ts')
-    ) {
-      return nextResolve('./role.ts', context);
+    if (context.parentURL?.endsWith('/src/auth/session.ts')) {
+      if (specifier === './role') return nextResolve('./role.ts', context);
+      if (specifier === '../storage')
+        return nextResolve('../storage.ts', context);
     }
     return nextResolve(specifier, context);
   },
@@ -48,7 +47,8 @@ test('admin mode persists only for the same administrator account', async (t) =>
   let nextToken = makeToken('admin');
   const session = createAuthSession({
     app: 'test',
-    storage: { key: 'session', target: storage },
+    storageKey: 'session',
+    storageArea: storage,
     requestLogout: async () => '',
     requestRefresh: async () => nextToken,
   });
@@ -72,7 +72,8 @@ test('admin mode persists only for the same administrator account', async (t) =>
 
     const restored = createAuthSession({
       app: 'test',
-      storage: { key: 'session', target: storage },
+      storageKey: 'session',
+      storageArea: storage,
       requestLogout: async () => '',
       requestRefresh: async () => nextToken,
     });
@@ -108,7 +109,8 @@ test('admin mode follows storage changes from another tab', (t) => {
   globalThis.window = windowEvents;
   const session = createAuthSession({
     app: 'test',
-    storage: { key: 'session', target: storage },
+    storageKey: 'session',
+    storageArea: storage,
     requestLogout: async () => '',
     requestRefresh: async () => makeToken('admin'),
   });
@@ -148,7 +150,8 @@ test('session users use milliseconds after restoring and refreshing a JWT', asyn
   const storage = makeStorage(token, false);
   const session = createAuthSession({
     app: 'test',
-    storage: { key: 'session', target: storage },
+    storageKey: 'session',
+    storageArea: storage,
     requestLogout: async () => '',
     requestRefresh: async () => makeToken('admin'),
   });

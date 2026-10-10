@@ -1,5 +1,7 @@
 import { isHTTPError } from 'ky';
+import { watch } from 'vue';
 
+import { createStoredRef } from '../storage';
 import type { AccessTokenProvider } from './client';
 import { isKnownRole } from './role';
 import type { SessionUser } from './user';
@@ -22,14 +24,16 @@ interface AccessTokenClaims {
 const ACCESS_TOKEN_REFRESH_INTERVAL = 15 * 60 * 1000;
 const ACCESS_TOKEN_REFRESH_AGE = 60 * 60 * 1000;
 
-interface AuthStorageOptions {
-  key: string;
-  target: Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
+interface StoredSession {
+  profile: AccessTokenProfile;
+  adminMode: boolean;
 }
 
 interface AuthSessionOptions {
   app: string;
-  storage?: AuthStorageOptions;
+  /** 会话持久化的键名；没有 storageArea 时只保留在内存里。 */
+  storageKey: string;
+  storageArea?: Storage;
   requestLogout(): Promise<string>;
   requestRefresh(app: string): Promise<string>;
 }
@@ -70,67 +74,46 @@ function parseAccessToken(token: string): AccessTokenProfile {
   };
 }
 
-function createAuthStorage(options?: AuthStorageOptions) {
-  if (!options) return;
+export function createAuthSession(options: AuthSessionOptions) {
+  const stored = createStoredRef<StoredSession | undefined>({
+    key: options.storageKey,
+    storage: options.storageArea,
+    decode(raw) {
+      try {
+        const value = JSON.parse(raw) as {
+          token?: unknown;
+          adminMode?: unknown;
+        };
+        if (typeof value?.token !== 'string') return;
 
-  const { key, target } = options;
+        const profile = parseAccessToken(value.token);
+        // 过期令牌按无效值处理，由存储层删除。
+        if (Date.now() >= profile.expiredAt * 1000) return;
 
-  function clear() {
-    try {
-      target.removeItem(key);
-    } catch {
-      // Storage may be unavailable or blocked by the browser.
-    }
-  }
-
-  function get(clearInvalid = true) {
-    try {
-      const stored = target.getItem(key);
-      if (!stored) return;
-
-      const storedSession = JSON.parse(stored) as {
-        token?: unknown;
-        adminMode?: unknown;
-      };
-      if (typeof storedSession.token !== 'string') {
-        throw new Error('存储的访问令牌无效');
-      }
-
-      const profile = parseAccessToken(storedSession.token);
-      if (Date.now() >= profile.expiredAt * 1000) {
-        if (clearInvalid) clear();
+        return {
+          profile,
+          adminMode: profile.role === 'admin' && value.adminMode === true,
+        };
+      } catch {
         return;
       }
-
-      return {
-        profile,
-        adminMode: profile.role === 'admin' && storedSession.adminMode === true,
-      };
-    } catch {
-      if (clearInvalid) clear();
-      return;
-    }
-  }
-
-  function save(profile: AccessTokenProfile, adminMode: boolean) {
-    try {
-      target.setItem(key, JSON.stringify({ token: profile.token, adminMode }));
-    } catch {
-      // A successful refresh remains usable even if persistence fails.
-    }
-  }
-
-  return { get, save, clear };
-}
-
-export function createAuthSession(options: AuthSessionOptions) {
-  const storage = createAuthStorage(options.storage);
+    },
+    encode(value) {
+      return value
+        ? JSON.stringify({
+            token: value.profile.token,
+            adminMode: value.adminMode,
+          })
+        : undefined;
+    },
+    fallback: () => undefined,
+  });
+  const restored = stored.value;
   const listeners = new Set<(user?: SessionUser) => void>();
-  let profile: AccessTokenProfile | undefined;
-  let adminMode = false;
-  let initialized = false;
+  let profile = restored?.profile;
+  let adminMode = restored?.adminMode ?? false;
+  let initialized = profile !== undefined;
   let refreshRequest: Promise<string | undefined> | undefined;
-  let sessionVersion = 0;
 
   function notify(listener: (user?: SessionUser) => void) {
     try {
@@ -150,23 +133,39 @@ export function createAuthSession(options: AuthSessionOptions) {
     }
   }
 
+  // 会话状态只从存储值派生：本页写入和其他标签页的同步走同一条路径。
+  // 值一变，在途刷新就不再代表当前状态，交出槽位让它作废。
+  watch(
+    stored,
+    (value) => {
+      refreshRequest = undefined;
+      initialized = true;
+      profile = value?.profile;
+      adminMode = value?.adminMode ?? false;
+      for (const listener of listeners) notify(listener);
+    },
+    { flush: 'sync' },
+  );
+
   function toggleAdminMode(): boolean {
     const nextMode = !adminMode && profile?.role === 'admin';
-    if (adminMode === nextMode) return adminMode;
-    adminMode = nextMode;
-    if (profile) storage?.save(profile, adminMode);
-    for (const listener of listeners) notify(listener);
+    if (adminMode === nextMode || !profile) return adminMode;
+    stored.value = { profile, adminMode: nextMode };
     return adminMode;
   }
 
   function setAccessToken(token?: string) {
     const previousUserId = profile?.id;
-    profile = token ? parseAccessToken(token) : undefined;
-    adminMode =
-      profile?.role === 'admin' && profile.id === previousUserId && adminMode;
-    if (profile) storage?.save(profile, adminMode);
-    else storage?.clear();
-    for (const listener of listeners) notify(listener);
+    const nextProfile = token ? parseAccessToken(token) : undefined;
+    stored.value = nextProfile
+      ? {
+          profile: nextProfile,
+          adminMode:
+            nextProfile.role === 'admin' &&
+            nextProfile.id === previousUserId &&
+            adminMode,
+        }
+      : undefined;
   }
 
   function subscribe(listener: (user?: SessionUser) => void) {
@@ -177,53 +176,37 @@ export function createAuthSession(options: AuthSessionOptions) {
     };
   }
 
-  function onStorage(event: StorageEvent) {
-    if (
-      !storage ||
-      event.storageArea !== options.storage?.target ||
-      (event.key !== null && event.key !== options.storage.key)
-    ) {
-      return;
-    }
-
-    // Read the current value rather than a potentially stale queued event.
-    // Never write it back or let an older refresh overwrite the external session.
-    sessionVersion++;
-    refreshRequest = undefined;
-    initialized = true;
-    const storedSession = storage.get(false);
-    profile = storedSession?.profile;
-    adminMode = storedSession?.adminMode ?? false;
-    for (const listener of listeners) notify(listener);
-  }
-
   function refreshAccessToken(): Promise<string | undefined> {
     if (refreshRequest) return refreshRequest;
     const app = options.app;
-    const version = sessionVersion;
 
-    const request = (async () => {
+    // 槽位里放的就是这个 promise：赋值在第一个 await 恢复之前完成，
+    // 之后用 refreshRequest !== request 判断自己有没有被登出或外部变更作废。
+    let request!: Promise<string | undefined>;
+    request = (async () => {
       try {
         const token = await options.requestRefresh(app);
-        // A storage event may have replaced this refresh with a valid session.
-        if (version !== sessionVersion) return profile?.token;
+        // 槽位已被清空：这次结果已经过期，不再应用。
+        if (refreshRequest !== request) return profile?.token;
+        // 先交出槽位再写值，否则自己的写入会把自己判成过期。
+        refreshRequest = undefined;
         setAccessToken(token);
-        if (version !== sessionVersion) return profile?.token;
         initialized = true;
         return token;
       } catch (error) {
-        if (version !== sessionVersion) return profile?.token;
+        if (refreshRequest !== request) return profile?.token;
+        refreshRequest = undefined;
         if (isHTTPError(error) && error.response.status === 401) {
           setAccessToken();
-          if (version === sessionVersion) initialized = true;
+          initialized = true;
           return;
         }
         throw error;
       } finally {
-        if (version === sessionVersion) refreshRequest = undefined;
+        if (refreshRequest === request) refreshRequest = undefined;
       }
     })();
-    if (version === sessionVersion) refreshRequest = request;
+    refreshRequest = request;
     return request;
   }
 
@@ -249,19 +232,6 @@ export function createAuthSession(options: AuthSessionOptions) {
     refresh: refreshAccessToken,
   } satisfies AccessTokenProvider;
 
-  const storedSession = storage?.get();
-  profile = storedSession?.profile;
-  adminMode = storedSession?.adminMode ?? false;
-  initialized = profile !== undefined;
-
-  if (
-    storage &&
-    typeof window !== 'undefined' &&
-    typeof window.addEventListener === 'function'
-  ) {
-    window.addEventListener('storage', onStorage);
-  }
-
   void checkSignedIn().catch(() => undefined);
   globalThis.setInterval(() => {
     if (
@@ -277,8 +247,7 @@ export function createAuthSession(options: AuthSessionOptions) {
     checkSignedIn,
     toggleAdminMode,
     async logout() {
-      // Ignore refreshes started before logout, including their errors.
-      sessionVersion++;
+      // 清空槽位即作废在途刷新（包括它们的错误），值没变也成立。
       refreshRequest = undefined;
       initialized = true;
       setAccessToken();

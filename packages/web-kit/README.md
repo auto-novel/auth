@@ -51,10 +51,10 @@ createApp(App).use(webKit).use(router).mount('#app');
 
 kit 只读写自己固定的两个 `localStorage` 键，不接受宿主改名：
 
-- `web-kit:session:v1`：访问令牌和管理模式开关，值形如 `{"token":"…","adminMode":false}`，退出登录或令牌失效时删除；同一键的 `storage` 事件用于跨标签页同步登录态。
-- `web-kit:theme:v1`：`"light"` 或 `"dark"`，只有点击 `toggleTheme()` 才写入。
+- `web-kit:session:v1`：访问令牌和管理模式开关，值形如 `{"token":"…","adminMode":false}`，退出登录、令牌过期或值损坏时删除；同一键的 `storage` 事件用于跨标签页同步登录态。
+- `web-kit:theme:v1`：`"light"` 或 `"dark"`，只有点击 `toggleTheme()` 才写入；同一键的 `storage` 事件用于跨标签页同步主题，别的标签页切换后本页立刻跟随，`<html data-theme>` 和 `theme-color` 一起更新。
 
-浏览器禁用存储时两个功能都降级为仅内存，不影响使用。
+两个键共用 `src/storage.ts` 里的同一套封装：解码时校验并删除损坏的值，编码后落盘，异常（浏览器禁用存储、写入失败）降级为仅内存，其他标签页的改动同步进内存且不会回写，因此不会出现两个标签页来回触发 `storage` 事件。浏览器禁用存储时两个功能都降级为仅内存，不影响使用；存储值损坏时按“没有存储值”处理，会话回到未登录，主题回到系统偏好。
 
 web-kit 的生命周期契约：
 
@@ -235,7 +235,7 @@ try {
 
 ## 主题
 
-主题在 kit 创建时写入 `<html data-theme>`，无已保存偏好时采用当时的系统主题，切换后写 `localStorage`（固定键 `web-kit:theme:v1`）。侧边栏底部的按钮已经接好了，业务里要用就 `useWebKit().theme`，拿 `{ isDark, theme, toggleTheme }`。
+主题在 kit 创建时写入 `<html data-theme>`，无已保存偏好时采用当时的系统主题，切换后写 `localStorage`（固定键 `web-kit:theme:v1`）。同一键的 `storage` 事件会把其他标签页的切换同步过来，`theme` 这个只读 Ref 随之更新，不需要宿主额外处理。侧边栏底部的按钮已经接好了，业务里要用就 `useWebKit().theme`，拿 `{ isDark, theme, toggleTheme }`。
 
 ## 侧栏构建信息
 
