@@ -4,7 +4,12 @@ import {
   CollapsibleContent,
   CollapsibleRoot,
   CollapsibleTrigger,
+  PopoverContent,
+  PopoverPortal,
+  PopoverRoot,
+  PopoverTrigger,
 } from 'reka-ui';
+import { ref, watch } from 'vue';
 import {
   isNavigationFailure,
   NavigationFailureType,
@@ -15,7 +20,7 @@ import {
 import { externalLinkAttrs } from '../menu';
 import type { WebKitMenuOption } from '../types';
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     options: WebKitMenuOption[];
     selected?: string;
@@ -31,6 +36,16 @@ const emit = defineEmits<{
 }>();
 
 const router = useRouter();
+// 弹出层独立于内联分组状态，关闭后不影响展开侧栏时的分组偏好。
+const popupGroup = ref<string>();
+watch([() => props.collapsed, () => router.currentRoute.value.fullPath], () => {
+  popupGroup.value = undefined;
+});
+
+function selectNavigation(samePath: boolean) {
+  popupGroup.value = undefined;
+  emit('select', samePath);
+}
 
 async function navigate(event: MouseEvent, option: WebKitMenuOption) {
   if (
@@ -72,20 +87,17 @@ async function navigate(event: MouseEvent, option: WebKitMenuOption) {
         class="my-2 border-t border-divider"
         role="separator"
       />
-      <CollapsibleRoot
-        v-else-if="option.type === 'group'"
-        :open="!collapsed && expanded.has(option.key)"
-        @update:open="
-          !collapsed &&
-          ($event ? expanded.add(option.key) : expanded.delete(option.key))
-        "
+      <PopoverRoot
+        v-else-if="option.type === 'group' && collapsed"
+        :open="popupGroup === option.key"
+        @update:open="popupGroup = $event ? option.key : undefined"
       >
-        <CollapsibleTrigger as-child>
+        <PopoverTrigger as-child>
           <button
             type="button"
             class="web-kit-sidebar-item text-ink hover:bg-hover"
             :aria-label="option.label"
-            :title="collapsed ? option.label : undefined"
+            :title="option.label"
           >
             <span
               class="grid size-5 flex-none place-items-center"
@@ -93,15 +105,49 @@ async function navigate(event: MouseEvent, option: WebKitMenuOption) {
             >
               <component v-if="option.icon" :is="option.icon" class="size-5" />
             </span>
+          </button>
+        </PopoverTrigger>
+        <PopoverPortal>
+          <PopoverContent
+            side="right"
+            align="start"
+            :side-offset="8"
+            :collision-padding="8"
+            :aria-label="option.label"
+            class="sidebar-popup floating-panel z-50 w-60 overflow-y-auto p-1 outline-none"
+          >
+            <SidebarNavigation
+              :options="option.children"
+              :expanded="expanded"
+              :selected="selected"
+              @select="selectNavigation"
+            />
+          </PopoverContent>
+        </PopoverPortal>
+      </PopoverRoot>
+      <CollapsibleRoot
+        v-else-if="option.type === 'group'"
+        :open="expanded.has(option.key)"
+        @update:open="
+          $event ? expanded.add(option.key) : expanded.delete(option.key)
+        "
+      >
+        <CollapsibleTrigger as-child>
+          <button
+            type="button"
+            class="web-kit-sidebar-item text-ink hover:bg-hover"
+            :aria-label="option.label"
+          >
             <span
-              class="web-kit-sidebar-label flex-1"
-              :class="collapsed ? 'opacity-0' : 'opacity-100'"
-              :aria-hidden="collapsed"
+              class="grid size-5 flex-none place-items-center"
+              aria-hidden="true"
             >
+              <component v-if="option.icon" :is="option.icon" class="size-5" />
+            </span>
+            <span class="web-kit-sidebar-label flex-1">
               {{ option.label }}
             </span>
             <KeyboardArrowDownOutlined
-              v-if="!collapsed"
               class="size-4 flex-none transition-transform"
               :class="{ '-rotate-90': !expanded.has(option.key) }"
               aria-hidden="true"
@@ -110,7 +156,7 @@ async function navigate(event: MouseEvent, option: WebKitMenuOption) {
         </CollapsibleTrigger>
         <CollapsibleContent
           class="sidebar-submenu"
-          :inert="collapsed || !expanded.has(option.key)"
+          :inert="!expanded.has(option.key)"
         >
           <SidebarNavigation
             class="pt-1"
@@ -181,6 +227,12 @@ async function navigate(event: MouseEvent, option: WebKitMenuOption) {
 </template>
 
 <style scoped>
+.sidebar-popup {
+  --web-kit-item-padding: 0.75rem;
+  max-width: calc(100vw - 16px);
+  max-height: var(--reka-popover-content-available-height);
+}
+
 .sidebar-submenu {
   overflow: hidden;
 }
