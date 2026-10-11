@@ -32,6 +32,7 @@ const colorGroups = [
     colors: [
       { token: 'paper', class: 'bg-paper' },
       { token: 'surface', class: 'bg-surface' },
+      { token: 'embedded', class: 'bg-embedded' },
       { token: 'body', class: 'bg-body' },
       { token: 'popover', class: 'bg-popover' },
       { token: 'modal', class: 'bg-modal' },
@@ -220,6 +221,12 @@ watch(theme.theme, readThemeValues, { flush: 'post' });
           >
             主题链接 / text-primary
           </a>
+          <div class="mt-3 rounded-floating bg-embedded px-4 py-3 text-sm text-ink">
+            嵌入内容 / bg-embedded
+            <p class="mt-1 text-xs text-muted">
+              静态辅助信息；深色时叠加在当前父背景上，不作为悬停状态。
+            </p>
+          </div>
           <div class="mt-3 rounded-sm bg-hover p-2 text-xs text-ink">
             悬停底色 / bg-hover
           </div>

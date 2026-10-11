@@ -8,6 +8,7 @@
 @theme {
   --color-paper: #f7f7f8;
   --color-surface: #ffffff;
+  --color-embedded: #fafafc;
   --color-body: #ffffff;
   --color-popover: #ffffff;
   --color-modal: #ffffff;
@@ -53,6 +54,7 @@
     color-scheme: dark;
     --color-paper: #101014;
     --color-surface: #18181c;
+    --color-embedded: rgb(255 255 255 / 6%);
     --color-body: #101014;
     --color-popover: #48484e;
     --color-modal: #2c2c32;
