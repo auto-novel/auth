@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { CheckOutlined, ExpandMoreOutlined } from '@vicons/material';
 import {
+  ScrollAreaRoot,
+  ScrollAreaScrollbar,
+  ScrollAreaThumb,
+  ScrollAreaViewport,
   SelectContent,
   SelectItem,
   SelectItemIndicator,
@@ -51,21 +55,33 @@ function handleChange(value: AcceptableValue) {
         <SelectContent
           position="popper"
           :side-offset="6"
-          class="x-select-content floating-panel z-40 max-h-60 min-w-(--reka-select-trigger-width) overflow-hidden p-1 text-ink"
+          class="x-select-content floating-panel z-40 min-w-(--reka-select-trigger-width) overflow-hidden p-1 text-ink"
         >
-          <SelectViewport>
-            <SelectItem
-              v-for="option in options"
-              :key="option.value"
-              :value="option.value"
-              class="menu-item relative cursor-default pl-8 select-none"
+          <ScrollAreaRoot type="auto" class="overflow-hidden">
+            <SelectViewport as-child>
+              <ScrollAreaViewport class="x-select-viewport" :tabindex="-1">
+                <SelectItem
+                  v-for="option in options"
+                  :key="option.value"
+                  :value="option.value"
+                  class="x-select-item menu-item relative cursor-default pl-8 select-none"
+                >
+                  <SelectItemIndicator class="absolute left-2 text-primary">
+                    <CheckOutlined class="size-4" aria-hidden="true" />
+                  </SelectItemIndicator>
+                  <SelectItemText class="min-w-0 truncate">
+                    {{ option.label }}
+                  </SelectItemText>
+                </SelectItem>
+              </ScrollAreaViewport>
+            </SelectViewport>
+            <ScrollAreaScrollbar
+              orientation="vertical"
+              class="x-select-scrollbar"
             >
-              <SelectItemIndicator class="absolute left-2 text-primary">
-                <CheckOutlined class="size-4" aria-hidden="true" />
-              </SelectItemIndicator>
-              <SelectItemText>{{ option.label }}</SelectItemText>
-            </SelectItem>
-          </SelectViewport>
+              <ScrollAreaThumb class="x-select-scrollbar-thumb" />
+            </ScrollAreaScrollbar>
+          </ScrollAreaRoot>
         </SelectContent>
       </SelectPortal>
     </SelectRoot>
@@ -84,7 +100,46 @@ function handleChange(value: AcceptableValue) {
 
 .x-select-content {
   --select-enter-offset: -4px;
+  --select-item-height: 2.25rem;
   transform-origin: var(--reka-select-content-transform-origin);
+}
+
+.x-select-item {
+  height: var(--select-item-height);
+  line-height: 1.25rem;
+}
+
+/* Show six full rows and half of the next as a scrolling hint.
+   A custom scrollbar stays visible whenever the list overflows. */
+.x-select-viewport[data-reka-select-viewport] {
+  max-height: min(
+    calc(var(--select-item-height) * 6.5),
+    calc(var(--reka-select-content-available-height) - 0.5rem)
+  );
+  padding-right: 10px;
+  overscroll-behavior-y: contain;
+}
+
+.x-select-scrollbar {
+  display: flex;
+  width: 8px;
+  padding: 1px;
+  border-radius: 999px;
+  background: var(--color-hover);
+  touch-action: none;
+  user-select: none;
+}
+
+.x-select-scrollbar-thumb {
+  position: relative;
+  flex: 1;
+  min-height: 24px;
+  border-radius: 999px;
+  background: var(--color-muted);
+}
+
+.x-select-scrollbar-thumb:hover {
+  background: var(--color-ink);
 }
 
 .x-select-content[data-side='top'] {

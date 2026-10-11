@@ -15,6 +15,11 @@ import { ref } from 'vue';
 
 const confirmOpen = ref(false);
 const selected = ref('alpha');
+const scrollSelected = ref('option-1');
+const scrollOptions = Array.from({ length: 30 }, (_, index) => ({
+  label: `选项 ${index + 1}`,
+  value: `option-${index + 1}`,
+}));
 const page = ref(2);
 const options = [
   { label: '选项 A', value: 'alpha' },
@@ -70,7 +75,9 @@ const variants: XButtonVariant[] = [
 
     <section aria-labelledby="test-select" class="border-t border-divider pt-6">
       <h2 id="test-select" class="mb-2 font-medium">选择器 · XSelect</h2>
-      <p class="mb-4 text-sm text-muted">检查选项切换、键盘操作和禁用状态。</p>
+      <p class="mb-4 text-sm text-muted">
+        检查选项切换、键盘操作和禁用状态；长列表可通过滚轮、拖动滚动条或方向键浏览，切换主题检查滚动条配色。
+      </p>
       <div class="flex flex-wrap gap-4">
         <label class="flex w-48 flex-col gap-2 text-sm text-muted">
           正常
@@ -89,8 +96,18 @@ const variants: XButtonVariant[] = [
             aria-label="禁用示例选项"
           />
         </label>
+        <label class="flex w-48 flex-col gap-2 text-sm text-muted">
+          长列表 · 30 项
+          <XSelect
+            v-model="scrollSelected"
+            :options="scrollOptions"
+            aria-label="滚动条示例选项"
+          />
+        </label>
       </div>
-      <p class="mt-3 text-xs text-muted">当前值：{{ selected }}</p>
+      <p class="mt-3 text-xs text-muted">
+        当前值：{{ selected }} · 长列表当前值：{{ scrollSelected }}
+      </p>
     </section>
 
     <section
