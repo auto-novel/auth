@@ -13,8 +13,8 @@ registerHooks({
       /\/packages\/web-kit\/src\//.test(context.parentURL ?? '')
     ) {
       return nextResolve(
-        specifier === './notifications'
-          ? './notifications/index.ts'
+        specifier === './notifications' || specifier === './theme'
+          ? `${specifier}/index.ts`
           : `${specifier}.ts`,
         context,
       );

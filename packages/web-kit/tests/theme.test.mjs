@@ -15,7 +15,7 @@ registerHooks({
   },
 });
 
-const { createWebTheme } = await import('../src/theme.ts');
+const { createWebTheme } = await import('../src/theme/index.ts');
 
 const THEME_KEY = 'web-kit:theme:v1';
 

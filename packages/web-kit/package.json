@@ -14,8 +14,8 @@
       "default": "./src/vite.js"
     },
     "./theme-bootstrap": {
-      "types": "./src/theme-bootstrap.d.ts",
-      "default": "./src/theme-bootstrap.js"
+      "types": "./src/theme/bootstrap.d.ts",
+      "default": "./src/theme/bootstrap.js"
     }
   },
   "files": [

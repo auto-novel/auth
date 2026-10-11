@@ -7,7 +7,7 @@ import {
   type Ref,
 } from 'vue';
 
-import { useLocalStorage } from './storage';
+import { useLocalStorage } from '../storage';
 
 /** 实际生效的外观。 */
 export type Theme = 'light' | 'dark';
