@@ -8,7 +8,15 @@
   "exports": {
     ".": "./src/index.ts",
     "./package.json": "./package.json",
-    "./styles.css": "./src/styles.css"
+    "./styles.css": "./src/styles.css",
+    "./vite": {
+      "types": "./src/vite.d.ts",
+      "default": "./src/vite.js"
+    },
+    "./theme-bootstrap": {
+      "types": "./src/theme-bootstrap.d.ts",
+      "default": "./src/theme-bootstrap.js"
+    }
   },
   "files": [
     "src"

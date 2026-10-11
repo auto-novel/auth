@@ -241,6 +241,24 @@ try {
 
 主题在 kit 创建时写入 `<html data-theme>`；`data-theme` 始终是实际生效的 `"light"`/`"dark"`，`theme` 是它的只读 Ref。偏好单独放在 `preference` 里，取值 `"light"`、`"dark"` 或 `"system"`，没有已保存偏好时默认 `"system"`：此时 kit 监听 `prefers-color-scheme`，系统在运行中切换外观会立即反映到 `theme`、`<html data-theme>` 和 `theme-color`，并且不写存储。`setPreference()` 显式设定偏好并落盘（固定值或重新跟随系统）；`toggleTheme()` 保持二态语义，按当前生效外观取反后把具体值写回存储，因此不会写回 `"system"`。同一键的 `storage` 事件会把其他标签页的偏好同步过来，不需要宿主额外处理。侧边栏底部的按钮已经接好了，业务里要用就 `useWebKit().theme`，拿 `{ isDark, preference, theme, setPreference, toggleTheme }`，`Theme` 和 `ThemePreference` 类型可从包入口导入。
 
+### 首屏引导
+
+kit 在创建时才应用主题，晚于首次绘制；要避免首屏闪一下错误外观，Vite 项目可以通过插件在 `<head>` 开头内联注入引导脚本，开发和生产构建都生效：
+
+```ts
+// vite.config.ts
+import { themeBootstrapPlugin } from '@novelia/web-kit/vite';
+import { defineConfig } from 'vite';
+
+export default defineConfig({
+  plugins: [themeBootstrapPlugin()],
+});
+```
+
+`@novelia/web-kit/vite` 是独立的原生 JavaScript 构建入口，不依赖 kit 运行时，也不在运行时导入 Vite。非 Vite 项目可以自行注入 `@novelia/web-kit/theme-bootstrap` 导出的 `themeBootstrapScript`。
+
+该子路径是独立的原生 JavaScript 模块，只导出静态脚本文本 `themeBootstrapScript`，仅用于首屏注入，不依赖 kit 运行时，也不从包主入口导出。脚本读取 `web-kit:theme:v1`，和运行时一样只接受 JSON 编码的 `"light"`、`"dark"`、`"system"`；存储不可用或值无效时跟随系统，`"system"` 就地解析为实际外观，然后只写 `<html data-theme>`。它不写存储，也不注入 `body` 背景或任何未分层的样式，上色始终由 kit 的 `@layer base` 负责。
+
 ## 侧栏构建信息
 
 上面 `createWebKit` 里的 `repository` 就是干这个的，配上之后桌面侧栏和移动端导航底部会显示 `SidebarFooter`。
