@@ -10,8 +10,9 @@ import {
 } from 'reka-ui';
 import { RouterLink } from 'vue-router';
 
-import { externalLinkAttrs } from '../menu';
-import type { WebKitMenuOption } from '../types';
+import { externalLinkAttrs } from '../../menu';
+import type { WebKitMenuOption } from '../../types';
+import AccountMenuPanel from './AccountMenuPanel.vue';
 
 defineProps<{ options: WebKitMenuOption[] }>();
 </script>
@@ -35,11 +36,13 @@ defineProps<{ options: WebKitMenuOption[] }>();
       </DropdownMenuSubTrigger>
       <DropdownMenuPortal>
         <DropdownMenuSubContent
+          as-child
           :side-offset="4"
           :collision-padding="8"
-          class="account-menu z-40 p-1 outline-none"
         >
-          <AccountMenuOptions :options="option.children" />
+          <AccountMenuPanel class="px-1">
+            <AccountMenuOptions :options="option.children" />
+          </AccountMenuPanel>
         </DropdownMenuSubContent>
       </DropdownMenuPortal>
     </DropdownMenuSub>

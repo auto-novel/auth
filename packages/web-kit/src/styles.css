@@ -150,36 +150,6 @@
 }
 
 @layer components {
-  .account-trigger {
-    display: flex;
-    min-height: 2.25rem;
-    align-items: center;
-    gap: 0.25rem;
-    border-radius: 0.1875rem;
-    padding-inline: 0.75rem;
-    color: var(--color-ink);
-    font-size: 0.875rem;
-    font-weight: 400;
-    transition: background-color 150ms ease;
-
-    &:hover {
-      background: var(--color-hover);
-    }
-
-    &:focus-visible {
-      outline: 2px solid var(--color-primary);
-      outline-offset: 2px;
-    }
-  }
-
-  .account-menu {
-    @apply floating-panel;
-    z-index: 40;
-    width: 12rem;
-    overflow: hidden;
-    padding-block: 0.25rem;
-  }
-
   .menu-item {
     display: flex;
     width: 100%;

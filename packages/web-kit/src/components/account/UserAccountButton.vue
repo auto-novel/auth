@@ -26,10 +26,11 @@ import {
 } from 'vue';
 import { RouterLink, type RouteLocationRaw } from 'vue-router';
 
-import { useWebKit, useWebKitInternals } from '../context';
-import type { WebKitMenuOption } from '../types';
-import XTime from '../ui/XTime.vue';
+import { useWebKit, useWebKitInternals } from '../../context';
+import type { WebKitMenuOption } from '../../types';
+import XTime from '../../ui/XTime.vue';
 import AccountMenuOptions from './AccountMenuOptions.vue';
+import AccountMenuPanel from './AccountMenuPanel.vue';
 
 defineProps<{ options: WebKitMenuOption[] }>();
 
@@ -177,7 +178,7 @@ async function focusLoginFrame() {
             </Transition>
           </span>
           <KeyboardArrowDownOutlined
-            class="size-4 flex-none"
+            class="account-chevron size-4 flex-none"
             aria-hidden="true"
           />
         </button>
@@ -185,61 +186,63 @@ async function focusLoginFrame() {
 
       <DropdownMenuPortal>
         <DropdownMenuContent
+          as-child
           align="end"
           :side-offset="8"
           :collision-padding="8"
-          class="account-menu z-40 outline-none"
         >
-          <DropdownMenuLabel class="p-0">
-            <button
-              v-if="whoami.isAdmin"
-              type="button"
-              class="block w-full cursor-pointer px-3 py-2.5 text-left transition-colors hover:bg-hover"
-              :aria-pressed="whoami.asAdmin"
-              @click="accountActions.toggleAdminMode()"
-            >
-              <span class="block text-sm font-medium text-ink">
-                {{ whoami.roleLabel }}{{ whoami.asAdmin ? '+' : '' }}
-              </span>
-              <span class="mt-0.5 block text-xs text-muted">
-                注册于
-                <XTime :time="whoami.user?.createdAt" preset="date" />
-              </span>
-            </button>
-            <div v-else class="px-3 py-2.5">
-              <p class="text-sm font-medium text-ink">
-                {{ whoami.roleLabel }}
-              </p>
-              <p class="mt-0.5 text-xs text-muted">
-                注册于
-                <XTime :time="whoami.user?.createdAt" preset="date" />
-              </p>
+          <AccountMenuPanel>
+            <DropdownMenuLabel class="p-0">
+              <button
+                v-if="whoami.isAdmin"
+                type="button"
+                class="block w-full cursor-pointer px-3 py-2.5 text-left transition-colors hover:bg-hover"
+                :aria-pressed="whoami.asAdmin"
+                @click="accountActions.toggleAdminMode()"
+              >
+                <span class="block text-sm font-medium text-ink">
+                  {{ whoami.roleLabel }}{{ whoami.asAdmin ? '+' : '' }}
+                </span>
+                <span class="mt-0.5 block text-xs text-muted">
+                  注册于
+                  <XTime :time="whoami.user?.createdAt" preset="date" />
+                </span>
+              </button>
+              <div v-else class="px-3 py-2.5">
+                <p class="text-sm font-medium text-ink">
+                  {{ whoami.roleLabel }}
+                </p>
+                <p class="mt-0.5 text-xs text-muted">
+                  注册于
+                  <XTime :time="whoami.user?.createdAt" preset="date" />
+                </p>
+              </div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator class="border-t border-divider" />
+            <div class="p-1">
+              <AccountMenuOptions :options="options" />
+              <DropdownMenuItem v-if="strikesEnabled" as-child>
+                <RouterLink :to="strikesTo" class="menu-item">
+                  <GavelOutlined class="size-4" aria-hidden="true" />
+                  <span class="min-w-0 flex-1">处罚记录</span>
+                  <span
+                    v-if="hasUnreadStrikes"
+                    class="rounded-full bg-error-soft px-1.5 py-0.5 text-[10px] leading-none font-medium text-error-strong"
+                    aria-hidden="true"
+                  >
+                    新
+                  </span>
+                  <span v-if="hasUnreadStrikes" class="sr-only">
+                    ，有新的处罚记录
+                  </span>
+                </RouterLink>
+              </DropdownMenuItem>
+              <DropdownMenuItem class="menu-item" @select="logout">
+                <ExitToAppOutlined class="size-4" aria-hidden="true" />
+                退出账号
+              </DropdownMenuItem>
             </div>
-          </DropdownMenuLabel>
-          <DropdownMenuSeparator class="border-t border-divider" />
-          <div class="p-1">
-            <AccountMenuOptions :options="options" />
-            <DropdownMenuItem v-if="strikesEnabled" as-child>
-              <RouterLink :to="strikesTo" class="menu-item">
-                <GavelOutlined class="size-4" aria-hidden="true" />
-                <span class="min-w-0 flex-1">处罚记录</span>
-                <span
-                  v-if="hasUnreadStrikes"
-                  class="rounded-full bg-error-soft px-1.5 py-0.5 text-[10px] leading-none font-medium text-error-strong"
-                  aria-hidden="true"
-                >
-                  新
-                </span>
-                <span v-if="hasUnreadStrikes" class="sr-only">
-                  ，有新的处罚记录
-                </span>
-              </RouterLink>
-            </DropdownMenuItem>
-            <DropdownMenuItem class="menu-item" @select="logout">
-              <ExitToAppOutlined class="size-4" aria-hidden="true" />
-              退出账号
-            </DropdownMenuItem>
-          </div>
+          </AccountMenuPanel>
         </DropdownMenuContent>
       </DropdownMenuPortal>
     </DropdownMenuRoot>
@@ -296,3 +299,41 @@ async function focusLoginFrame() {
     </div>
   </Teleport>
 </template>
+
+<style scoped>
+.account-trigger {
+  display: flex;
+  min-height: 2.25rem;
+  align-items: center;
+  gap: 0.25rem;
+  border-radius: 0.1875rem;
+  padding-inline: 0.75rem;
+  color: var(--color-ink);
+  font-size: 0.875rem;
+  font-weight: 400;
+  transition: background-color 150ms ease;
+
+  &:hover {
+    background: var(--color-hover);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+}
+
+.account-chevron {
+  transition: transform 180ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.account-trigger[data-state='open'] .account-chevron {
+  transform: rotate(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .account-chevron {
+    transition: none;
+  }
+}
+</style>

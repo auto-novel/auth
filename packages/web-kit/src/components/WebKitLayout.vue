@@ -30,7 +30,7 @@ import { layoutKey } from '../layoutContext';
 import { selectedGroupKeys } from '../menu';
 import { useSidebarPreference } from '../sidebar';
 import type { WebKitMenuOption } from '../types';
-import UserAccountButton from './UserAccountButton.vue';
+import UserAccountButton from './account/UserAccountButton.vue';
 import WebKitSidebar from './WebKitSidebar.vue';
 
 type ViewportMode = 'mobile' | 'tablet' | 'desktop';
