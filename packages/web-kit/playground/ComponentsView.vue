@@ -180,7 +180,7 @@ const variants: XButtonVariant[] = [
     >
       <h2 id="test-pagination" class="mb-2 font-medium">分页 · XPagination</h2>
       <p class="mb-4 text-sm text-muted">
-        检查上一页、下一页和页码切换；点击省略号可跳转到指定页，支持回车确认。
+        检查上一页、下一页和页码切换；桌面端点击省略号，移动端点击中间页数，可跳转到指定页，支持回车确认。
       </p>
       <XPagination :page="page" :total-pages="20" @change="page = $event" />
       <p class="mt-3 text-xs text-muted">当前页：{{ page }} / 20</p>

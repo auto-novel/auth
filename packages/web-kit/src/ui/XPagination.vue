@@ -67,9 +67,56 @@ function jumpToPage() {
       <XButton variant="outline" size="sm">上一页</XButton>
     </PaginationPrev>
 
-    <span class="text-xs text-muted sm:hidden">
-      {{ page }} / {{ totalPages }}
-    </span>
+    <PopoverRoot
+      :open="openJumpIndex === -1"
+      @update:open="setJumpOpen($event, -1)"
+    >
+      <PopoverTrigger as-child>
+        <XButton
+          variant="ghost"
+          size="sm"
+          class="text-xs text-muted sm:hidden"
+          :disabled="totalPages < 1"
+          :aria-label="`当前第 ${page} 页，共 ${totalPages} 页，跳转到指定页`"
+          title="跳转到指定页"
+        >
+          {{ page }} / {{ totalPages }}
+        </XButton>
+      </PopoverTrigger>
+      <PopoverPortal>
+        <PopoverContent
+          :side-offset="6"
+          :collision-padding="8"
+          class="floating-panel z-40 flex items-center gap-2 p-3 outline-none sm:hidden"
+          aria-label="跳转到指定页"
+        >
+          <label class="flex items-center gap-2 text-xs text-muted">
+            跳至
+            <input
+              v-model="jumpPage"
+              type="number"
+              inputmode="numeric"
+              min="1"
+              :max="totalPages"
+              step="1"
+              :disabled="totalPages < 1"
+              aria-label="跳转页码"
+              class="h-9 w-16 rounded-sm border border-border bg-transparent px-2 text-sm text-ink outline-none transition focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/15 disabled:cursor-not-allowed disabled:opacity-50"
+              @keydown.enter.prevent="jumpToPage"
+            />
+            页
+          </label>
+          <XButton
+            variant="outline"
+            size="sm"
+            :disabled="!canJump"
+            @click="jumpToPage"
+          >
+            跳转
+          </XButton>
+        </PopoverContent>
+      </PopoverPortal>
+    </PopoverRoot>
     <PaginationList
       v-slot="{ items }"
       class="hidden items-center gap-1 sm:flex"
