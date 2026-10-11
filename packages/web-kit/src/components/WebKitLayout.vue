@@ -219,7 +219,15 @@ watch(
               <MenuOutlined class="size-6" aria-hidden="true" />
             </button>
           </DialogTrigger>
-          <UserAccountButton :options="accountOptions" />
+          <div class="ml-auto flex min-w-0 flex-none items-center gap-1">
+            <div
+              v-if="isMobile && $slots['header-actions']"
+              class="flex flex-none items-center gap-2"
+            >
+              <slot name="header-actions" />
+            </div>
+            <UserAccountButton :options="accountOptions" />
+          </div>
         </header>
 
         <main

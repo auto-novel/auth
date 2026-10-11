@@ -10,9 +10,10 @@ import {
 import {
   WebKitApp,
   WebKitLayout,
+  XButton,
   type WebKitMenuOption,
 } from '@novelia/web-kit';
-import { useRoute } from 'vue-router';
+import { RouterLink, useRoute } from 'vue-router';
 
 const route = useRoute();
 
@@ -82,6 +83,18 @@ const accountOptions: WebKitMenuOption[] = [
       :account-options="accountOptions"
       :selected-navigation-key="String(route.name ?? '')"
     >
+      <template #header-actions>
+        <XButton
+          :as="RouterLink"
+          to="/theme"
+          variant="toolbar"
+          size="icon"
+          aria-label="主题测试"
+          title="主题测试"
+        >
+          <PaletteOutlined class="size-5" aria-hidden="true" />
+        </XButton>
+      </template>
       <RouterView />
     </WebKitLayout>
   </WebKitApp>

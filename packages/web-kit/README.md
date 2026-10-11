@@ -87,6 +87,16 @@ const options: WebKitMenuOption[] = [
 
 布局会自动适配移动端，登录入口、主题切换和退出账号不用另接。页面需要滚回顶部时，调用 `useWebKitLayout().scrollToTop()`。
 
+`WebKitLayout` 提供 `#header-actions` 插槽，仅在移动端（宽度不超过 767px）显示，位于顶栏账号按钮左侧，适合放置带 `aria-label` 的图标按钮：
+
+```vue
+<template #header-actions>
+  <XButton size="icon" variant="toolbar" aria-label="搜索" @click="openSearch">
+    <SearchOutlined class="size-5" aria-hidden="true" />
+  </XButton>
+</template>
+```
+
 ## 登录状态和请求
 
 在组件中读取当前用户，或创建自动携带登录凭证的业务客户端：
