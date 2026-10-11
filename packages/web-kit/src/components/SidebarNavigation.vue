@@ -3,13 +3,12 @@ import { KeyboardArrowDownOutlined, OpenInNewOutlined } from '@vicons/material';
 import {
   CollapsibleContent,
   CollapsibleRoot,
-  CollapsibleTrigger,
   PopoverContent,
   PopoverPortal,
   PopoverRoot,
   PopoverTrigger,
 } from 'reka-ui';
-import { ref, watch } from 'vue';
+import { ref, useId, watch } from 'vue';
 import {
   isNavigationFailure,
   NavigationFailureType,
@@ -36,6 +35,17 @@ const emit = defineEmits<{
 }>();
 
 const router = useRouter();
+const navigationId = useId();
+function groupContentId(key: string, popup = false) {
+  return `${navigationId}-${popup ? 'popup' : 'submenu'}-${encodeURIComponent(key)}`;
+}
+
+function toggleInlineGroup(key: string) {
+  if (props.collapsed) return;
+  props.expanded.has(key)
+    ? props.expanded.delete(key)
+    : props.expanded.add(key);
+}
 // 弹出层独立于内联分组状态，关闭后不影响展开侧栏时的分组偏好。
 const popupGroup = ref<string>();
 watch([() => props.collapsed, () => router.currentRoute.value.fullPath], () => {
@@ -87,76 +97,80 @@ async function navigate(event: MouseEvent, option: WebKitMenuOption) {
         class="my-2 border-t border-divider"
         role="separator"
       />
-      <PopoverRoot
-        v-else-if="option.type === 'group' && collapsed"
-        :open="popupGroup === option.key"
-        @update:open="popupGroup = $event ? option.key : undefined"
-      >
-        <PopoverTrigger as-child>
-          <button
-            type="button"
-            class="web-kit-sidebar-item text-ink hover:bg-hover"
-            :aria-label="option.label"
-            :title="option.label"
-          >
-            <span
-              class="grid size-5 flex-none place-items-center"
-              aria-hidden="true"
-            >
-              <component v-if="option.icon" :is="option.icon" class="size-5" />
-            </span>
-          </button>
-        </PopoverTrigger>
-        <PopoverPortal>
-          <PopoverContent
-            side="right"
-            align="start"
-            :side-offset="8"
-            :collision-padding="8"
-            :aria-label="option.label"
-            class="sidebar-popup floating-panel z-50 w-60 overflow-y-auto p-1 outline-none"
-          >
-            <SidebarNavigation
-              :options="option.children"
-              :expanded="expanded"
-              :selected="selected"
-              @select="selectNavigation"
-            />
-          </PopoverContent>
-        </PopoverPortal>
-      </PopoverRoot>
+      <!-- 保持标题按钮稳定：侧栏折叠只关闭内联内容，不替换分组 DOM。 -->
       <CollapsibleRoot
         v-else-if="option.type === 'group'"
-        :open="expanded.has(option.key)"
-        @update:open="
-          $event ? expanded.add(option.key) : expanded.delete(option.key)
-        "
+        :open="!collapsed && expanded.has(option.key)"
       >
-        <CollapsibleTrigger as-child>
-          <button
-            type="button"
-            class="web-kit-sidebar-item text-ink hover:bg-hover"
-            :aria-label="option.label"
-          >
-            <span
-              class="grid size-5 flex-none place-items-center"
-              aria-hidden="true"
+        <PopoverRoot
+          :open="!!collapsed && popupGroup === option.key"
+          @update:open="
+            collapsed && (popupGroup = $event ? option.key : undefined)
+          "
+        >
+          <PopoverTrigger as-child>
+            <button
+              type="button"
+              class="web-kit-sidebar-item text-ink hover:bg-hover"
+              :aria-label="option.label"
+              :title="collapsed ? option.label : undefined"
+              :aria-haspopup="collapsed ? 'dialog' : undefined"
+              :aria-expanded="
+                collapsed ? popupGroup === option.key : expanded.has(option.key)
+              "
+              :aria-controls="groupContentId(option.key, !!collapsed)"
+              @click="toggleInlineGroup(option.key)"
             >
-              <component v-if="option.icon" :is="option.icon" class="size-5" />
-            </span>
-            <span class="web-kit-sidebar-label flex-1">
-              {{ option.label }}
-            </span>
-            <KeyboardArrowDownOutlined
-              class="size-4 flex-none transition-transform"
-              :class="{ '-rotate-90': !expanded.has(option.key) }"
-              aria-hidden="true"
-            />
-          </button>
-        </CollapsibleTrigger>
+              <span
+                class="grid size-5 flex-none place-items-center"
+                aria-hidden="true"
+              >
+                <component
+                  v-if="option.icon"
+                  :is="option.icon"
+                  class="size-5"
+                />
+              </span>
+              <span
+                class="web-kit-sidebar-label flex-1"
+                :class="collapsed ? 'opacity-0' : 'opacity-100'"
+                :aria-hidden="collapsed"
+              >
+                {{ option.label }}
+              </span>
+              <KeyboardArrowDownOutlined
+                class="size-4 flex-none transition-[transform,opacity] duration-150"
+                :class="[
+                  { '-rotate-90': !expanded.has(option.key) },
+                  collapsed ? 'opacity-0' : 'opacity-100',
+                ]"
+                aria-hidden="true"
+              />
+            </button>
+          </PopoverTrigger>
+          <PopoverPortal>
+            <PopoverContent
+              :id="groupContentId(option.key, true)"
+              side="right"
+              align="start"
+              :side-offset="8"
+              :collision-padding="8"
+              :aria-label="option.label"
+              class="sidebar-popup floating-panel z-50 w-60 overflow-y-auto p-1 outline-none"
+            >
+              <SidebarNavigation
+                :options="option.children"
+                :expanded="expanded"
+                :selected="selected"
+                @select="selectNavigation"
+              />
+            </PopoverContent>
+          </PopoverPortal>
+        </PopoverRoot>
         <CollapsibleContent
+          :id="groupContentId(option.key)"
           class="sidebar-submenu"
-          :inert="!expanded.has(option.key)"
+          :inert="collapsed || !expanded.has(option.key)"
         >
           <SidebarNavigation
             class="pt-1"
