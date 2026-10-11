@@ -1,22 +1,8 @@
 <script setup lang="ts">
-import {
-  Notify,
-  XActionMenu,
-  XActionMenuItem,
-  XButton,
-  XConfirmDialog,
-  XPagination,
-  XSelect,
-  XTooltip,
-  useWebKit,
-  type XButtonVariant,
-} from '@novelia/web-kit';
+import { XButton, useWebKit } from '@novelia/web-kit';
 import { onMounted, ref, watch } from 'vue';
 
 const { theme } = useWebKit();
-const confirmOpen = ref(false);
-const selected = ref('primary');
-const page = ref(2);
 const values = ref<Record<string, string>>({});
 
 const preferenceOptions = [
@@ -77,16 +63,6 @@ const statuses = [
   { label: '警告', class: 'bg-warning-soft text-warning', token: 'warning' },
   { label: '错误', class: 'bg-error-soft text-error-strong', token: 'error' },
 ];
-const variants: XButtonVariant[] = [
-  'primary',
-  'outline',
-  'danger',
-  'ghost',
-  'ghost-active',
-  'subtle',
-  'toolbar',
-  'plain',
-];
 const surfaces = [
   { label: 'paper', class: 'bg-paper' },
   { label: 'surface', class: 'bg-surface' },
@@ -100,12 +76,6 @@ const legacyColors = [
   { label: 'purple', class: 'bg-purple-50 text-purple-600' },
   { label: 'red', class: 'bg-red-50 text-red-600' },
 ];
-const options = [
-  { label: '主色 / primary', value: 'primary' },
-  { label: '成功 / success', value: 'success' },
-  { label: '错误 / error', value: 'error' },
-];
-
 function readThemeValues() {
   const style = getComputedStyle(document.documentElement);
   values.value = Object.fromEntries(
@@ -128,12 +98,12 @@ watch(theme.theme, readThemeValues, { flush: 'post' });
       class="flex flex-wrap items-start justify-between gap-4 border-b border-divider pb-6"
     >
       <div>
-        <h1 class="mb-2 text-lg font-medium">Tailwind 主题</h1>
+        <h1 class="mb-2 text-lg font-medium">主题测试</h1>
         <p class="text-sm text-muted">
           使用 web-kit 的真实主题变量和 Tailwind 工具类，不另设展示配色。
         </p>
         <p class="mt-1 text-xs text-muted">
-          切换主题后，色块、变量值及组件会同步更新。“跟随系统”会响应操作系统的
+          切换主题后，色块和变量值会同步更新。“跟随系统”会响应操作系统的
           prefers-color-scheme 变化，切换按钮则按当前外观取反并固定下来。
         </p>
       </div>
@@ -221,7 +191,9 @@ watch(theme.theme, readThemeValues, { flush: 'post' });
           >
             主题链接 / text-primary
           </a>
-          <div class="mt-3 rounded-floating bg-embedded px-4 py-3 text-sm text-ink">
+          <div
+            class="mt-3 rounded-floating bg-embedded px-4 py-3 text-sm text-ink"
+          >
             嵌入内容 / bg-embedded
             <p class="mt-1 text-xs text-muted">
               静态辅助信息；深色时叠加在当前父背景上，不作为悬停状态。
@@ -279,29 +251,10 @@ watch(theme.theme, readThemeValues, { flush: 'post' });
     </section>
 
     <section
-      aria-labelledby="theme-buttons"
+      aria-labelledby="theme-accent"
       class="border-t border-divider pt-6"
     >
-      <h2 id="theme-buttons" class="mb-2 font-medium">按钮与交互状态</h2>
-      <p class="mb-4 text-sm text-muted">
-        悬停查看 hover 色，使用 Tab 检查 focus-visible；右侧为禁用状态。
-      </p>
-      <div class="grid gap-3 sm:grid-cols-2">
-        <div
-          v-for="variant in variants"
-          :key="variant"
-          class="flex flex-wrap items-center gap-3 rounded-sm border border-border p-3"
-        >
-          <code class="w-24 text-xs text-muted">{{ variant }}</code>
-          <XButton
-            :variant="variant"
-            @click="Notify.success(`点击了 ${variant} 按钮`)"
-          >
-            示例按钮
-          </XButton>
-          <XButton :variant="variant" disabled>禁用</XButton>
-        </div>
-      </div>
+      <h2 id="theme-accent" class="mb-4 font-medium">主色与危险色对比</h2>
       <div class="mt-4 flex flex-wrap gap-3">
         <div class="rounded-sm bg-primary px-4 py-3 text-sm text-on-primary">
           bg-primary + text-on-primary
@@ -318,85 +271,6 @@ watch(theme.theme, readThemeValues, { flush: 'post' });
           bg-error-hover + text-on-error
         </div>
       </div>
-    </section>
-
-    <section
-      aria-labelledby="theme-components"
-      class="border-t border-divider pt-6"
-    >
-      <h2 id="theme-components" class="mb-4 font-medium">组件与浮层</h2>
-      <div class="flex flex-wrap items-center gap-3">
-        <div class="w-48">
-          <XSelect
-            v-model="selected"
-            :options="options"
-            aria-label="主题示例选项"
-          />
-        </div>
-        <div class="w-48">
-          <XSelect
-            v-model="selected"
-            :options="options"
-            disabled
-            aria-label="禁用主题示例选项"
-          />
-        </div>
-        <XTooltip>
-          <template #trigger>
-            <XButton variant="outline">悬停查看 Tooltip</XButton>
-          </template>
-          popover 背景、floating 圆角与阴影
-        </XTooltip>
-        <XActionMenu>
-          <XActionMenuItem @activate="Notify.success('普通菜单项')">
-            普通菜单项
-          </XActionMenuItem>
-          <XActionMenuItem disabled>禁用菜单项</XActionMenuItem>
-          <XActionMenuItem danger @activate="confirmOpen = true">
-            危险菜单项
-          </XActionMenuItem>
-        </XActionMenu>
-        <XButton variant="danger" @click="confirmOpen = true">
-          打开确认框
-        </XButton>
-        <XButton
-          variant="outline"
-          @click="Notify.success('成功通知：检查 success 文字与浮层背景。')"
-        >
-          成功通知
-        </XButton>
-        <XButton
-          variant="outline"
-          @click="Notify.error('错误通知：检查 error 文字与浮层背景。')"
-        >
-          错误通知
-        </XButton>
-      </div>
-      <div class="mt-6 flex flex-wrap items-start gap-4">
-        <div class="floating-panel p-4">
-          <h3 class="mb-1 text-sm font-medium">floating-panel</h3>
-          <p class="text-xs text-muted">
-            popover 背景 / radius-floating / shadow-floating
-          </p>
-        </div>
-        <div class="rounded-floating bg-modal p-4 shadow-floating">
-          <h3 class="mb-1 text-sm font-medium">modal</h3>
-          <p class="text-xs text-muted">
-            modal 背景 / radius-floating / shadow-floating
-          </p>
-        </div>
-      </div>
-      <div class="mt-6">
-        <XPagination :page="page" :total-pages="8" @change="page = $event" />
-      </div>
-      <XConfirmDialog
-        v-model:open="confirmOpen"
-        title="主题确认框示例"
-        description="检查弹窗背景、次要文字和危险按钮。此操作不会删除数据。"
-        confirm-label="确认示例"
-        danger
-        @confirm="Notify.success('示例操作完成')"
-      />
     </section>
   </div>
 </template>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {
+  WidgetsOutlined,
   HomeOutlined,
   OpenInNewOutlined,
   PaletteOutlined,
@@ -17,7 +18,13 @@ const route = useRoute();
 
 const navigationOptions: WebKitMenuOption[] = [
   { key: 'home', label: '首页', icon: HomeOutlined, to: '/' },
-  { key: 'theme', label: 'Tailwind 主题', icon: PaletteOutlined, to: '/theme' },
+  { key: 'theme', label: '主题测试', icon: PaletteOutlined, to: '/theme' },
+  {
+    key: 'components',
+    label: '组件测试',
+    icon: WidgetsOutlined,
+    to: '/components',
+  },
   {
     key: 'account',
     type: 'group',
