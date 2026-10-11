@@ -31,7 +31,7 @@
   --color-ink: #1f2225;
   --color-muted: #767c82;
   --color-border: #e0e0e6;
-  --color-divider: #efeff5;
+  --color-divider: rgb(0 0 0 / 10%);
   --color-hover: rgb(0 0 0 / 4%);
   --color-primary: #18a058;
   --color-primary-hover: #36ad6a;
@@ -76,7 +76,7 @@
     --color-ink: #f2f2f5;
     --color-muted: #a3a3aa;
     --color-border: #3b3b40;
-    --color-divider: #2d2d31;
+    --color-divider: rgb(255 255 255 / 14%);
     --color-hover: rgb(255 255 255 / 9%);
     --color-primary: #63e2b7;
     --color-primary-hover: #7fe7c4;
