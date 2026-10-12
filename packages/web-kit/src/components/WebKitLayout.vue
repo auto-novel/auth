@@ -14,26 +14,16 @@ import {
   DialogTrigger,
   DialogClose,
 } from 'reka-ui';
-import {
-  computed,
-  nextTick,
-  onBeforeUnmount,
-  onMounted,
-  provide,
-  ref,
-  useTemplateRef,
-  watch,
-} from 'vue';
+import { computed, nextTick, provide, ref, useTemplateRef, watch } from 'vue';
 import { useRoute } from 'vue-router';
 
 import { layoutKey } from '../layoutContext';
 import { selectedGroupKeys } from '../menu';
 import { useSidebarPreference } from '../sidebar';
 import type { WebKitMenuOption } from '../types';
+import { useWebKitViewport } from '../viewport';
 import UserAccountButton from './account/UserAccountButton.vue';
 import WebKitSidebar from './WebKitSidebar.vue';
-
-type ViewportMode = 'mobile' | 'tablet' | 'desktop';
 
 const props = defineProps<{
   navigationOptions: WebKitMenuOption[];
@@ -43,23 +33,12 @@ const props = defineProps<{
 
 const route = useRoute();
 const pageContent = useTemplateRef<HTMLElement>('pageContent');
-// 媒体查询在 onMounted 里创建，setup 阶段不碰 window。
-let mobileMediaQuery: MediaQueryList | undefined;
-let tabletMediaQuery: MediaQueryList | undefined;
-
-function getViewportMode(): ViewportMode {
-  if (mobileMediaQuery?.matches) return 'mobile';
-  if (tabletMediaQuery?.matches) return 'tablet';
-  return 'desktop';
-}
-
-const viewportMode = ref<ViewportMode>('desktop');
+const { viewportMode, isMobile } = useWebKitViewport();
 const mobileMenuOpen = ref(false);
 const sidebarPreference = useSidebarPreference();
 const sidebarCollapsed = computed(
   () => viewportMode.value === 'tablet' || sidebarPreference.value,
 );
-const isMobile = computed(() => viewportMode.value === 'mobile');
 const expanded = ref(new Set<string>());
 const activeGroups = computed(
   () =>
@@ -92,31 +71,13 @@ async function selectNavigation(samePath: boolean) {
   }
 }
 
-function updateViewport() {
-  const nextMode = getViewportMode();
-  if (nextMode === viewportMode.value) return;
-  viewportMode.value = nextMode;
+watch(viewportMode, () => {
   mobileMenuOpen.value = false;
-}
+});
 
 function toggleSidebar() {
   sidebarPreference.value = !sidebarPreference.value;
 }
-
-onMounted(() => {
-  mobileMediaQuery = window.matchMedia('(max-width: 767px)');
-  tabletMediaQuery = window.matchMedia(
-    '(min-width: 768px) and (max-width: 1023px)',
-  );
-  viewportMode.value = getViewportMode();
-  mobileMediaQuery.addEventListener('change', updateViewport);
-  tabletMediaQuery.addEventListener('change', updateViewport);
-});
-
-onBeforeUnmount(() => {
-  mobileMediaQuery?.removeEventListener('change', updateViewport);
-  tabletMediaQuery?.removeEventListener('change', updateViewport);
-});
 
 watch(
   () => route.fullPath,

@@ -75,11 +75,16 @@ const options: WebKitMenuOption[] = [
   { key: 'home', label: '首页', to: '/' },
   { type: 'divider', key: 'divider' },
   {
-    type: 'external', key: 'docs', label: '文档',
-    href: 'https://example.com/docs', target: '_blank',
+    type: 'external',
+    key: 'docs',
+    label: '文档',
+    href: 'https://example.com/docs',
+    target: '_blank',
   },
   {
-    type: 'group', key: 'account', label: '账号',
+    type: 'group',
+    key: 'account',
+    label: '账号',
     children: [{ key: 'settings', label: '设置', to: '/settings' }],
   },
 ];
@@ -96,6 +101,24 @@ const options: WebKitMenuOption[] = [
   </XButton>
 </template>
 ```
+
+## 视口判断
+
+在组件的 `setup` / `<script setup>` 中调用，与 `WebKitLayout` 共用断点，不需要安装插件或位于布局内：
+
+```ts
+import { useWebKitViewport } from '@novelia/web-kit';
+
+const { viewportMode, isMobile, isTablet, isDesktop } = useWebKitViewport();
+```
+
+返回值均为只读的响应式 ref，模板内自动解包，脚本内用 `.value`：
+
+- `mobile`：宽度 ≤767px。
+- `tablet`：宽度 768–1023px。
+- `desktop`：宽度 ≥1024px。
+
+挂载前（包括 SSR）默认为 `desktop`；挂载后读取媒体查询并随视口变化更新，卸载时自动移除监听器。此 API 判断的是窗口视口，不是页面内容区宽度，也不会修改调用侧 Tailwind 的响应式断点。
 
 ## 登录状态和请求
 

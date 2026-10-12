@@ -16,6 +16,8 @@ import { getApiErrorMessage } from './utils/apiError';
 import { useWebKitLayout } from './layoutContext';
 
 export { createWebKit } from './create';
+export { useWebKitViewport } from './viewport';
+export type { ViewportMode, WebKitViewport } from './viewport';
 export { isKnownRole, roleLabels, roles } from './auth/whoami';
 export { useLocalStorage, useSessionStorage, useStorage } from './storage';
 export type { StoredRefOptions } from './storage';
