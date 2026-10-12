@@ -141,6 +141,10 @@
 @utility page-container {
   width: min(100% - 2rem, 72rem);
   margin-inline: auto;
+
+  @media (max-width: 767px) {
+    width: calc(100% - 24px);
+  }
 }
 
 @utility floating-panel {
