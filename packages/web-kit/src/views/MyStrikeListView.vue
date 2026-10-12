@@ -5,7 +5,6 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 import { useWebKit, useWebKitInternals } from '../context';
-import { useWebKitLayout } from '../layoutContext';
 import XAsyncContent from '../ui/XAsyncContent.vue';
 import XPagination from '../ui/XPagination.vue';
 import XTime from '../ui/XTime.vue';
@@ -17,7 +16,6 @@ const route = useRoute();
 const router = useRouter();
 const { whoami } = useWebKit();
 const { attention, loadMyStrikes } = useWebKitInternals();
-const { scrollToTop } = useWebKitLayout();
 const strikes = ref<MyStrike[]>([]);
 const total = ref(0);
 const loading = ref(false);
@@ -69,7 +67,7 @@ function changePage(nextPage: number) {
     path: route.path,
     query: nextPage > 1 ? { page: String(nextPage) } : {},
   });
-  scrollToTop({ behavior: 'smooth' });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 watch([() => whoami.value.user?.id, page], loadStrikes, { immediate: true });

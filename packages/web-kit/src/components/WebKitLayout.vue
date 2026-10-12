@@ -14,10 +14,9 @@ import {
   DialogTrigger,
   DialogClose,
 } from 'reka-ui';
-import { computed, nextTick, provide, ref, useTemplateRef, watch } from 'vue';
+import { computed, nextTick, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 
-import { layoutKey } from '../layoutContext';
 import { selectedGroupKeys } from '../menu';
 import { useSidebarPreference } from '../sidebar';
 import type { WebKitMenuOption } from '../types';
@@ -32,7 +31,6 @@ const props = defineProps<{
 }>();
 
 const route = useRoute();
-const pageContent = useTemplateRef<HTMLElement>('pageContent');
 const { viewportMode, isMobile } = useWebKitViewport();
 const mobileMenuOpen = ref(false);
 const sidebarPreference = useSidebarPreference();
@@ -54,20 +52,11 @@ watch(
   { immediate: true },
 );
 
-provide(
-  layoutKey,
-  Object.freeze({
-    scrollToTop(options?: ScrollToOptions) {
-      pageContent.value?.scrollTo({ top: 0, ...options });
-    },
-  }),
-);
-
 async function selectNavigation(samePath: boolean) {
   mobileMenuOpen.value = false;
   if (samePath) {
     await nextTick();
-    pageContent.value?.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 }
 
@@ -90,14 +79,14 @@ watch(
   () => route.path,
   async () => {
     await nextTick();
-    pageContent.value?.scrollTo({ top: 0 });
+    window.scrollTo({ top: 0 });
   },
 );
 </script>
 
 <template>
   <DialogRoot v-model:open="mobileMenuOpen">
-    <div class="web-kit-layout flex h-dvh overflow-hidden bg-body">
+    <div class="web-kit-layout flex min-h-dvh bg-body">
       <DialogPortal>
         <Transition
           enter-active-class="transition-opacity duration-200"
@@ -168,7 +157,7 @@ watch(
 
       <div class="flex min-h-0 min-w-0 flex-1 flex-col">
         <header
-          class="z-30 flex h-[50px] flex-none items-center gap-3 border-b border-divider bg-surface px-2"
+          class="sticky top-0 z-30 flex h-[50px] flex-none items-center gap-3 border-b border-divider bg-surface px-2"
         >
           <DialogTrigger v-if="isMobile" as-child>
             <button
@@ -191,10 +180,7 @@ watch(
           </div>
         </header>
 
-        <main
-          ref="pageContent"
-          class="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-y-contain"
-        >
+        <main class="min-w-0 flex-1">
           <slot />
         </main>
       </div>
@@ -204,9 +190,12 @@ watch(
 
 <style scoped>
 .sidebar-shell {
-  position: relative;
+  position: sticky;
+  top: 0;
   z-index: 40;
+  height: 100dvh;
   flex: none;
+  align-self: flex-start;
 }
 
 .sidebar-collapse {

@@ -72,7 +72,7 @@ const showMascot = ref(false);
     </div>
 
     <div
-      class="min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-2 py-1"
+      class="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-y-contain px-2 py-1"
       :class="{ 'mt-9': mobileHeader }"
     >
       <SidebarNavigation

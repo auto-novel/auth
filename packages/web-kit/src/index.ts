@@ -13,7 +13,6 @@ import XTooltip from './ui/XTooltip.vue';
 import { useWebKit } from './context';
 import { Notify } from './notifications';
 import { getApiErrorMessage } from './utils/apiError';
-import { useWebKitLayout } from './layoutContext';
 
 export { createWebKit } from './create';
 export { useWebKitViewport } from './viewport';
@@ -49,9 +48,7 @@ export {
   Notify,
   getApiErrorMessage,
   useWebKit,
-  useWebKitLayout,
 };
-export type { LayoutContext } from './layoutContext';
 export type { AppNotification } from './notifications';
 export type { Theme, ThemeOverride, ThemePreference, WebTheme } from './theme';
 export type { UserRole, Whoami, WhoamiUser } from './auth/whoami';

@@ -124,12 +124,9 @@
     line-height: 1.6;
   }
 
-  /* Layout pages scroll inside main, never on the document. Keep this scoped
-     so pages without WebKitLayout retain normal document scrolling. */
-  :root:has(.web-kit-layout),
-  body:has(.web-kit-layout) {
-    overflow: hidden;
-    overscroll-behavior-y: none;
+  /* Keep anchors and scrollIntoView targets clear of the sticky header. */
+  :root:has(.web-kit-layout) {
+    scroll-padding-top: 50px;
   }
 
   button,
