@@ -162,6 +162,40 @@ export default defineConfig({
 });
 ```
 
+### 阅读器等页面的临时主题
+
+使用 `theme.setOverride()` 临时覆盖外观，不会改写 `theme.preference` 或 localStorage。`theme.theme` / `theme.isDark` 始终表示当前生效外观。覆盖的 `preference` 可为 `light`、`dark`、`system`，省略时沿用站点偏好。
+
+```ts
+// 在应用根部根据路由和阅读设置响应式更新；退出阅读路由时清除。
+watch(
+  () => [route.meta.isReader, readerSetting.value.theme] as const,
+  ([isReader, readerTheme]) => {
+    if (!isReader) {
+      theme.clearOverride();
+    } else if (readerTheme.mode === 'custom') {
+      theme.setOverride({
+        preference: isDarkColor(readerTheme.bodyColor) ? 'dark' : 'light',
+        tokens: { '--color-body': readerTheme.bodyColor },
+        themeColor: readerTheme.bodyColor,
+      });
+    } else {
+      theme.setOverride({ preference: readerTheme.mode });
+    }
+  },
+  { immediate: true, deep: true },
+);
+```
+
+上例的 `route`、`readerSetting`、背景亮度判断 `isDarkColor()` 和 `watch` 由宿主提供。正文颜色单独绑定到阅读内容，不必覆盖全局 `--color-ink`，避免改变菜单和按钮文字。
+
+- `setOverride()` **整体替换**上次覆盖，并复制参数；设置变动后需要重新调用。清除或替换时会恢复被移除 token 原有的根元素内联值（包括 `!important`）。
+- token 写在根元素，因此 Portal 中的菜单、弹窗也能继承；这是单个全局覆盖层，不是嵌套主题 Provider。多个页面应由统一的路由级逻辑协调。
+- `--color-body` 是布局背景；文档背景使用 `--color-surface`，无布局的阅读页面可按需同时覆盖它。不要默认把弹窗背景也改成阅读背景。
+- 浏览器 `meta[name="theme-color"]` 若存在，依次使用 `themeColor`、覆盖的 `--color-body`、明暗基底默认色；清除后恢复默认色。使用 CSS 变量等非具体色值时，应显式传入具体的 `themeColor`。
+- 覆盖期间 `setPreference()` / `toggleTheme()` 仍只修改持久化站点偏好，显式覆盖的明暗基底继续优先；清除后采用最新偏好，包括其他标签页同步的变更。
+- `theme.override` 是当前覆盖的只读 Ref，未覆盖时为 `undefined`。组件管理覆盖时要在卸载时清除；使用 KeepAlive 时还需处理停用。主题 bootstrap 仅恢复站点偏好，不恢复临时覆盖。
+
 ## 处罚记录
 
 账号菜单默认带有“处罚记录”入口，注册对应路由即可：

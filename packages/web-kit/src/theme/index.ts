@@ -2,6 +2,7 @@ import {
   computed,
   readonly,
   ref,
+  shallowRef,
   watch,
   type ComputedRef,
   type Ref,
@@ -14,10 +15,22 @@ export type Theme = 'light' | 'dark';
 /** 用户偏好：`Theme` 为固定外观，`'system'`（默认）为跟随系统。 */
 export type ThemePreference = Theme | 'system';
 
+/** 临时主题覆盖，不写入站点偏好。 */
+export interface ThemeOverride {
+  readonly preference?: ThemePreference;
+  readonly tokens?: Readonly<Record<`--${string}`, string>>;
+  /** 浏览器主题色；默认取覆盖的 --color-body，否则使用明暗基底默认值。 */
+  readonly themeColor?: string;
+}
+
 export interface WebTheme {
   readonly theme: Readonly<Ref<Theme>>;
   readonly preference: Readonly<Ref<ThemePreference>>;
+  readonly override: Readonly<Ref<ThemeOverride | undefined>>;
   readonly isDark: ComputedRef<boolean>;
+  /** 整体替换覆盖并复制参数，不追踪后续修改。 */
+  readonly setOverride: (override: ThemeOverride) => void;
+  readonly clearOverride: () => void;
   readonly setPreference: (preference: ThemePreference) => void;
   /** 按当前生效外观取反，并落盘为具体偏好（二态，不写回 `'system'`）。 */
   readonly toggleTheme: () => void;
@@ -63,6 +76,31 @@ function watchSystemTheme(onChange: (theme: Theme) => void) {
 
 export function createWebTheme() {
   let transitionTimer: number | undefined;
+  const override = shallowRef<ThemeOverride>();
+  const originalTokens = new Map<string, { value: string; priority: string }>();
+
+  function applyTokens(tokens: ThemeOverride['tokens']) {
+    const style = document.documentElement.style;
+    for (const [name, original] of originalTokens) {
+      if (tokens && Object.prototype.hasOwnProperty.call(tokens, name))
+        continue;
+      if (original.value) {
+        style.setProperty(name, original.value, original.priority);
+      } else {
+        style.removeProperty(name);
+      }
+      originalTokens.delete(name);
+    }
+    for (const [name, value] of Object.entries(tokens ?? {})) {
+      if (!originalTokens.has(name)) {
+        originalTokens.set(name, {
+          value: style.getPropertyValue(name),
+          priority: style.getPropertyPriority(name),
+        });
+      }
+      style.setProperty(name, value);
+    }
+  }
 
   function endTransition() {
     if (transitionTimer === undefined) return;
@@ -82,9 +120,15 @@ export function createWebTheme() {
     }
 
     root.dataset.theme = theme;
+    applyTokens(override.value?.tokens);
     document
       .querySelector<HTMLMetaElement>('meta[name="theme-color"]')
-      ?.setAttribute('content', THEME_COLORS[theme]);
+      ?.setAttribute(
+        'content',
+        override.value?.themeColor ??
+          override.value?.tokens?.['--color-body'] ??
+          THEME_COLORS[theme],
+      );
 
     if (animated) {
       transitionTimer = globalThis.setTimeout(
@@ -104,13 +148,15 @@ export function createWebTheme() {
     fallback: () => 'system',
   });
 
-  const currentTheme = computed<Theme>(() =>
-    preference.value === 'system' ? system.value : preference.value,
-  );
+  const currentTheme = computed<Theme>(() => {
+    const effectivePreference = override.value?.preference ?? preference.value;
+    return effectivePreference === 'system'
+      ? system.value
+      : effectivePreference;
+  });
 
   applyTheme(currentTheme.value);
-  // 本页切换、其他标签页的 storage 事件和系统偏好变化都走这里，跨标签同步同样带过渡。
-  watch(currentTheme, (theme) => applyTheme(theme, true), {
+  watch([currentTheme, override], ([theme]) => applyTheme(theme, true), {
     flush: 'sync',
   });
 
@@ -126,9 +172,41 @@ export function createWebTheme() {
     setPreference(isDark.value ? 'light' : 'dark');
   }
 
+  function setOverride(next: ThemeOverride) {
+    if (next.preference !== undefined && !isThemePreference(next.preference)) {
+      throw new TypeError('Invalid theme override preference');
+    }
+    const tokens: Record<`--${string}`, string> = {};
+    for (const [name, value] of Object.entries(next.tokens ?? {})) {
+      if (
+        !name.startsWith('--') ||
+        name.length === 2 ||
+        typeof value !== 'string'
+      ) {
+        throw new TypeError(
+          'Theme override tokens must be CSS custom properties',
+        );
+      }
+      tokens[name as `--${string}`] = value;
+    }
+    if (next.preference === 'system') system.value = systemTheme();
+    override.value = Object.freeze({
+      preference: next.preference,
+      tokens: Object.freeze(tokens),
+      themeColor: next.themeColor,
+    });
+  }
+
+  function clearOverride() {
+    override.value = undefined;
+  }
+
   const context: WebTheme = Object.freeze({
     theme: readonly(currentTheme),
     preference: readonly(preference),
+    override: readonly(override),
+    setOverride,
+    clearOverride,
     isDark,
     setPreference,
     toggleTheme,

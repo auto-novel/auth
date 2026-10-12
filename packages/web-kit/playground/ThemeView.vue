@@ -1,9 +1,29 @@
 <script setup lang="ts">
 import { XButton, useWebKit } from '@novelia/web-kit';
-import { onMounted, ref, watch } from 'vue';
+import { onMounted, onUnmounted, ref, watch } from 'vue';
 
 const { theme } = useWebKit();
 const values = ref<Record<string, string>>({});
+const readerPreview = ref(false);
+const readerBackground = ref('#fff2e2');
+const readerFont = ref('#000000');
+watch([readerPreview, readerBackground], ([enabled, background]) => {
+  if (!enabled) {
+    theme.clearOverride();
+    return;
+  }
+  const rgb = [1, 3, 5].map((offset) =>
+    parseInt(background.slice(offset, offset + 2), 16),
+  );
+  const brightness = (rgb[0]! * 299 + rgb[1]! * 587 + rgb[2]! * 114) / 1000;
+  theme.setOverride({
+    preference: brightness < 120 ? 'dark' : 'light',
+    tokens: { '--color-body': background },
+  });
+});
+onUnmounted(() => {
+  if (readerPreview.value) theme.clearOverride();
+});
 
 const preferenceOptions = [
   { value: 'system', label: '跟随系统' },
@@ -89,7 +109,7 @@ function readThemeValues() {
 }
 
 onMounted(readThemeValues);
-watch(theme.theme, readThemeValues, { flush: 'post' });
+watch([theme.theme, theme.override], readThemeValues, { flush: 'post' });
 </script>
 
 <template>
@@ -129,6 +149,39 @@ watch(theme.theme, readThemeValues, { flush: 'post' });
         </XButton>
       </div>
     </header>
+
+    <section aria-labelledby="reader-theme-preview">
+      <h2 id="reader-theme-preview" class="mb-2 font-medium">阅读器临时主题</h2>
+      <p class="mb-4 text-sm text-muted">
+        按背景亮度选择 UI
+        明暗基底，正文色单独设置。站点偏好不变，关闭预览或离开本页后恢复。
+      </p>
+      <div class="mb-4 flex flex-wrap items-center gap-4">
+        <label class="flex items-center gap-2">
+          <input v-model="readerPreview" type="checkbox" />
+          启用临时覆盖
+        </label>
+        <label class="flex items-center gap-2">
+          背景
+          <input v-model="readerBackground" type="color" />
+        </label>
+        <label class="flex items-center gap-2">
+          正文
+          <input v-model="readerFont" type="color" />
+        </label>
+        <span class="text-sm text-muted">
+          站点偏好：{{ theme.preference.value }} · 生效外观：{{
+            theme.theme.value
+          }}
+        </span>
+      </div>
+      <div
+        class="rounded-md border border-border bg-body p-6"
+        :style="{ color: readerPreview ? readerFont : undefined }"
+      >
+        这是阅读正文。修改背景时，页面背景和明暗基底同步更新；正文色不会影响菜单和按钮。
+      </div>
+    </section>
 
     <section aria-labelledby="theme-palette">
       <h2 id="theme-palette" class="mb-2 font-medium">颜色 token</h2>
