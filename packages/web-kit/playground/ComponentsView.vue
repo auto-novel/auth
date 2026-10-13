@@ -36,23 +36,19 @@ const componentPages = [
   },
 ];
 async function showPromiseToast(fail = false) {
-  try {
-    await Toast.promise(
-      new Promise<string>((resolve, reject) => {
-        setTimeout(() => {
-          if (fail) reject(new Error('示例保存失败'));
-          else resolve('示例设置');
-        }, 1500);
-      }),
-      {
-        loading: '正在保存…',
-        success: '示例设置已保存',
-        error: '示例保存失败',
-      },
-    );
-  } catch {
-    // 错误已由通知展示；Promise 仍保留原来的拒绝语义。
-  }
+  await Toast.promise(
+    new Promise<string>((resolve, reject) => {
+      setTimeout(() => {
+        if (fail) reject(new Error('示例保存失败'));
+        else resolve('示例设置');
+      }, 1500);
+    }),
+    {
+      loading: '正在保存…',
+      success: '示例设置已保存',
+      error: '示例保存失败',
+    },
+  );
 }
 
 const sampleTime = new Date('2025-06-05T15:04:30+08:00');

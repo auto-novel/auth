@@ -118,21 +118,20 @@ async function confirm() {
   if (!target || !config || (requiresReason.value && !actionReason)) return;
 
   inProgress.value = true;
-  try {
-    await Toast.promise(
-      updateUserRole(target.action, target.user.username, actionReason),
-      {
-        loading: `正在${config.title}`,
-        success: `${config.result} ${target.user.username}`,
-        error: `${config.title}失败`,
+  await Toast.promise(
+    updateUserRole(target.action, target.user.username, actionReason).then(
+      () => {
+        emit('success');
       },
-    );
-    emit('success');
-  } catch {
-    // Toast.promise 已展示失败原因，保留弹窗以便重试。
-  } finally {
+    ),
+    {
+      loading: `正在${config.title}`,
+      success: `${config.result} ${target.user.username}`,
+      error: `${config.title}失败`,
+    },
+  ).finally(() => {
     inProgress.value = false;
-  }
+  });
 }
 </script>
 

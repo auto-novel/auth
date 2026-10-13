@@ -118,7 +118,7 @@ test('Toast.promise updates the same toast and preserves its resolved value', as
   assert.equal(toasts.value[0].open, true);
 });
 
-test('Toast.promise prefixes the Error message and preserves the rejection reason', async (t) => {
+test('Toast.promise prefixes the Error message and swallows the rejection', async (t) => {
   const { toasts } = mountProvider(t);
   const operation = Promise.withResolvers();
   const error = new Error('网络不可用');
@@ -128,9 +128,8 @@ test('Toast.promise prefixes the Error message and preserves the rejection reaso
     error: '保存失败',
   });
   const id = toasts.value[0].id;
-  const rejected = assert.rejects(pending, (reason) => reason === error);
   operation.reject(error);
-  await rejected;
+  assert.equal(await pending, undefined);
   assert.equal(toasts.value.length, 1);
   assert.equal(toasts.value[0].id, id);
   assert.equal(toasts.value[0].status, 'error');
@@ -164,9 +163,8 @@ test('Toast.promise uses parsed details without reading the response or mutating
     error: '保存失败',
   });
   const id = toasts.value[0].id;
-  const rejected = assert.rejects(pending, (reason) => reason === error);
   operation.reject(error);
-  await rejected;
+  assert.equal(await pending, undefined);
   assert.equal(toasts.value.length, 1);
   assert.equal(toasts.value[0].id, id);
   assert.equal(toasts.value[0].status, 'error');
@@ -175,7 +173,7 @@ test('Toast.promise uses parsed details without reading the response or mutating
   assert.deepEqual(Object.getOwnPropertyDescriptors(error), before);
 });
 
-test('Toast.promise sanitizes and prefixes details while preserving every rejection', async (t) => {
+test('Toast.promise sanitizes and prefixes details while swallowing every rejection', async (t) => {
   const request = new Request('https://example.invalid/test');
   const httpError = new HTTPError(
     new Response(null, { status: 503 }),
@@ -228,9 +226,8 @@ test('Toast.promise sanitizes and prefixes details while preserving every reject
         error: '保存失败',
       });
       const id = toasts.value[0].id;
-      const rejected = assert.rejects(pending, (actual) => actual === reason);
       operation.reject(reason);
-      await rejected;
+      assert.equal(await pending, undefined);
       assert.equal(toasts.value.length, 1);
       assert.equal(toasts.value[0].id, id);
       assert.equal(toasts.value[0].status, 'error');
@@ -273,13 +270,41 @@ test('Toast.promise treats messages.error as a normalized prefix, not a replacem
         success: '已保存',
         error: prefix,
       });
-      await assert.rejects(pending, (actual) => actual === reason);
+      assert.equal(await pending, undefined);
       assert.equal(toasts.value.length, 1);
       assert.equal(toasts.value[0].status, 'error');
       assert.equal(toasts.value[0].description, expected);
       assert.ok(toasts.value[0].description.length <= 200);
     });
   }
+});
+
+test('Toast.promise swallows errors even when messages are omitted', async (t) => {
+  const { toasts } = mountProvider(t);
+  assert.equal(
+    await Toast.promise(Promise.reject(new Error('失败'))),
+    undefined,
+  );
+  assert.equal(toasts.value.length, 0);
+});
+
+test('Toast.promise closes the loading toast when the error message is omitted', async (t) => {
+  const { toasts } = mountProvider(t);
+  const operation = Promise.withResolvers();
+  const pending = Toast.promise(operation.promise, { loading: '正在保存' });
+  operation.reject(new Error('失败'));
+  assert.equal(await pending, undefined);
+  assert.equal(toasts.value.length, 1);
+  assert.equal(toasts.value[0].open, false);
+});
+
+test('Toast.promise supports a success marker for operations returning undefined', async (t) => {
+  mountProvider(t);
+  assert.equal(await Toast.promise(Promise.resolve().then(() => true)), true);
+  assert.equal(
+    await Toast.promise(Promise.reject(new Error('失败')).then(() => true)),
+    undefined,
+  );
 });
 
 test('a late Promise result does not reopen a dismissed toast', async (t) => {

@@ -144,7 +144,8 @@ import { Toast, useWebKit } from '@novelia/web-kit';
 Toast.success('已保存');
 Toast.error('保存失败');
 
-// 返回原操作的结果；失败时仍会抛出原错误，调用方需要处理。
+// 成功时返回原操作的结果；失败时展示通知并返回 undefined，不再抛出原错误。
+// 若成功操作本身返回 undefined，可先用 .then(() => true) 标记成功。
 const result = await Toast.promise(
   client.post('settings', { json: settings }).json(),
   {

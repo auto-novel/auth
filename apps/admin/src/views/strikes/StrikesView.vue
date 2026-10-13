@@ -207,40 +207,39 @@ function closeCreateModal() {
 async function submitCreate() {
   if (!canCreate.value) return;
   createInProgress.value = true;
-  try {
-    await Toast.promise(
-      api.admin.createStrike({
+  await Toast.promise(
+    api.admin
+      .createStrike({
         username: createForm.username.trim(),
         reason: createForm.reason.trim(),
         evidence: createForm.evidence.trim(),
         point: createForm.point,
+      })
+      .then(async () => {
+        showCreateModal.value = false;
+        const firstPageLocation = {
+          query: createQuery({
+            page: 1,
+            pageSize: pageSize.value,
+            username: username.value,
+            operatorUsername: operatorUsername.value,
+            createdRange: createdRange.value,
+          }),
+        };
+        if (router.resolve(firstPageLocation).fullPath === route.fullPath) {
+          await loadStrikes();
+        } else {
+          await router.push(firstPageLocation);
+        }
       }),
-      {
-        loading: '正在新增警告',
-        success: `已警告用户 ${createForm.username.trim()}`,
-        error: '新增警告失败',
-      },
-    );
-    showCreateModal.value = false;
-    const firstPageLocation = {
-      query: createQuery({
-        page: 1,
-        pageSize: pageSize.value,
-        username: username.value,
-        operatorUsername: operatorUsername.value,
-        createdRange: createdRange.value,
-      }),
-    };
-    if (router.resolve(firstPageLocation).fullPath === route.fullPath) {
-      await loadStrikes();
-    } else {
-      await router.push(firstPageLocation);
-    }
-  } catch {
-    // Toast.promise 已展示失败原因，保留当前表单以便重试。
-  } finally {
+    {
+      loading: '正在新增警告',
+      success: `已警告用户 ${createForm.username.trim()}`,
+      error: '新增警告失败',
+    },
+  ).finally(() => {
     createInProgress.value = false;
-  }
+  });
 }
 
 function requestRevoke(strike: Strike) {
@@ -250,19 +249,19 @@ function requestRevoke(strike: Strike) {
 async function confirmRevoke() {
   if (!pendingRevoke.value) return;
   revokeInProgress.value = true;
-  try {
-    await Toast.promise(api.admin.revokeStrike(pendingRevoke.value.id), {
+  await Toast.promise(
+    api.admin.revokeStrike(pendingRevoke.value.id).then(async () => {
+      pendingRevoke.value = null;
+      await loadStrikes();
+    }),
+    {
       loading: '正在撤销违规记录',
       success: `已撤销违规记录 #${pendingRevoke.value.id}`,
       error: '撤销失败',
-    });
-    pendingRevoke.value = null;
-    await loadStrikes();
-  } catch {
-    // Toast.promise 已展示失败原因，保留待撤销记录以便重试。
-  } finally {
+    },
+  ).finally(() => {
     revokeInProgress.value = false;
-  }
+  });
 }
 
 watch(

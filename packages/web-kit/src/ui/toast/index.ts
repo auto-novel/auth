@@ -7,7 +7,7 @@ export const Toast = {
   promise<Value>(
     promise: Promise<Value>,
     messages: { loading?: string; success?: string; error?: string } = {},
-  ): Promise<Value> {
+  ): Promise<Value | undefined> {
     const id =
       messages.loading === undefined
         ? undefined
@@ -38,7 +38,7 @@ export const Toast = {
             ? undefined
             : getApiErrorMessage(reason, messages.error),
         );
-        throw reason;
+        return undefined;
       },
     );
   },

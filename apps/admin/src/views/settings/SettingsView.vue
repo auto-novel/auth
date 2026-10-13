@@ -77,24 +77,21 @@ async function loadSettings() {
 async function saveSettings() {
   saving.value = true;
 
-  try {
-    const nextSettings = await Toast.promise(
-      api.admin.updateAuthSettings({
+  await Toast.promise(
+    api.admin
+      .updateAuthSettings({
         registerEnabled: registerEnabled.value,
         resetPasswordEnabled: resetPasswordEnabled.value,
-      }),
-      {
-        loading: '正在保存设置',
-        success: '设置已保存',
-        error: '设置保存失败',
-      },
-    );
-    applySettings(nextSettings);
-  } catch {
-    // Toast.promise 已展示失败原因，保留当前表单以便重试。
-  } finally {
+      })
+      .then(applySettings),
+    {
+      loading: '正在保存设置',
+      success: '设置已保存',
+      error: '设置保存失败',
+    },
+  ).finally(() => {
     saving.value = false;
-  }
+  });
 }
 
 function requestSave() {
