@@ -1,37 +1,42 @@
 <script setup lang="ts">
 import {
   Notify,
-  XActionMenu,
-  XActionMenuItem,
   XButton,
-  XConfirmDialog,
-  XDrawer,
-  XPagination,
-  XSelect,
   XTime,
   XTooltip,
   type XButtonVariant,
 } from '@novelia/web-kit';
-import { ref } from 'vue';
+import { RouterLink } from 'vue-router';
 
-const confirmOpen = ref(false);
-const drawerOpen = ref(false);
-const drawerSide = ref<'left' | 'right' | 'top' | 'bottom'>('right');
-const selected = ref('alpha');
-const scrollSelected = ref('option-1');
-const scrollOptions = Array.from({ length: 30 }, (_, index) => ({
-  label: `选项 ${index + 1}`,
-  value: `option-${index + 1}`,
-}));
-const page = ref(2);
-const options = [
-  { label: '选项 A', value: 'alpha' },
-  { label: '选项 B', value: 'beta' },
-  { label: '选项 C', value: 'gamma' },
+const componentPages = [
+  {
+    to: '/components/drawer',
+    title: '抽屉 · XDrawer',
+    description: '四方向、尺寸控制、受控开关与拖动关闭。',
+  },
+  {
+    to: '/components/select',
+    title: '选择器 · XSelect',
+    description: '值绑定、禁用状态、键盘操作与长列表。',
+  },
+  {
+    to: '/components/action-menu',
+    title: '操作菜单与确认框',
+    description: '对齐、菜单项状态与危险操作确认流程。',
+  },
+  {
+    to: '/components/pagination',
+    title: '分页 · XPagination',
+    description: '受控页码、跳页与全局键盘翻页。',
+  },
+  {
+    to: '/components/async-content',
+    title: '异步内容 · XAsyncContent',
+    description: '加载、错误重试、空状态和正常内容。',
+  },
 ];
 const sampleTime = new Date('2025-06-05T15:04:30+08:00');
 const relativeBase = new Date('2025-06-05T15:07:30+08:00');
-const menuAlignments = ['start', 'end'] as const;
 const variants: XButtonVariant[] = [
   'primary',
   'outline',
@@ -47,11 +52,26 @@ const variants: XButtonVariant[] = [
 <template>
   <div class="page-container flex flex-col gap-8 py-6">
     <header class="border-b border-divider pb-6">
-      <h1 class="mb-2 text-lg font-medium">组件测试</h1>
+      <h1 class="mb-2 text-lg font-medium">组件总览</h1>
       <p class="text-sm text-muted">
-        按组件类型查看交互示例。可通过侧栏切换主题，检查浅色与深色效果。
+        基础组件在此快速预览；复杂组件进入独立页面查看介绍、交互示例和用法。
       </p>
     </header>
+
+    <section aria-labelledby="component-pages">
+      <h2 id="component-pages" class="mb-3 font-medium">组件详细介绍</h2>
+      <div class="grid gap-3 sm:grid-cols-2">
+        <RouterLink
+          v-for="item in componentPages"
+          :key="item.to"
+          :to="item.to"
+          class="rounded-sm border border-border bg-surface p-4 transition-colors hover:border-primary focus-visible:outline-2 focus-visible:outline-primary"
+        >
+          <h3 class="mb-2 font-medium">{{ item.title }} →</h3>
+          <p class="text-sm leading-6 text-muted">{{ item.description }}</p>
+        </RouterLink>
+      </div>
+    </section>
 
     <section aria-labelledby="test-buttons">
       <h2 id="test-buttons" class="mb-2 font-medium">按钮 · XButton</h2>
@@ -76,43 +96,6 @@ const variants: XButtonVariant[] = [
       </div>
     </section>
 
-    <section aria-labelledby="test-select" class="border-t border-divider pt-6">
-      <h2 id="test-select" class="mb-2 font-medium">选择器 · XSelect</h2>
-      <p class="mb-4 text-sm text-muted">
-        检查选项切换、键盘操作和禁用状态；长列表可通过滚轮、拖动滚动条或方向键浏览，切换主题检查滚动条配色。
-      </p>
-      <div class="flex flex-wrap gap-4">
-        <label class="flex w-48 flex-col gap-2 text-sm text-muted">
-          正常
-          <XSelect
-            v-model="selected"
-            :options="options"
-            aria-label="示例选项"
-          />
-        </label>
-        <label class="flex w-48 flex-col gap-2 text-sm text-muted">
-          禁用
-          <XSelect
-            v-model="selected"
-            :options="options"
-            disabled
-            aria-label="禁用示例选项"
-          />
-        </label>
-        <label class="flex w-48 flex-col gap-2 text-sm text-muted">
-          长列表 · 30 项
-          <XSelect
-            v-model="scrollSelected"
-            :options="scrollOptions"
-            aria-label="滚动条示例选项"
-          />
-        </label>
-      </div>
-      <p class="mt-3 text-xs text-muted">
-        当前值：{{ selected }} · 长列表当前值：{{ scrollSelected }}
-      </p>
-    </section>
-
     <section
       aria-labelledby="test-tooltip"
       class="border-t border-divider pt-6"
@@ -127,96 +110,6 @@ const variants: XButtonVariant[] = [
         </template>
         提示浮层与菜单使用相同的圆角和阴影。
       </XTooltip>
-    </section>
-
-    <section aria-labelledby="test-menu" class="border-t border-divider pt-6">
-      <h2 id="test-menu" class="mb-2 font-medium">操作菜单 · XActionMenu</h2>
-      <p class="mb-4 text-sm text-muted">
-        检查浮层对齐、普通项、禁用项和危险项；危险项会打开下方的确认框。
-      </p>
-      <div class="flex flex-wrap items-center gap-6">
-        <div
-          v-for="align in menuAlignments"
-          :key="align"
-          class="flex items-center gap-2"
-        >
-          <span class="text-sm text-muted">{{ align }} 对齐</span>
-          <XActionMenu :align="align">
-            <XActionMenuItem @activate="Notify.success('已选择编辑')">
-              编辑
-            </XActionMenuItem>
-            <XActionMenuItem disabled>暂不可用</XActionMenuItem>
-            <XActionMenuItem danger @activate="confirmOpen = true">
-              删除示例
-            </XActionMenuItem>
-          </XActionMenu>
-        </div>
-      </div>
-    </section>
-
-    <section aria-labelledby="test-dialog" class="border-t border-divider pt-6">
-      <h2 id="test-dialog" class="mb-2 font-medium">确认框 · XConfirmDialog</h2>
-      <p class="mb-4 text-sm text-muted">
-        检查打开、取消和确认流程，此示例不会删除实际数据。
-      </p>
-      <XButton variant="danger" @click="confirmOpen = true">打开确认框</XButton>
-      <XConfirmDialog
-        v-model:open="confirmOpen"
-        title="删除示例"
-        description="这是确认框的展示示例，确认后会显示成功通知，不会删除实际数据。"
-        confirm-label="确认删除"
-        danger
-        @confirm="Notify.success('示例操作完成')"
-      />
-    </section>
-
-    <section aria-labelledby="test-drawer" class="border-t border-divider pt-6">
-      <h2 id="test-drawer" class="mb-2 font-medium">抽屉 · XDrawer</h2>
-      <p class="mb-4 text-sm text-muted">
-        检查四个方向滑入及拖动关闭、遮罩和 Esc 关闭、焦点恢复及背景滚动锁定。
-      </p>
-      <div class="flex flex-wrap items-center gap-3">
-        <label class="flex items-center gap-2 text-sm text-muted">
-          方向
-          <select
-            v-model="drawerSide"
-            class="rounded-sm border border-border bg-surface p-2 text-ink"
-          >
-            <option value="left">左侧</option>
-            <option value="right">右侧</option>
-            <option value="top">顶部</option>
-            <option value="bottom">底部</option>
-          </select>
-        </label>
-        <XDrawer
-          v-model:open="drawerOpen"
-          title="抽屉示例"
-          description="可复用的模态抽屉，支持自定义内容。"
-          :side="drawerSide"
-          :width="360"
-          :height="360"
-        >
-          <template #trigger>
-            <XButton variant="outline">打开抽屉</XButton>
-          </template>
-          <template #default>
-            <div class="min-h-0 flex-1 overflow-y-auto p-6 pt-16">
-              <h3 class="text-lg font-medium">抽屉示例</h3>
-              <p class="my-4 text-sm text-muted">
-                内容区可以放置表单、筛选条件或导航。
-              </p>
-              <label class="mb-6 flex flex-col gap-2 text-sm">
-                示例输入框
-                <input
-                  class="rounded-sm border border-border bg-surface p-2"
-                  placeholder="检查键盘焦点"
-                />
-              </label>
-              <XButton @click="drawerOpen = false">完成并关闭</XButton>
-            </div>
-          </template>
-        </XDrawer>
-      </div>
     </section>
 
     <section aria-labelledby="test-notify" class="border-t border-divider pt-6">
@@ -241,23 +134,6 @@ const variants: XButtonVariant[] = [
         </XButton>
         <XButton variant="ghost" @click="Notify.dismissAll()">清空通知</XButton>
       </div>
-    </section>
-
-    <section
-      aria-labelledby="test-pagination"
-      class="border-t border-divider pt-6"
-    >
-      <h2 id="test-pagination" class="mb-2 font-medium">分页 · XPagination</h2>
-      <p class="mb-4 text-sm text-muted">
-        检查上一页、下一页和页码切换；已开启左右方向键翻页，输入框和弹窗内不触发。桌面端点击省略号，移动端点击中间页数，可跳转到指定页，支持回车确认。
-      </p>
-      <XPagination
-        :page="page"
-        :total-pages="20"
-        keyboard
-        @change="page = $event"
-      />
-      <p class="mt-3 text-xs text-muted">当前页：{{ page }} / 20</p>
     </section>
 
     <section aria-labelledby="test-time" class="border-t border-divider pt-6">

@@ -31,6 +31,31 @@ const router = createRouter({
       component: () => import('./ComponentsView.vue'),
     },
     {
+      path: '/components/drawer',
+      name: 'components-drawer',
+      component: () => import('./components/DrawerView.vue'),
+    },
+    {
+      path: '/components/select',
+      name: 'components-select',
+      component: () => import('./components/SelectView.vue'),
+    },
+    {
+      path: '/components/action-menu',
+      name: 'components-action-menu',
+      component: () => import('./components/ActionMenuView.vue'),
+    },
+    {
+      path: '/components/pagination',
+      name: 'components-pagination',
+      component: () => import('./components/PaginationView.vue'),
+    },
+    {
+      path: '/components/async-content',
+      name: 'components-async-content',
+      component: () => import('./components/AsyncContentView.vue'),
+    },
+    {
       path: '/profile',
       name: 'profile',
       component: () => import('./ProfileView.vue'),

@@ -21,10 +21,30 @@ const navigationOptions: WebKitMenuOption[] = [
   { key: 'home', label: '首页', icon: HomeOutlined, to: '/' },
   { key: 'theme', label: '主题测试', icon: PaletteOutlined, to: '/theme' },
   {
-    key: 'components',
-    label: '组件测试',
+    key: 'component-pages',
+    type: 'group',
+    label: '组件',
     icon: WidgetsOutlined,
-    to: '/components',
+    children: [
+      { key: 'components', label: '基础组件总览', to: '/components' },
+      { key: 'components-drawer', label: '抽屉', to: '/components/drawer' },
+      { key: 'components-select', label: '选择器', to: '/components/select' },
+      {
+        key: 'components-action-menu',
+        label: '菜单与确认框',
+        to: '/components/action-menu',
+      },
+      {
+        key: 'components-pagination',
+        label: '分页',
+        to: '/components/pagination',
+      },
+      {
+        key: 'components-async-content',
+        label: '异步内容',
+        to: '/components/async-content',
+      },
+    ],
   },
   {
     key: 'account',
