@@ -11,7 +11,15 @@ import {
   PopoverTrigger,
 } from 'reka-ui';
 
-import { computed, ref, watch } from 'vue';
+import { onKeyDown } from '@vueuse/core';
+import {
+  computed,
+  onActivated,
+  onDeactivated,
+  onMounted,
+  ref,
+  watch,
+} from 'vue';
 
 import XButton from './XButton.vue';
 import type { XPaginationProps } from './types';
@@ -24,6 +32,77 @@ const emit = defineEmits<{
 
 const openJumpIndex = ref<number | null>(null);
 const jumpPage = ref<number | string>(props.page);
+
+const active = ref(false);
+onMounted(() => {
+  active.value = true;
+});
+onActivated(() => {
+  active.value = true;
+});
+onDeactivated(() => {
+  active.value = false;
+});
+
+const keyboardEnabled = () =>
+  active.value && props.keyboard && openJumpIndex.value === null;
+onKeyDown(
+  ['ArrowLeft', 'ArrowRight'],
+  (event) => {
+    if (
+      !keyboardEnabled() ||
+      event.defaultPrevented ||
+      event.isComposing ||
+      event.altKey ||
+      event.ctrlKey ||
+      event.metaKey ||
+      event.shiftKey
+    )
+      return;
+
+    const document = (event.currentTarget as Window | null)?.document;
+    const ElementClass = document?.defaultView?.Element;
+    const interactiveSelector =
+      'input, textarea, select, [contenteditable]:not([contenteditable="false"]), [role="textbox"], [role="combobox"], [role="slider"], [role="spinbutton"], [role="tablist"], [role="menu"], [role="listbox"], [role="dialog"], [role="alertdialog"]';
+    if (
+      (ElementClass &&
+        event
+          .composedPath()
+          .some(
+            (target) =>
+              target instanceof ElementClass &&
+              (target.closest(interactiveSelector) ||
+                (target as HTMLElement).isContentEditable),
+          )) ||
+      document?.querySelector(
+        'dialog[open], [role="dialog"][data-state="open"], [role="alertdialog"][data-state="open"], [aria-modal="true"]:not([hidden]):not([data-state="closed"])',
+      )
+    )
+      return;
+
+    const { page, totalPages } = props;
+    const nextPage = page + (event.key === 'ArrowLeft' ? -1 : 1);
+    if (
+      !Number.isInteger(page) ||
+      !Number.isInteger(totalPages) ||
+      page < 1 ||
+      page > totalPages ||
+      nextPage < 1 ||
+      nextPage > totalPages
+    )
+      return;
+
+    event.preventDefault();
+    emit('change', nextPage);
+  },
+  {
+    // 忽略长按产生的重复事件，每次按下只翻一页。
+    dedupe: true,
+    // VueUse 自动清理；停用、关闭快捷键或打开跳页弹窗时移除监听。
+    target: () =>
+      keyboardEnabled() && typeof window !== 'undefined' ? window : undefined,
+  },
+);
 
 function setJumpOpen(open: boolean, index: number) {
   openJumpIndex.value = open ? index : null;
@@ -64,7 +143,7 @@ function jumpToPage() {
     @update:page="$emit('change', $event)"
   >
     <PaginationPrev as-child>
-      <XButton variant="outline" size="sm">上一页</XButton>
+      <XButton variant="ghost" size="sm">上一页</XButton>
     </PaginationPrev>
 
     <PopoverRoot
@@ -189,7 +268,7 @@ function jumpToPage() {
     </PaginationList>
 
     <PaginationNext as-child>
-      <XButton variant="outline" size="sm">下一页</XButton>
+      <XButton variant="ghost" size="sm">下一页</XButton>
     </PaginationNext>
   </PaginationRoot>
 </template>
