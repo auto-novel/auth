@@ -3,7 +3,7 @@ import { registerHooks } from 'node:module';
 import test from 'node:test';
 
 import { createApp, isReadonly } from 'vue';
-import { notifications, Notify } from '../src/notifications/index.ts';
+import { Toast, toastManager } from '../src/ui/toast/index.ts';
 
 registerHooks({
   resolve(specifier, context, nextResolve) {
@@ -13,9 +13,7 @@ registerHooks({
       /\/packages\/web-kit\/src\//.test(context.parentURL ?? '')
     ) {
       return nextResolve(
-        specifier === './notifications' || specifier === './theme'
-          ? `${specifier}/index.ts`
-          : `${specifier}.ts`,
+        specifier === './theme' ? `${specifier}/index.ts` : `${specifier}.ts`,
         context,
       );
     }
@@ -85,9 +83,9 @@ function fakeBrowser(t) {
     configurable: true,
     value: browser,
   });
-  Notify.dismissAll();
+  Toast.dismissAll();
   t.after(() => {
-    Notify.dismissAll();
+    Toast.dismissAll();
     if (previousWindow)
       Object.defineProperty(globalThis, 'window', previousWindow);
     else delete globalThis.window;
@@ -111,7 +109,9 @@ function fakeBrowser(t) {
 test('create restores session and theme, and rejects a second create', async (t) => {
   const { counts, now } = fakeBrowser(t);
   const createWebKit = await freshFactory();
-  Notify.success('before creation');
+  const add = t.mock.method(toastManager, 'add');
+  const close = t.mock.method(toastManager, 'close');
+  Toast.success('before creation');
   const kit = createWebKit(options);
   assert.equal(kit.whoami.value.user.username, 'member');
   assert.equal(kit.whoami.value.isSignedIn, true);
@@ -141,7 +141,11 @@ test('create restores session and theme, and rejects a second create', async (t)
   assert.equal(counts.reads, 2); // session + theme
   assert.equal(counts.added, 2); // session + theme 的 storage 监听
   assert.equal(counts.timers, 2); // auth refresh + attention polling
-  assert.equal(notifications.items.value[0].message, 'before creation');
+  assert.equal(add.mock.callCount(), 1);
+  assert.equal(close.mock.callCount(), 0);
+  assert.deepEqual(add.mock.calls[0].arguments, [
+    { status: 'success', description: 'before creation' },
+  ]);
 
   const before = { ...counts };
   assert.throws(
@@ -158,10 +162,10 @@ test('create restores session and theme, and rejects a second create', async (t)
     /only be called once/,
   );
   assert.deepEqual(counts, before);
-  Notify.error('after rejected creation');
+  Toast.error('after rejected creation');
   assert.deepEqual(
-    notifications.items.value.map(({ message }) => message),
-    ['after rejected creation', 'before creation'],
+    add.mock.calls.map(({ arguments: [options] }) => options.description),
+    ['before creation', 'after rejected creation'],
   );
 
   assert.throws(() => createWebKit(options), /only be called once/);

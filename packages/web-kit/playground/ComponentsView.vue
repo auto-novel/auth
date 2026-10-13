@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {
-  Notify,
+  Toast,
   XButton,
   XTime,
   XTooltip,
@@ -35,6 +35,26 @@ const componentPages = [
     description: '加载、错误重试、空状态和正常内容。',
   },
 ];
+async function showPromiseToast(fail = false) {
+  try {
+    await Toast.promise(
+      new Promise<string>((resolve, reject) => {
+        setTimeout(() => {
+          if (fail) reject(new Error('示例保存失败'));
+          else resolve('示例设置');
+        }, 1500);
+      }),
+      {
+        loading: '正在保存…',
+        success: '示例设置已保存',
+        error: '示例保存失败',
+      },
+    );
+  } catch {
+    // 错误已由通知展示；Promise 仍保留原来的拒绝语义。
+  }
+}
+
 const sampleTime = new Date('2025-06-05T15:04:30+08:00');
 const relativeBase = new Date('2025-06-05T15:07:30+08:00');
 const variants: XButtonVariant[] = [
@@ -87,7 +107,7 @@ const variants: XButtonVariant[] = [
           <code class="w-24 text-xs text-muted">{{ variant }}</code>
           <XButton
             :variant="variant"
-            @click="Notify.success(`点击了 ${variant} 按钮`)"
+            @click="Toast.success(`点击了 ${variant} 按钮`)"
           >
             示例按钮
           </XButton>
@@ -112,27 +132,33 @@ const variants: XButtonVariant[] = [
       </XTooltip>
     </section>
 
-    <section aria-labelledby="test-notify" class="border-t border-divider pt-6">
-      <h2 id="test-notify" class="mb-2 font-medium">通知 · Notify</h2>
+    <section aria-labelledby="test-toast" class="border-t border-divider pt-6">
+      <h2 id="test-toast" class="mb-2 font-medium">通知 · Toast</h2>
       <p class="mb-4 text-sm text-muted">
-        检查成功、错误、多行内容及通知清理。
+        检查成功、错误、多行内容、Promise 状态更新及通知清理。
       </p>
       <div class="flex flex-wrap items-center gap-3">
-        <XButton @click="Notify.success('操作成功')">成功通知</XButton>
-        <XButton variant="danger" @click="Notify.error('操作失败')">
+        <XButton @click="Toast.success('操作成功')">成功通知</XButton>
+        <XButton variant="danger" @click="Toast.error('操作失败')">
           错误通知
         </XButton>
         <XButton
           variant="outline"
           @click="
-            Notify.success(
+            Toast.success(
               '设置已保存。\n这是一条多行通知，用于检查换行和浮层宽度。',
             )
           "
         >
           多行通知
         </XButton>
-        <XButton variant="ghost" @click="Notify.dismissAll()">清空通知</XButton>
+        <XButton variant="outline" @click="showPromiseToast()">
+          Promise 成功
+        </XButton>
+        <XButton variant="outline" @click="showPromiseToast(true)">
+          Promise 失败
+        </XButton>
+        <XButton variant="ghost" @click="Toast.dismissAll()">清空通知</XButton>
       </div>
     </section>
 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {
-  Notify,
+  Toast,
   XActionMenu,
   XActionMenuItem,
   XButton,
@@ -34,7 +34,7 @@ const code =
         >
           <span class="text-sm text-muted">{{ align }} 对齐</span>
           <XActionMenu :align="align">
-            <XActionMenuItem @activate="Notify.success('已选择编辑')">
+            <XActionMenuItem @activate="Toast.success('已选择编辑')">
               编辑
             </XActionMenuItem>
             <XActionMenuItem disabled>暂不可用</XActionMenuItem>
@@ -58,7 +58,7 @@ const code =
         description="这是确认框的展示示例，确认后会显示成功通知，不会删除实际数据。"
         confirm-label="确认删除"
         danger
-        @confirm="Notify.success('示例操作完成')"
+        @confirm="Toast.success('示例操作完成')"
       />
     </section>
     <section class="border-t border-divider pt-6">

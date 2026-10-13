@@ -139,17 +139,28 @@ const client = createClient('/api/', { timeout: 60_000 });
 ## 通知和主题
 
 ```ts
-import { Notify, useWebKit } from '@novelia/web-kit';
+import { Toast, useWebKit } from '@novelia/web-kit';
 
-Notify.success('已保存');
-Notify.error('保存失败');
+Toast.success('已保存');
+Toast.error('保存失败');
+
+// 返回原操作的结果；失败时仍会抛出原错误，调用方需要处理。
+const result = await Toast.promise(
+  client.post('settings', { json: settings }).json(),
+  {
+    loading: '正在保存…',
+    success: '已保存',
+    error: '保存失败',
+  },
+);
+Toast.dismissAll();
 
 const { theme } = useWebKit();
 theme.setPreference('system'); // 也可设为 'light' 或 'dark'
 theme.toggleTheme();
 ```
 
-通知需要根组件中挂载 `WebKitApp`。主题默认跟随系统，会记住用户的选择。
+通知需要根组件中挂载 `WebKitApp`。`Toast.promise(promise, { loading, success, error })` 在同一条通知中展示加载、成功或失败状态；加载时不会自动关闭，完成后恢复默认时长。`loading` / `success` / `error` 仅接受字符串，内部统一使用固定的状态和消息格式。手动关闭后，Promise 完成不会重新打开通知。主题默认跟随系统，会记住用户的选择。
 
 Vite 项目可加上主题插件，避免首次打开时闪一下：
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { RouterView } from 'vue-router';
 
-import GlobalNotifications from '../notifications/GlobalNotifications.vue';
+import XToaster from '../ui/toast/XToaster.vue';
 
 defineOptions({ inheritAttrs: false });
 </script>
@@ -10,5 +10,5 @@ defineOptions({ inheritAttrs: false });
   <slot>
     <RouterView />
   </slot>
-  <GlobalNotifications />
+  <XToaster />
 </template>

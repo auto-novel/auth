@@ -12,7 +12,7 @@ import XSelect from './ui/XSelect.vue';
 import XTime from './ui/XTime.vue';
 import XTooltip from './ui/XTooltip.vue';
 import { useWebKit } from './context';
-import { Notify } from './notifications';
+import { Toast } from './ui/toast';
 import { getApiErrorMessage } from './utils/apiError';
 
 export { createWebKit } from './create';
@@ -47,12 +47,11 @@ export {
   XSelect,
   XTime,
   XTooltip,
-  Notify,
+  Toast,
   getApiErrorMessage,
   useWebKit,
 };
 export type { XDrawerProps } from './ui/drawer/types';
-export type { AppNotification } from './notifications';
 export type { Theme, ThemeOverride, ThemePreference, WebTheme } from './theme';
 export type { UserRole, Whoami, WhoamiUser } from './auth/whoami';
 export type {
