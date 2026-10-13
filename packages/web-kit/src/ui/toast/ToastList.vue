@@ -2,9 +2,13 @@
 import {
   CheckCircleOutlineOutlined,
   ErrorOutlineOutlined,
+  InfoOutlined,
+  WarningAmberOutlined,
+  CloseOutlined,
   LoopOutlined,
 } from '@vicons/material';
 import {
+  ToastClose,
   ToastDescription,
   ToastPortal,
   ToastRoot,
@@ -32,6 +36,16 @@ const { toasts } = useToastManager();
       class="size-5 flex-none text-success"
       aria-hidden="true"
     />
+    <InfoOutlined
+      v-else-if="notification.status === 'info'"
+      class="size-5 flex-none text-info"
+      aria-hidden="true"
+    />
+    <WarningAmberOutlined
+      v-else-if="notification.status === 'warning'"
+      class="size-5 flex-none text-warning"
+      aria-hidden="true"
+    />
     <ErrorOutlineOutlined
       v-else
       class="size-5 flex-none text-error"
@@ -40,6 +54,12 @@ const { toasts } = useToastManager();
     <ToastDescription
       class="min-w-0 flex-1 text-sm font-normal whitespace-pre-wrap wrap-anywhere text-ink"
     />
+    <ToastClose
+      aria-label="关闭通知"
+      class="flex size-6 flex-none cursor-pointer items-center justify-center rounded text-muted hover:bg-hover hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-info"
+    >
+      <CloseOutlined class="size-4" aria-hidden="true" />
+    </ToastClose>
   </ToastRoot>
 
   <ToastPortal>

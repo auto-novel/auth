@@ -6,7 +6,34 @@ import {
   XTooltip,
   type XButtonVariant,
 } from '@novelia/web-kit';
+import { ref } from 'vue';
 import { RouterLink } from 'vue-router';
+
+const editableToastId = ref<string>();
+function showEditableToast() {
+  editableToastId.value = Toast.info(
+    '这条消息不会自动关闭，可更新或单独关闭。',
+    {
+      id: 'playground-editable-toast',
+      duration: 0,
+      onClose: () => {
+        editableToastId.value = undefined;
+      },
+    },
+  );
+}
+function updateEditableToast() {
+  if (editableToastId.value) {
+    Toast.update(editableToastId.value, {
+      message: '消息已更新，将在 3 秒后关闭。',
+      status: 'success',
+      duration: 3000,
+    });
+  }
+}
+function dismissEditableToast() {
+  if (editableToastId.value) Toast.dismiss(editableToastId.value);
+}
 
 const componentPages = [
   {
@@ -131,7 +158,7 @@ const variants: XButtonVariant[] = [
     <section aria-labelledby="test-toast" class="border-t border-divider pt-6">
       <h2 id="test-toast" class="mb-2 font-medium">通知 · Toast</h2>
       <p class="mb-4 text-sm text-muted">
-        检查成功、错误、多行内容、Promise 状态更新及通知清理。
+        检查四种通知、单条更新与关闭、生命周期、多行内容及 Promise 状态更新。
       </p>
       <div class="flex flex-wrap items-center gap-3">
         <XButton @click="Toast.success('操作成功')">成功通知</XButton>
@@ -153,6 +180,30 @@ const variants: XButtonVariant[] = [
         </XButton>
         <XButton variant="outline" @click="showPromiseToast(true)">
           Promise 失败
+        </XButton>
+        <XButton variant="outline" @click="Toast.info('这是一条信息通知')">
+          信息通知
+        </XButton>
+        <XButton
+          variant="outline"
+          @click="Toast.warning('请注意检查设置', { duration: 8000 })"
+        >
+          警告通知（8 秒）
+        </XButton>
+        <XButton variant="outline" @click="showEditableToast">常驻通知</XButton>
+        <XButton
+          variant="outline"
+          :disabled="!editableToastId"
+          @click="updateEditableToast"
+        >
+          更新通知
+        </XButton>
+        <XButton
+          variant="outline"
+          :disabled="!editableToastId"
+          @click="dismissEditableToast"
+        >
+          单独关闭
         </XButton>
         <XButton variant="ghost" @click="Toast.dismissAll()">清空通知</XButton>
       </div>

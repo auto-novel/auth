@@ -79,6 +79,115 @@ test('Toast adds managed toasts to the Provider, newest first', (t) => {
   assert.notEqual(toasts.value[0].id, toasts.value[1].id);
 });
 
+test('all notification methods return IDs and forward per-toast lifecycle options', (t) => {
+  const { toasts } = mountProvider(t);
+  const onClose = () => {};
+  const onRemove = () => {};
+  for (const status of ['success', 'error', 'info', 'warning']) {
+    const id = Toast[status](status, { duration: 0, onClose, onRemove });
+    const toast = toasts.value[0];
+    assert.equal(id, toast.id);
+    assert.equal(toast.status, status);
+    assert.equal(toast.duration, 0);
+    assert.equal(toast.onClose, onClose);
+    assert.equal(toast.onRemove, onRemove);
+  }
+});
+
+test('Toast.update patches a single message without changing its ID or other messages', (t) => {
+  const { toasts } = mountProvider(t);
+  const id = Toast.info('before', { duration: 0 });
+  const other = Toast.warning('other', { duration: 8000 });
+  Toast.update(id, { message: 'after', status: 'success', duration: 1500 });
+  assert.equal(toasts.value.length, 2);
+  assert.equal(toasts.value[0].id, other);
+  assert.equal(toasts.value[0].description, 'other');
+  const updated = toasts.value[1];
+  assert.equal(updated.id, id);
+  assert.equal(updated.description, 'after');
+  assert.equal(updated.status, 'success');
+  assert.equal(updated.duration, 1500);
+  Toast.update(id, { duration: undefined });
+  assert.equal(toasts.value[1].duration, undefined);
+  assert.equal(toasts.value[1].description, 'after');
+});
+
+test('Toast.dismiss closes only the selected message and invokes onClose once', (t) => {
+  const { toasts } = mountProvider(t);
+  let closed = 0;
+  let removed = 0;
+  const id = Toast.info('selected', {
+    onClose: () => closed++,
+    onRemove: () => removed++,
+  });
+  const other = Toast.success('other');
+  Toast.dismiss(id);
+  Toast.dismiss(id);
+  Toast.update(id, { message: 'must not reopen' });
+  Toast.update('missing', { message: 'ignored' });
+  Toast.dismiss('missing');
+  assert.equal(closed, 1);
+  assert.equal(removed, 0); // Removal belongs to ToastRoot after the exit animation.
+  assert.equal(toasts.value.length, 2);
+  assert.equal(toasts.value[0].id, other);
+  assert.equal(toasts.value[0].open, true);
+  assert.equal(toasts.value[1].open, false);
+  assert.equal(toasts.value[1].description, 'selected');
+});
+
+test('adding an existing ID updates the same toast and restarts its lifecycle', (t) => {
+  const { toasts } = mountProvider(t);
+  const id = Toast.info('before', { id: 'custom', duration: 0 });
+  assert.equal(Toast.warning('after', { id, duration: 1000 }), id);
+  assert.equal(toasts.value.length, 1);
+  assert.equal(toasts.value[0].status, 'warning');
+  assert.equal(toasts.value[0].duration, 1000);
+  Toast.dismiss(id);
+  Toast.info('new lifecycle', { id });
+  assert.equal(toasts.value.length, 1);
+  assert.equal(toasts.value[0].open, true);
+});
+
+test('Toast.promise supports per-stage lifecycle options and resets loading duration', async (t) => {
+  const { toasts } = mountProvider(t);
+  const operation = Promise.withResolvers();
+  const pending = Toast.promise(
+    operation.promise,
+    {
+      loading: { message: 'loading', duration: 0 },
+      success: { message: 'done', duration: 1200 },
+    },
+    { id: 'promise-options', duration: 7000 },
+  );
+  assert.equal(toasts.value[0].id, 'promise-options');
+  assert.equal(toasts.value[0].duration, 0);
+  operation.resolve(42);
+  assert.equal(await pending, 42);
+  assert.equal(toasts.value[0].duration, 1200);
+  assert.equal(toasts.value[0].description, 'done');
+
+  await Toast.promise(Promise.resolve(), {
+    loading: { message: 'loading', duration: 0 },
+    success: 'done',
+  });
+  assert.equal(toasts.value[0].duration, undefined);
+});
+
+test('Toast.promise supports configured result messages without a loading toast', async (t) => {
+  const { toasts } = mountProvider(t);
+  let closed = 0;
+  assert.equal(
+    await Toast.promise(Promise.reject(new Error('detail')), {
+      error: { message: 'failed', duration: 0, onClose: () => closed++ },
+    }),
+    undefined,
+  );
+  assert.equal(toasts.value[0].description, 'failed：detail');
+  assert.equal(toasts.value[0].duration, 0);
+  Toast.dismiss(toasts.value[0].id);
+  assert.equal(closed, 1);
+});
+
 test('Toast.dismissAll closes toasts without prematurely removing them', (t) => {
   const { toasts, close } = mountProvider(t);
   Toast.success('before');

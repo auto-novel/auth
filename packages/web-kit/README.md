@@ -143,6 +143,16 @@ import { Toast, useWebKit } from '@novelia/web-kit';
 
 Toast.success('已保存');
 Toast.error('保存失败');
+Toast.info('有新的消息');
+Toast.warning('请检查设置', { duration: 8000 });
+
+const id = Toast.info('等待操作', {
+  duration: 0, // 常驻，直到手动关闭
+  onClose: () => console.log('已关闭'),
+  onRemove: () => console.log('已移除'),
+});
+Toast.update(id, { message: '操作完成', status: 'success', duration: 3000 });
+Toast.dismiss(id); // 只关闭这一条
 
 // 成功时返回原操作的结果；失败时展示通知并返回 undefined，不再抛出原错误。
 // 若成功操作本身返回 undefined，可先用 .then(() => true) 标记成功。
@@ -161,7 +171,11 @@ theme.setPreference('system'); // 也可设为 'light' 或 'dark'
 theme.toggleTheme();
 ```
 
-通知需要根组件中挂载 `WebKitApp`。`Toast.promise(promise, { loading, success, error })` 在同一条通知中展示加载、成功或失败状态；加载时不会自动关闭，完成后恢复默认时长。`loading` / `success` / `error` 均可选且仅接受字符串，整个消息参数也可省略。省略 `loading` 时等待 Promise 完成后才创建结果通知；省略 `success` 或 `error` 时不显示对应结果通知，并关闭已有的加载通知。内部统一使用固定的状态和消息格式。手动关闭后，Promise 完成不会重新打开通知。主题默认跟随系统，会记住用户的选择。
+通知需要根组件中挂载 `WebKitApp`。`success` / `error` / `info` / `warning` 均返回消息 ID，并接受可选的 `ToastOptions`：`duration` 默认 4000 毫秒，`0` 或 `Infinity` 表示不自动关闭；`onClose` 在关闭时触发，`onRemove` 在退出动画结束、移除消息后触发。所有通知都有单独关闭按钮。可指定 `id`，重复添加同一条打开的消息会更新内容并重新计时；对已关闭的 ID 再次添加则开启新的生命周期。
+
+`Toast.update(id, { message, status, duration, onClose, onRemove })` 仅修改提供的字段；设置 `duration: undefined` 可恢复默认时长，改变时长会重新计时，仅更新文案不重置计时。更新不存在或已关闭的消息会被忽略。`Toast.dismiss(id)` 单独关闭，`Toast.dismissAll()` 全部关闭。
+
+`Toast.promise(promise, { loading, success, error }, options?)` 在同一条通知中展示加载、成功或失败状态；加载时不会自动关闭，完成后使用结果阶段或公共配置的时长（默认 4000 毫秒），不会继承加载阶段的常驻时长。各阶段均可选，接受字符串或 `{ message, duration?, onClose?, onRemove? }`，第三个参数提供公共 `ToastOptions`，阶段配置优先。例如 `success: { message: '已保存', duration: 2000 }`。整个消息参数也可省略。省略 `loading` 时等待 Promise 完成后才创建结果通知；省略 `success` 或 `error` 时不显示对应结果通知，并关闭已有的加载通知。错误阶段的 `message` 仍作为错误详情的前缀。手动关闭后，Promise 完成不会重新打开通知。主题默认跟随系统，会记住用户的选择。
 
 Vite 项目可加上主题插件，避免首次打开时闪一下：
 
