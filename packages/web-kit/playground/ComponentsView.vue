@@ -5,6 +5,7 @@ import {
   XActionMenuItem,
   XButton,
   XConfirmDialog,
+  XDrawer,
   XPagination,
   XSelect,
   XTime,
@@ -14,6 +15,8 @@ import {
 import { ref } from 'vue';
 
 const confirmOpen = ref(false);
+const drawerOpen = ref(false);
+const drawerSide = ref<'left' | 'right' | 'top' | 'bottom'>('right');
 const selected = ref('alpha');
 const scrollSelected = ref('option-1');
 const scrollOptions = Array.from({ length: 30 }, (_, index) => ({
@@ -165,6 +168,55 @@ const variants: XButtonVariant[] = [
         danger
         @confirm="Notify.success('示例操作完成')"
       />
+    </section>
+
+    <section aria-labelledby="test-drawer" class="border-t border-divider pt-6">
+      <h2 id="test-drawer" class="mb-2 font-medium">抽屉 · XDrawer</h2>
+      <p class="mb-4 text-sm text-muted">
+        检查四个方向滑入及拖动关闭、遮罩和 Esc 关闭、焦点恢复及背景滚动锁定。
+      </p>
+      <div class="flex flex-wrap items-center gap-3">
+        <label class="flex items-center gap-2 text-sm text-muted">
+          方向
+          <select
+            v-model="drawerSide"
+            class="rounded-sm border border-border bg-surface p-2 text-ink"
+          >
+            <option value="left">左侧</option>
+            <option value="right">右侧</option>
+            <option value="top">顶部</option>
+            <option value="bottom">底部</option>
+          </select>
+        </label>
+        <XDrawer
+          v-model:open="drawerOpen"
+          title="抽屉示例"
+          description="可复用的模态抽屉，支持自定义内容。"
+          :side="drawerSide"
+          :width="360"
+          :height="360"
+        >
+          <template #trigger>
+            <XButton variant="outline">打开抽屉</XButton>
+          </template>
+          <template #default>
+            <div class="min-h-0 flex-1 overflow-y-auto p-6 pt-16">
+              <h3 class="text-lg font-medium">抽屉示例</h3>
+              <p class="my-4 text-sm text-muted">
+                内容区可以放置表单、筛选条件或导航。
+              </p>
+              <label class="mb-6 flex flex-col gap-2 text-sm">
+                示例输入框
+                <input
+                  class="rounded-sm border border-border bg-surface p-2"
+                  placeholder="检查键盘焦点"
+                />
+              </label>
+              <XButton @click="drawerOpen = false">完成并关闭</XButton>
+            </div>
+          </template>
+        </XDrawer>
+      </div>
     </section>
 
     <section aria-labelledby="test-notify" class="border-t border-divider pt-6">

@@ -6,6 +6,7 @@ import XActionMenuItem from './ui/XActionMenuItem.vue';
 import XAsyncContent from './ui/XAsyncContent.vue';
 import XButton from './ui/XButton.vue';
 import XConfirmDialog from './ui/XConfirmDialog.vue';
+import XDrawer from './ui/drawer/XDrawer.vue';
 import XPagination from './ui/XPagination.vue';
 import XSelect from './ui/XSelect.vue';
 import XTime from './ui/XTime.vue';
@@ -41,6 +42,7 @@ export {
   XAsyncContent,
   XButton,
   XConfirmDialog,
+  XDrawer,
   XPagination,
   XSelect,
   XTime,
@@ -49,6 +51,7 @@ export {
   getApiErrorMessage,
   useWebKit,
 };
+export type { XDrawerProps } from './ui/drawer/types';
 export type { AppNotification } from './notifications';
 export type { Theme, ThemeOverride, ThemePreference, WebTheme } from './theme';
 export type { UserRole, Whoami, WhoamiUser } from './auth/whoami';

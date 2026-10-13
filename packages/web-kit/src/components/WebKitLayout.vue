@@ -5,21 +5,13 @@ import {
   CloseOutlined,
   MenuOutlined,
 } from '@vicons/material';
-import {
-  DialogRoot,
-  DialogPortal,
-  DialogOverlay,
-  DialogContent,
-  DialogTitle,
-  DialogTrigger,
-  DialogClose,
-} from 'reka-ui';
-import { computed, nextTick, ref, watch } from 'vue';
+import { computed, nextTick, ref, useId, watch } from 'vue';
 import { useRoute } from 'vue-router';
 
 import { selectedGroupKeys } from '../menu';
 import { useSidebarPreference } from '../sidebar';
 import type { WebKitMenuOption } from '../types';
+import XDrawer from '../ui/drawer/XDrawer.vue';
 import { useWebKitViewport } from '../viewport';
 import UserAccountButton from './account/UserAccountButton.vue';
 import WebKitSidebar from './WebKitSidebar.vue';
@@ -33,6 +25,7 @@ const props = defineProps<{
 const route = useRoute();
 const { viewportMode, isMobile } = useWebKitViewport();
 const mobileMenuOpen = ref(false);
+const mobileMenuId = useId();
 const sidebarPreference = useSidebarPreference();
 const sidebarCollapsed = computed(
   () => viewportMode.value === 'tablet' || sidebarPreference.value,
@@ -85,107 +78,91 @@ watch(
 </script>
 
 <template>
-  <DialogRoot v-model:open="mobileMenuOpen">
-    <div class="web-kit-layout flex min-h-dvh bg-body">
-      <DialogPortal>
-        <Transition
-          enter-active-class="transition-opacity duration-200"
-          enter-from-class="opacity-0"
-          leave-active-class="transition-opacity duration-200"
-          leave-to-class="opacity-0"
-        >
-          <DialogOverlay class="fixed inset-0 z-50 bg-black/40" />
-        </Transition>
-        <Transition
-          enter-active-class="transition-transform duration-200 ease-out"
-          enter-from-class="-translate-x-full"
-          leave-active-class="transition-transform duration-200 ease-in"
-          leave-to-class="-translate-x-full"
-        >
-          <DialogContent
-            :aria-describedby="undefined"
-            class="fixed inset-y-0 left-0 z-50 h-full w-70 max-w-[calc(100vw-3rem)] shadow-2xl outline-none"
-          >
-            <DialogTitle class="sr-only">站点导航</DialogTitle>
-            <WebKitSidebar
-              :options="navigationOptions"
-              :expanded="expanded"
-              :selected="selectedNavigationKey"
-              full-width
-              mobile-header
-              panel="modal"
-              @select="selectNavigation"
-            />
-            <DialogClose as-child>
-              <button
-                type="button"
-                class="absolute top-3 right-3 grid size-10 place-items-center rounded-md text-white transition-colors hover:bg-black/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-                aria-label="关闭导航菜单"
-              >
-                <CloseOutlined class="size-5" aria-hidden="true" />
-              </button>
-            </DialogClose>
-          </DialogContent>
-        </Transition>
-      </DialogPortal>
+  <div class="web-kit-layout flex min-h-dvh bg-body">
+    <XDrawer
+      :id="mobileMenuId"
+      v-model:open="mobileMenuOpen"
+      title="站点导航"
+      side="left"
+    >
+      <WebKitSidebar
+        :options="navigationOptions"
+        :expanded="expanded"
+        :selected="selectedNavigationKey"
+        full-width
+        mobile-header
+        panel="modal"
+        @select="selectNavigation"
+      />
+      <button
+        type="button"
+        class="absolute top-3 right-3 grid size-10 place-items-center rounded-md text-white transition-colors hover:bg-black/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+        aria-label="关闭导航菜单"
+        @click="mobileMenuOpen = false"
+      >
+        <CloseOutlined class="size-5" aria-hidden="true" />
+      </button>
+    </XDrawer>
 
-      <div v-if="!isMobile" class="sidebar-shell">
-        <WebKitSidebar
-          :options="navigationOptions"
-          :expanded="expanded"
-          :selected="selectedNavigationKey"
-          :collapsed="sidebarCollapsed"
-          class="flex-none"
-          @select="selectNavigation"
+    <div v-if="!isMobile" class="sidebar-shell">
+      <WebKitSidebar
+        :options="navigationOptions"
+        :expanded="expanded"
+        :selected="selectedNavigationKey"
+        :collapsed="sidebarCollapsed"
+        class="flex-none"
+        @select="selectNavigation"
+      />
+      <button
+        v-if="viewportMode === 'desktop'"
+        type="button"
+        class="sidebar-collapse"
+        :aria-label="sidebarCollapsed ? '展开侧边栏' : '收起侧边栏'"
+        :title="sidebarCollapsed ? '展开侧边栏' : '收起侧边栏'"
+        :aria-expanded="!sidebarCollapsed"
+        @click="toggleSidebar"
+      >
+        <component
+          :is="sidebarCollapsed ? ChevronRightOutlined : ChevronLeftOutlined"
+          class="size-[18px]"
+          aria-hidden="true"
         />
-        <button
-          v-if="viewportMode === 'desktop'"
-          type="button"
-          class="sidebar-collapse"
-          :aria-label="sidebarCollapsed ? '展开侧边栏' : '收起侧边栏'"
-          :title="sidebarCollapsed ? '展开侧边栏' : '收起侧边栏'"
-          :aria-expanded="!sidebarCollapsed"
-          @click="toggleSidebar"
-        >
-          <component
-            :is="sidebarCollapsed ? ChevronRightOutlined : ChevronLeftOutlined"
-            class="size-[18px]"
-            aria-hidden="true"
-          />
-        </button>
-      </div>
-
-      <div class="flex min-h-0 min-w-0 flex-1 flex-col">
-        <header
-          class="sticky top-0 z-30 flex h-[50px] flex-none items-center gap-3 border-b border-divider bg-surface px-2"
-        >
-          <DialogTrigger v-if="isMobile" as-child>
-            <button
-              type="button"
-              class="layout-toggle"
-              aria-label="打开导航菜单"
-              title="打开导航菜单"
-            >
-              <MenuOutlined class="size-6" aria-hidden="true" />
-            </button>
-          </DialogTrigger>
-          <div class="ml-auto flex min-w-0 flex-none items-center gap-1">
-            <div
-              v-if="isMobile && $slots['header-actions']"
-              class="flex flex-none items-center gap-2"
-            >
-              <slot name="header-actions" />
-            </div>
-            <UserAccountButton :options="accountOptions" />
-          </div>
-        </header>
-
-        <main class="min-w-0 flex-1">
-          <slot />
-        </main>
-      </div>
+      </button>
     </div>
-  </DialogRoot>
+
+    <div class="flex min-h-0 min-w-0 flex-1 flex-col">
+      <header
+        class="sticky top-0 z-30 flex h-[50px] flex-none items-center gap-3 border-b border-divider bg-surface px-2"
+      >
+        <button
+          v-if="isMobile"
+          type="button"
+          class="layout-toggle"
+          aria-label="打开导航菜单"
+          title="打开导航菜单"
+          aria-haspopup="dialog"
+          :aria-expanded="mobileMenuOpen"
+          :aria-controls="mobileMenuOpen ? mobileMenuId : undefined"
+          @click="mobileMenuOpen = true"
+        >
+          <MenuOutlined class="size-6" aria-hidden="true" />
+        </button>
+        <div class="ml-auto flex min-w-0 flex-none items-center gap-1">
+          <div
+            v-if="isMobile && $slots['header-actions']"
+            class="flex flex-none items-center gap-2"
+          >
+            <slot name="header-actions" />
+          </div>
+          <UserAccountButton :options="accountOptions" />
+        </div>
+      </header>
+
+      <main class="min-w-0 flex-1">
+        <slot />
+      </main>
+    </div>
+  </div>
 </template>
 
 <style scoped>
