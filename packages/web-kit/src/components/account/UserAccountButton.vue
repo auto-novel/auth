@@ -191,7 +191,7 @@ async function focusLoginFrame() {
           :side-offset="8"
           :collision-padding="8"
         >
-          <AccountMenuPanel>
+          <AccountMenuPanel class="pt-0">
             <DropdownMenuLabel class="p-0">
               <button
                 v-if="whoami.isAdmin"
