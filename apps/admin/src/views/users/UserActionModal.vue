@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { NAlert, NButton, NInput, NModal, NSpace, NText } from 'naive-ui';
+import { Toast } from '@novelia/web-kit';
+import { NButton, NInput, NModal, NSpace, NText } from 'naive-ui';
 import { computed, ref, watch } from 'vue';
 
 import { useAdminApi, type User, type UserAction } from '@/api';
@@ -18,7 +19,6 @@ const emit = defineEmits<{
 const api = useAdminApi();
 const reason = ref('');
 const inProgress = ref(false);
-const errorMessage = ref('');
 const banReasonOptions = ['广告', '倒狗'];
 
 const actionConfig = computed(() => {
@@ -79,7 +79,6 @@ watch(
   () => props.target,
   () => {
     reason.value = '';
-    errorMessage.value = '';
   },
 );
 
@@ -119,12 +118,13 @@ async function confirm() {
   if (!target || !config || (requiresReason.value && !actionReason)) return;
 
   inProgress.value = true;
-  errorMessage.value = '';
   try {
     await updateUserRole(target.action, target.user.username, actionReason);
     emit('success', `${config.result} ${target.user.username}`);
   } catch (error) {
-    errorMessage.value = error instanceof Error ? error.message : String(error);
+    Toast.error(
+      `${config.title}失败：${error instanceof Error ? error.message : String(error)}`,
+    );
   } finally {
     inProgress.value = false;
   }
@@ -133,6 +133,7 @@ async function confirm() {
 
 <template>
   <n-modal
+    :z-index="80"
     :show="target !== null"
     preset="card"
     :title="actionConfig?.title"
@@ -181,13 +182,6 @@ async function confirm() {
         show-count
         @keydown.ctrl.enter="confirm"
       />
-      <n-alert
-        v-if="errorMessage"
-        type="error"
-        :title="`${actionConfig?.title ?? '操作'}失败`"
-      >
-        {{ errorMessage }}
-      </n-alert>
       <div class="modal-actions">
         <n-button :disabled="inProgress" @click="close">取消</n-button>
         <n-button

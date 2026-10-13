@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Toast } from '@novelia/web-kit';
 import {
   NAlert,
   NButton,
@@ -33,7 +34,6 @@ const router = useRouter();
 const strikes = ref<Strike[]>([]);
 const loading = ref(false);
 const errorMessage = ref('');
-const successMessage = ref('');
 const page = ref(1);
 const pageSize = ref(50);
 const total = ref(0);
@@ -45,7 +45,6 @@ const operatorUsername = ref('');
 const createdRange = ref<[number, number] | null>(null);
 const showCreateModal = ref(false);
 const createInProgress = ref(false);
-const createError = ref('');
 const createForm = reactive({
   username: '',
   reason: '',
@@ -54,7 +53,6 @@ const createForm = reactive({
 });
 const pendingRevoke = ref<Strike | null>(null);
 const revokeInProgress = ref(false);
-const revokeError = ref('');
 let requestId = 0;
 
 const hasFilters = computed(() =>
@@ -199,7 +197,6 @@ function openCreateModal() {
     evidence: '',
     point: 1,
   });
-  createError.value = '';
   showCreateModal.value = true;
 }
 
@@ -210,7 +207,6 @@ function closeCreateModal() {
 async function submitCreate() {
   if (!canCreate.value) return;
   createInProgress.value = true;
-  createError.value = '';
   try {
     await api.admin.createStrike({
       username: createForm.username.trim(),
@@ -219,7 +215,7 @@ async function submitCreate() {
       point: createForm.point,
     });
     showCreateModal.value = false;
-    successMessage.value = `已警告用户 ${createForm.username.trim()}`;
+    Toast.success(`已警告用户 ${createForm.username.trim()}`);
     const firstPageLocation = {
       query: createQuery({
         page: 1,
@@ -235,7 +231,9 @@ async function submitCreate() {
       await router.push(firstPageLocation);
     }
   } catch (error) {
-    createError.value = error instanceof Error ? error.message : String(error);
+    Toast.error(
+      `新增警告失败：${error instanceof Error ? error.message : String(error)}`,
+    );
   } finally {
     createInProgress.value = false;
   }
@@ -243,20 +241,20 @@ async function submitCreate() {
 
 function requestRevoke(strike: Strike) {
   pendingRevoke.value = strike;
-  revokeError.value = '';
 }
 
 async function confirmRevoke() {
   if (!pendingRevoke.value) return;
   revokeInProgress.value = true;
-  revokeError.value = '';
   try {
     await api.admin.revokeStrike(pendingRevoke.value.id);
-    successMessage.value = `已撤销违规记录 #${pendingRevoke.value.id}`;
+    Toast.success(`已撤销违规记录 #${pendingRevoke.value.id}`);
     pendingRevoke.value = null;
     await loadStrikes();
   } catch (error) {
-    revokeError.value = error instanceof Error ? error.message : String(error);
+    Toast.error(
+      `撤销失败：${error instanceof Error ? error.message : String(error)}`,
+    );
   } finally {
     revokeInProgress.value = false;
   }
@@ -288,14 +286,6 @@ watch(
         <n-button size="small" @click="loadStrikes">重新加载</n-button>
       </n-space>
     </n-alert>
-    <n-alert
-      v-if="successMessage"
-      type="success"
-      closable
-      @close="successMessage = ''"
-    >
-      {{ successMessage }}
-    </n-alert>
 
     <StrikeList
       v-if="!errorMessage"
@@ -312,6 +302,7 @@ watch(
     />
 
     <n-modal
+      :z-index="80"
       v-model:show="showCreateModal"
       preset="card"
       title="新增警告"
@@ -362,9 +353,6 @@ watch(
           <n-alert type="warning" :bordered="false">
             用户在 100 天内累计达到 3 分后，将自动转为受限用户。
           </n-alert>
-          <n-alert v-if="createError" type="error" title="新增警告失败">
-            {{ createError }}
-          </n-alert>
           <div class="modal-actions">
             <n-button :disabled="createInProgress" @click="closeCreateModal">
               取消
@@ -383,6 +371,7 @@ watch(
     </n-modal>
 
     <n-modal
+      :z-index="80"
       v-model:show="showRevokeModal"
       preset="card"
       title="撤销违规记录"
@@ -396,9 +385,6 @@ watch(
           <n-text strong>#{{ pendingRevoke?.id }}</n-text>
           ？撤销后该记录的分数将不再计入处罚统计。
         </n-text>
-        <n-alert v-if="revokeError" type="error" title="撤销失败">
-          {{ revokeError }}
-        </n-alert>
         <div class="modal-actions">
           <n-button
             :disabled="revokeInProgress"

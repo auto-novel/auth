@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { roles } from '@novelia/web-kit';
+import { roles, Toast } from '@novelia/web-kit';
 import { NAlert, NButton, NSpace, NText } from 'naive-ui';
 import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter, type LocationQueryRaw } from 'vue-router';
@@ -34,7 +34,6 @@ const query = ref('');
 const role = ref('');
 const createdRange = ref<[number, number] | null>(null);
 const pendingAction = ref<{ action: UserAction; user: User } | null>(null);
-const actionSucceeded = ref('');
 let requestId = 0;
 const validRoles = new Set(roles);
 const hasFilters = computed(() =>
@@ -162,7 +161,6 @@ function changePageSize(nextPageSize: number) {
 
 function requestAction(action: UserAction, user: User) {
   pendingAction.value = { action, user };
-  actionSucceeded.value = '';
 }
 
 function closeActionModal() {
@@ -171,7 +169,7 @@ function closeActionModal() {
 
 function handleActionSuccess(message: string) {
   pendingAction.value = null;
-  actionSucceeded.value = message;
+  Toast.success(message);
   void loadUsers();
 }
 
@@ -199,15 +197,6 @@ watch(
         <n-text>{{ errorMessage }}</n-text>
         <n-button size="small" @click="loadUsers">重新加载</n-button>
       </n-space>
-    </n-alert>
-
-    <n-alert
-      v-if="actionSucceeded"
-      type="success"
-      closable
-      @close="actionSucceeded = ''"
-    >
-      {{ actionSucceeded }}
     </n-alert>
 
     <UserList

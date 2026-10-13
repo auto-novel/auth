@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Toast } from '@novelia/web-kit';
 import {
   NAlert,
   NButton,
@@ -20,8 +21,6 @@ const resetPasswordEnabled = ref(true);
 const loading = ref(true);
 const saving = ref(false);
 const loadError = ref('');
-const saveError = ref('');
-const saveSucceeded = ref(false);
 const showDisableConfirmation = ref(false);
 
 const hasChanges = computed(() => {
@@ -64,8 +63,6 @@ function applySettings(nextSettings: AuthSettings) {
 async function loadSettings() {
   loading.value = true;
   loadError.value = '';
-  saveError.value = '';
-  saveSucceeded.value = false;
 
   try {
     applySettings(await api.admin.getAuthSettings());
@@ -79,8 +76,6 @@ async function loadSettings() {
 
 async function saveSettings() {
   saving.value = true;
-  saveError.value = '';
-  saveSucceeded.value = false;
 
   try {
     const nextSettings = await api.admin.updateAuthSettings({
@@ -88,17 +83,17 @@ async function saveSettings() {
       resetPasswordEnabled: resetPasswordEnabled.value,
     });
     applySettings(nextSettings);
-    saveSucceeded.value = true;
+    Toast.success('设置已保存');
   } catch (error) {
-    saveError.value = error instanceof Error ? error.message : String(error);
+    Toast.error(
+      `设置保存失败：${error instanceof Error ? error.message : String(error)}`,
+    );
   } finally {
     saving.value = false;
   }
 }
 
 function requestSave() {
-  saveError.value = '';
-  saveSucceeded.value = false;
   if (disabledFeatures.value.length > 0) {
     showDisableConfirmation.value = true;
     return;
@@ -113,8 +108,6 @@ function confirmDisable() {
 
 function resetDraft() {
   if (settings.value) applySettings(settings.value);
-  saveError.value = '';
-  saveSucceeded.value = false;
 }
 
 onMounted(loadSettings);
@@ -171,11 +164,6 @@ onMounted(loadSettings);
           />
         </div>
 
-        <n-alert v-if="saveError" type="error" title="设置保存失败">
-          {{ saveError }}
-        </n-alert>
-        <n-alert v-if="saveSucceeded" type="success" title="设置已保存" />
-
         <div class="actions">
           <n-button :disabled="!hasChanges || saving" @click="resetDraft">
             撤销修改
@@ -193,6 +181,7 @@ onMounted(loadSettings);
     </n-spin>
 
     <n-modal
+      :z-index="80"
       v-model:show="showDisableConfirmation"
       preset="dialog"
       type="warning"
@@ -258,9 +247,6 @@ onMounted(loadSettings);
   display: flex;
   flex-direction: column;
   gap: 5px;
-}
-.settings-card .n-alert {
-  margin-top: 20px;
 }
 .actions {
   display: flex;
