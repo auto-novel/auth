@@ -160,7 +160,7 @@ theme.setPreference('system'); // 也可设为 'light' 或 'dark'
 theme.toggleTheme();
 ```
 
-通知需要根组件中挂载 `WebKitApp`。`Toast.promise(promise, { loading, success, error })` 在同一条通知中展示加载、成功或失败状态；加载时不会自动关闭，完成后恢复默认时长。`loading` / `success` / `error` 仅接受字符串，内部统一使用固定的状态和消息格式。手动关闭后，Promise 完成不会重新打开通知。主题默认跟随系统，会记住用户的选择。
+通知需要根组件中挂载 `WebKitApp`。`Toast.promise(promise, { loading, success, error })` 在同一条通知中展示加载、成功或失败状态；加载时不会自动关闭，完成后恢复默认时长。`loading` / `success` / `error` 均可选且仅接受字符串，整个消息参数也可省略。省略 `loading` 时等待 Promise 完成后才创建结果通知；省略 `success` 或 `error` 时不显示对应结果通知，并关闭已有的加载通知。内部统一使用固定的状态和消息格式。手动关闭后，Promise 完成不会重新打开通知。主题默认跟随系统，会记住用户的选择。
 
 Vite 项目可加上主题插件，避免首次打开时闪一下：
 
