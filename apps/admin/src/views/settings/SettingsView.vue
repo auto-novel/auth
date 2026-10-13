@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Toast } from '@novelia/web-kit';
+import { getApiErrorMessage, Toast } from '@novelia/web-kit';
 import {
   NAlert,
   NButton,
@@ -68,7 +68,7 @@ async function loadSettings() {
     applySettings(await api.admin.getAuthSettings());
   } catch (error) {
     settings.value = null;
-    loadError.value = error instanceof Error ? error.message : String(error);
+    loadError.value = getApiErrorMessage(error, '无法加载设置');
   } finally {
     loading.value = false;
   }
@@ -85,9 +85,7 @@ async function saveSettings() {
     applySettings(nextSettings);
     Toast.success('设置已保存');
   } catch (error) {
-    Toast.error(
-      `设置保存失败：${error instanceof Error ? error.message : String(error)}`,
-    );
+    Toast.error(`设置保存失败：${getApiErrorMessage(error, '请求失败')}`);
   } finally {
     saving.value = false;
   }

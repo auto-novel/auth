@@ -1,6 +1,4 @@
-import ky, { isHTTPError, isTimeoutError, type KyInstance } from 'ky';
-
-import { getApiErrorDetail } from '../utils/apiError';
+import ky, { isHTTPError, type KyInstance } from 'ky';
 
 export interface AccessTokenProvider {
   get(): string | undefined;
@@ -26,20 +24,6 @@ export function createApiClient(
     prefix: baseUrl,
     timeout: options.timeout ?? REQUEST_TIMEOUT,
     retry: { limit: 0 },
-    hooks: {
-      beforeError: [
-        ({ error }) => {
-          if (isHTTPError(error)) {
-            error.message =
-              getApiErrorDetail(error.data) ??
-              `请求失败[${error.response.status}]`;
-          } else if (isTimeoutError(error)) {
-            error.message = '请求超时，请稍后再试';
-          }
-          return error;
-        },
-      ],
-    },
   });
 }
 

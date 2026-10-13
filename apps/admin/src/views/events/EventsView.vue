@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { getApiErrorMessage } from '@novelia/web-kit';
 import { NAlert, NButton, NSpace, NText } from 'naive-ui';
 import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter, type LocationQueryRaw } from 'vue-router';
@@ -108,7 +109,7 @@ async function loadEvents() {
     if (currentRequestId !== requestId) return;
     events.value = [];
     total.value = 0;
-    errorMessage.value = error instanceof Error ? error.message : String(error);
+    errorMessage.value = getApiErrorMessage(error, '无法加载事件列表');
   } finally {
     if (currentRequestId === requestId) loading.value = false;
   }

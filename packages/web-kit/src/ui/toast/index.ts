@@ -1,4 +1,5 @@
 import { createToastManager } from 'reka-ui';
+import { getApiErrorMessage } from '../../utils/apiError.ts';
 
 export const toastManager = createToastManager();
 
@@ -10,7 +11,10 @@ export const Toast = {
     return toastManager.promise(promise, {
       loading: { status: 'loading', description: messages.loading },
       success: { status: 'success', description: messages.success },
-      error: { status: 'error', description: messages.error },
+      error: (reason: unknown) => ({
+        status: 'error',
+        description: getApiErrorMessage(reason, messages.error),
+      }),
     });
   },
   success(message: string) {

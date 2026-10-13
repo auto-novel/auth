@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Toast } from '@novelia/web-kit';
+import { getApiErrorMessage, Toast } from '@novelia/web-kit';
 import { NButton, NInput, NModal, NSpace, NText } from 'naive-ui';
 import { computed, ref, watch } from 'vue';
 
@@ -123,7 +123,7 @@ async function confirm() {
     emit('success', `${config.result} ${target.user.username}`);
   } catch (error) {
     Toast.error(
-      `${config.title}失败：${error instanceof Error ? error.message : String(error)}`,
+      `${config.title}失败：${getApiErrorMessage(error, '请求失败')}`,
     );
   } finally {
     inProgress.value = false;

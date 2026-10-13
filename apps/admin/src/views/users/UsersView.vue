@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { roles, Toast } from '@novelia/web-kit';
+import { getApiErrorMessage, roles, Toast } from '@novelia/web-kit';
 import { NAlert, NButton, NSpace, NText } from 'naive-ui';
 import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter, type LocationQueryRaw } from 'vue-router';
@@ -105,7 +105,7 @@ async function loadUsers() {
     if (currentRequestId !== requestId) return;
     users.value = [];
     total.value = 0;
-    errorMessage.value = error instanceof Error ? error.message : String(error);
+    errorMessage.value = getApiErrorMessage(error, '无法加载用户列表');
   } finally {
     if (currentRequestId === requestId) loading.value = false;
   }

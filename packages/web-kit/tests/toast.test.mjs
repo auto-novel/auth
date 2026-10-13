@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { HTTPError, TimeoutError } from 'ky';
 
 import { ToastProvider, useToastManager } from 'reka-ui';
 import { createRenderer, h } from 'vue';
@@ -117,7 +118,7 @@ test('Toast.promise updates the same toast and preserves its resolved value', as
   assert.equal(toasts.value[0].open, true);
 });
 
-test('Toast.promise displays an error and preserves the rejection reason', async (t) => {
+test('Toast.promise displays the Error message and preserves the rejection reason', async (t) => {
   const { toasts } = mountProvider(t);
   const operation = Promise.withResolvers();
   const error = new Error('网络不可用');
@@ -133,8 +134,105 @@ test('Toast.promise displays an error and preserves the rejection reason', async
   assert.equal(toasts.value.length, 1);
   assert.equal(toasts.value[0].id, id);
   assert.equal(toasts.value[0].status, 'error');
-  assert.equal(toasts.value[0].description, '保存失败');
+  assert.equal(toasts.value[0].description, '网络不可用');
   assert.equal(toasts.value[0].duration, undefined);
+});
+
+test('Toast.promise uses parsed details without reading the response or mutating the rejection', async (t) => {
+  const { toasts } = mountProvider(t);
+  let responseReads = 0;
+  const error = Object.freeze(
+    Object.assign(new Error('原始错误'), {
+      data: Object.freeze({ detail: '用户名已存在' }),
+      response: {
+        text() {
+          responseReads++;
+          throw new Error('response must not be read');
+        },
+        clone() {
+          responseReads++;
+          throw new Error('response must not be cloned');
+        },
+      },
+    }),
+  );
+  const before = Object.getOwnPropertyDescriptors(error);
+  const operation = Promise.withResolvers();
+  const pending = Toast.promise(operation.promise, {
+    loading: '正在保存',
+    success: '已保存',
+    error: '保存失败',
+  });
+  const id = toasts.value[0].id;
+  const rejected = assert.rejects(pending, (reason) => reason === error);
+  operation.reject(error);
+  await rejected;
+  assert.equal(toasts.value.length, 1);
+  assert.equal(toasts.value[0].id, id);
+  assert.equal(toasts.value[0].status, 'error');
+  assert.equal(toasts.value[0].description, '用户名已存在');
+  assert.equal(responseReads, 0);
+  assert.deepEqual(Object.getOwnPropertyDescriptors(error), before);
+});
+
+test('Toast.promise sanitizes details and uses fallbacks while preserving every rejection', async (t) => {
+  const request = new Request('https://example.invalid/test');
+  const httpError = new HTTPError(
+    new Response(null, { status: 503 }),
+    request,
+    {},
+  );
+  const throwing = () => {
+    throw new Error('getter failed');
+  };
+  for (const [name, reason, expected] of [
+    ['JSON detail', { data: '{"message":"业务错误"}' }, '业务错误'],
+    ['plain text detail', { data: ' 服务不可用 ' }, '服务不可用'],
+    ['HTML detail', { data: '<html>Bad Gateway</html>' }, '保存失败'],
+    ['HTML Error message', new Error('<h1>Bad Gateway</h1>'), '保存失败'],
+    [
+      'long detail',
+      { data: { error: '错'.repeat(201) } },
+      `${'错'.repeat(199)}…`,
+    ],
+    ['HTTP fallback', httpError, '请求失败[503]'],
+    ['timeout fallback', new TimeoutError(request), '请求超时，请稍后再试'],
+    [
+      'throwing data getter',
+      Object.defineProperty({}, 'data', { get: throwing }),
+      '保存失败',
+    ],
+    [
+      'throwing detail getter',
+      { data: Object.defineProperty({}, 'message', { get: throwing }) },
+      '保存失败',
+    ],
+    [
+      'throwing Error message getter',
+      Object.defineProperty(new Error(), 'message', { get: throwing }),
+      '保存失败',
+    ],
+    ['primitive rejection', 'boom', '保存失败'],
+    ['undefined rejection', undefined, '保存失败'],
+  ]) {
+    await t.test(name, async (t) => {
+      const { toasts } = mountProvider(t);
+      const operation = Promise.withResolvers();
+      const pending = Toast.promise(operation.promise, {
+        loading: '正在保存',
+        success: '已保存',
+        error: '保存失败',
+      });
+      const id = toasts.value[0].id;
+      const rejected = assert.rejects(pending, (actual) => actual === reason);
+      operation.reject(reason);
+      await rejected;
+      assert.equal(toasts.value.length, 1);
+      assert.equal(toasts.value[0].id, id);
+      assert.equal(toasts.value[0].status, 'error');
+      assert.equal(toasts.value[0].description, expected);
+    });
+  }
 });
 
 test('a late Promise result does not reopen a dismissed toast', async (t) => {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Toast } from '@novelia/web-kit';
+import { getApiErrorMessage, Toast } from '@novelia/web-kit';
 import {
   NAlert,
   NButton,
@@ -136,7 +136,7 @@ async function loadStrikes() {
     if (currentRequestId !== requestId) return;
     strikes.value = [];
     total.value = 0;
-    errorMessage.value = error instanceof Error ? error.message : String(error);
+    errorMessage.value = getApiErrorMessage(error, '无法加载处罚记录');
   } finally {
     if (currentRequestId === requestId) loading.value = false;
   }
@@ -231,9 +231,7 @@ async function submitCreate() {
       await router.push(firstPageLocation);
     }
   } catch (error) {
-    Toast.error(
-      `新增警告失败：${error instanceof Error ? error.message : String(error)}`,
-    );
+    Toast.error(`新增警告失败：${getApiErrorMessage(error, '请求失败')}`);
   } finally {
     createInProgress.value = false;
   }
@@ -252,9 +250,7 @@ async function confirmRevoke() {
     pendingRevoke.value = null;
     await loadStrikes();
   } catch (error) {
-    Toast.error(
-      `撤销失败：${error instanceof Error ? error.message : String(error)}`,
-    );
+    Toast.error(`撤销失败：${getApiErrorMessage(error, '请求失败')}`);
   } finally {
     revokeInProgress.value = false;
   }

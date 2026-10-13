@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { getApiErrorMessage } from '@novelia/web-kit';
 import type {
   AuthActivitySummary,
   AuthSettings,
@@ -75,8 +76,7 @@ async function loadActivity() {
     authActivity.value = [];
     activitySummary.value = { loginCount: 0, newUsers: 0 };
     previousActivitySummary.value = { loginCount: 0, newUsers: 0 };
-    activityError.value =
-      error instanceof Error ? error.message : String(error);
+    activityError.value = getApiErrorMessage(error, '无法加载认证活动');
   } finally {
     activityLoading.value = false;
   }
@@ -90,8 +90,7 @@ async function loadUserSummary() {
     userSummary.value = await api.admin.getOverviewUserSummary();
   } catch (error) {
     userSummary.value = null;
-    userSummaryError.value =
-      error instanceof Error ? error.message : String(error);
+    userSummaryError.value = getApiErrorMessage(error, '无法加载用户概况');
   } finally {
     userSummaryLoading.value = false;
   }
@@ -105,8 +104,7 @@ async function loadSettings() {
     settings.value = await api.admin.getAuthSettings();
   } catch (error) {
     settings.value = null;
-    settingsError.value =
-      error instanceof Error ? error.message : String(error);
+    settingsError.value = getApiErrorMessage(error, '无法加载设置');
   } finally {
     settingsLoading.value = false;
   }
