@@ -15,7 +15,7 @@ function normalizeErrorMessage(value: unknown): string | undefined {
 }
 
 /** 从已解析的数据或正文字符串中提取可展示的错误文案。 */
-export function getApiErrorDetail(data: unknown): string | undefined {
+function getApiErrorDetail(data: unknown): string | undefined {
   try {
     if (typeof data === 'string') {
       const body = data;
@@ -39,21 +39,30 @@ export function getApiErrorDetail(data: unknown): string | undefined {
   }
 }
 
-/** 统一提取业务文案及 HTTP、超时兜底，不读取响应流或改写原异常。 */
-export function getApiErrorMessage(reason: unknown, fallback: string): string {
-  const fallbackMessage = normalizeErrorMessage(fallback) ?? '请求失败';
+export function getApiErrorMessage(reason: unknown, prefix: string): string {
+  const prefixMessage = normalizeErrorMessage(prefix);
+  const fallbackMessage = prefixMessage ?? '请求失败';
+  const formatDetail = (detail: string) =>
+    normalizeErrorMessage(
+      prefixMessage ? `${prefixMessage}：${detail}` : detail,
+    ) ?? fallbackMessage;
+
   try {
     if (reason && typeof reason === 'object') {
       const detail = getApiErrorDetail(
         'data' in reason ? reason.data : undefined,
       );
-      if (detail) return detail;
+      if (detail) return formatDetail(detail);
     }
-    if (isHTTPError(reason)) return `请求失败[${reason.response.status}]`;
-    if (isTimeoutError(reason)) return '请求超时，请稍后再试';
-    return reason instanceof Error
-      ? normalizeErrorMessage(reason.message) ?? fallbackMessage
-      : fallbackMessage;
+    if (isHTTPError(reason)) {
+      return formatDetail(`请求失败[${reason.response.status}]`);
+    }
+    if (isTimeoutError(reason)) return formatDetail('请求超时，请稍后再试');
+    const detail =
+      reason instanceof Error
+        ? normalizeErrorMessage(reason.message)
+        : undefined;
+    return detail ? formatDetail(detail) : fallbackMessage;
   } catch {
     // Error extraction must never replace the original rejection reason.
     return fallbackMessage;

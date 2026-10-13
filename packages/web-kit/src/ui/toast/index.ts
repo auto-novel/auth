@@ -1,5 +1,5 @@
 import { createToastManager } from 'reka-ui';
-import { getApiErrorMessage } from '../../utils/apiError.ts';
+import { getApiErrorMessage } from './apiError.ts';
 
 export const toastManager = createToastManager();
 

@@ -208,14 +208,20 @@ async function submitCreate() {
   if (!canCreate.value) return;
   createInProgress.value = true;
   try {
-    await api.admin.createStrike({
-      username: createForm.username.trim(),
-      reason: createForm.reason.trim(),
-      evidence: createForm.evidence.trim(),
-      point: createForm.point,
-    });
+    await Toast.promise(
+      api.admin.createStrike({
+        username: createForm.username.trim(),
+        reason: createForm.reason.trim(),
+        evidence: createForm.evidence.trim(),
+        point: createForm.point,
+      }),
+      {
+        loading: '正在新增警告',
+        success: `已警告用户 ${createForm.username.trim()}`,
+        error: '新增警告失败',
+      },
+    );
     showCreateModal.value = false;
-    Toast.success(`已警告用户 ${createForm.username.trim()}`);
     const firstPageLocation = {
       query: createQuery({
         page: 1,
@@ -230,8 +236,8 @@ async function submitCreate() {
     } else {
       await router.push(firstPageLocation);
     }
-  } catch (error) {
-    Toast.error(`新增警告失败：${getApiErrorMessage(error, '请求失败')}`);
+  } catch {
+    // Toast.promise 已展示失败原因，保留当前表单以便重试。
   } finally {
     createInProgress.value = false;
   }
@@ -245,12 +251,15 @@ async function confirmRevoke() {
   if (!pendingRevoke.value) return;
   revokeInProgress.value = true;
   try {
-    await api.admin.revokeStrike(pendingRevoke.value.id);
-    Toast.success(`已撤销违规记录 #${pendingRevoke.value.id}`);
+    await Toast.promise(api.admin.revokeStrike(pendingRevoke.value.id), {
+      loading: '正在撤销违规记录',
+      success: `已撤销违规记录 #${pendingRevoke.value.id}`,
+      error: '撤销失败',
+    });
     pendingRevoke.value = null;
     await loadStrikes();
-  } catch (error) {
-    Toast.error(`撤销失败：${getApiErrorMessage(error, '请求失败')}`);
+  } catch {
+    // Toast.promise 已展示失败原因，保留待撤销记录以便重试。
   } finally {
     revokeInProgress.value = false;
   }

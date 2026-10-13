@@ -78,14 +78,20 @@ async function saveSettings() {
   saving.value = true;
 
   try {
-    const nextSettings = await api.admin.updateAuthSettings({
-      registerEnabled: registerEnabled.value,
-      resetPasswordEnabled: resetPasswordEnabled.value,
-    });
+    const nextSettings = await Toast.promise(
+      api.admin.updateAuthSettings({
+        registerEnabled: registerEnabled.value,
+        resetPasswordEnabled: resetPasswordEnabled.value,
+      }),
+      {
+        loading: '正在保存设置',
+        success: '设置已保存',
+        error: '设置保存失败',
+      },
+    );
     applySettings(nextSettings);
-    Toast.success('设置已保存');
-  } catch (error) {
-    Toast.error(`设置保存失败：${getApiErrorMessage(error, '请求失败')}`);
+  } catch {
+    // Toast.promise 已展示失败原因，保留当前表单以便重试。
   } finally {
     saving.value = false;
   }

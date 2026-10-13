@@ -8,7 +8,7 @@ import { useWebKit, useWebKitInternals } from '../context';
 import XAsyncContent from '../ui/XAsyncContent.vue';
 import XPagination from '../ui/XPagination.vue';
 import XTime from '../ui/XTime.vue';
-import { getApiErrorMessage } from '../utils/apiError';
+import { getApiErrorMessage } from '../ui/toast/apiError';
 
 const PAGE_SIZE = 20;
 
@@ -56,7 +56,7 @@ async function loadStrikes() {
     if (currentRequestId !== requestId) return;
     strikes.value = [];
     total.value = 0;
-    error.value = await getApiErrorMessage(reason, '无法加载处罚记录');
+    error.value = getApiErrorMessage(reason, '无法加载处罚记录');
   } finally {
     if (currentRequestId === requestId) loading.value = false;
   }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { getApiErrorMessage, roles, Toast } from '@novelia/web-kit';
+import { getApiErrorMessage, roles } from '@novelia/web-kit';
 import { NAlert, NButton, NSpace, NText } from 'naive-ui';
 import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter, type LocationQueryRaw } from 'vue-router';
@@ -167,9 +167,8 @@ function closeActionModal() {
   pendingAction.value = null;
 }
 
-function handleActionSuccess(message: string) {
+function handleActionSuccess() {
   pendingAction.value = null;
-  Toast.success(message);
   void loadUsers();
 }
 

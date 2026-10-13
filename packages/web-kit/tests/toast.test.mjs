@@ -118,7 +118,7 @@ test('Toast.promise updates the same toast and preserves its resolved value', as
   assert.equal(toasts.value[0].open, true);
 });
 
-test('Toast.promise displays the Error message and preserves the rejection reason', async (t) => {
+test('Toast.promise prefixes the Error message and preserves the rejection reason', async (t) => {
   const { toasts } = mountProvider(t);
   const operation = Promise.withResolvers();
   const error = new Error('网络不可用');
@@ -134,7 +134,7 @@ test('Toast.promise displays the Error message and preserves the rejection reaso
   assert.equal(toasts.value.length, 1);
   assert.equal(toasts.value[0].id, id);
   assert.equal(toasts.value[0].status, 'error');
-  assert.equal(toasts.value[0].description, '网络不可用');
+  assert.equal(toasts.value[0].description, '保存失败：网络不可用');
   assert.equal(toasts.value[0].duration, undefined);
 });
 
@@ -170,12 +170,12 @@ test('Toast.promise uses parsed details without reading the response or mutating
   assert.equal(toasts.value.length, 1);
   assert.equal(toasts.value[0].id, id);
   assert.equal(toasts.value[0].status, 'error');
-  assert.equal(toasts.value[0].description, '用户名已存在');
+  assert.equal(toasts.value[0].description, '保存失败：用户名已存在');
   assert.equal(responseReads, 0);
   assert.deepEqual(Object.getOwnPropertyDescriptors(error), before);
 });
 
-test('Toast.promise sanitizes details and uses fallbacks while preserving every rejection', async (t) => {
+test('Toast.promise sanitizes and prefixes details while preserving every rejection', async (t) => {
   const request = new Request('https://example.invalid/test');
   const httpError = new HTTPError(
     new Response(null, { status: 503 }),
@@ -186,17 +186,21 @@ test('Toast.promise sanitizes details and uses fallbacks while preserving every 
     throw new Error('getter failed');
   };
   for (const [name, reason, expected] of [
-    ['JSON detail', { data: '{"message":"业务错误"}' }, '业务错误'],
-    ['plain text detail', { data: ' 服务不可用 ' }, '服务不可用'],
+    ['JSON detail', { data: '{"message":"业务错误"}' }, '保存失败：业务错误'],
+    ['plain text detail', { data: ' 服务不可用 ' }, '保存失败：服务不可用'],
     ['HTML detail', { data: '<html>Bad Gateway</html>' }, '保存失败'],
     ['HTML Error message', new Error('<h1>Bad Gateway</h1>'), '保存失败'],
     [
       'long detail',
       { data: { error: '错'.repeat(201) } },
-      `${'错'.repeat(199)}…`,
+      `保存失败：${'错'.repeat(194)}…`,
     ],
-    ['HTTP fallback', httpError, '请求失败[503]'],
-    ['timeout fallback', new TimeoutError(request), '请求超时，请稍后再试'],
+    ['HTTP fallback', httpError, '保存失败：请求失败[503]'],
+    [
+      'timeout fallback',
+      new TimeoutError(request),
+      '保存失败：请求超时，请稍后再试',
+    ],
     [
       'throwing data getter',
       Object.defineProperty({}, 'data', { get: throwing }),
@@ -231,6 +235,49 @@ test('Toast.promise sanitizes details and uses fallbacks while preserving every 
       assert.equal(toasts.value[0].id, id);
       assert.equal(toasts.value[0].status, 'error');
       assert.equal(toasts.value[0].description, expected);
+    });
+  }
+});
+
+test('Toast.promise treats messages.error as a normalized prefix, not a replacement', async (t) => {
+  for (const [name, prefix, reason, expected] of [
+    [
+      'trimmed prefix',
+      ' 保存失败 ',
+      new Error('网络中断'),
+      '保存失败：网络中断',
+    ],
+    ['empty prefix', '', { data: { detail: '业务详情' } }, '业务详情'],
+    ['blank prefix', ' ', new Error('网络中断'), '网络中断'],
+    ['HTML prefix', '<h1>保存失败</h1>', new Error('网络中断'), '网络中断'],
+    ['no detail', '保存失败', {}, '保存失败'],
+    ['no prefix or detail', '', undefined, '请求失败'],
+    ['HTML prefix without detail', '<h1>保存失败</h1>', {}, '请求失败'],
+    [
+      'exact combined length',
+      '保存失败',
+      new Error('错'.repeat(195)),
+      `保存失败：${'错'.repeat(195)}`,
+    ],
+    [
+      'combined truncation',
+      '保存失败',
+      new Error('错'.repeat(196)),
+      `保存失败：${'错'.repeat(194)}…`,
+    ],
+  ]) {
+    await t.test(name, async (t) => {
+      const { toasts } = mountProvider(t);
+      const pending = Toast.promise(Promise.reject(reason), {
+        loading: '正在保存',
+        success: '已保存',
+        error: prefix,
+      });
+      await assert.rejects(pending, (actual) => actual === reason);
+      assert.equal(toasts.value.length, 1);
+      assert.equal(toasts.value[0].status, 'error');
+      assert.equal(toasts.value[0].description, expected);
+      assert.ok(toasts.value[0].description.length <= 200);
     });
   }
 });

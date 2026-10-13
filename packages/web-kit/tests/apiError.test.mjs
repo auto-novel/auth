@@ -2,10 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import ky, { HTTPError, TimeoutError } from 'ky';
 
-import {
-  getApiErrorDetail,
-  getApiErrorMessage,
-} from '../src/utils/apiError.ts';
+import { getApiErrorMessage } from '../src/ui/toast/apiError.ts';
 import { createApiClient } from '../src/api/client.ts';
 
 function httpError(status = 400) {
@@ -24,8 +21,8 @@ test('synchronously extracts message, error and detail from parsed data', () => 
     [{ message: '第一', error: '第二', detail: '第三' }, '第一'],
     [{ message: ' ', error: 500, detail: '第三' }, '第三'],
   ]) {
-    assert.equal(getApiErrorDetail(data), expected);
-    assert.equal(getApiErrorMessage({ data }, '兜底'), expected);
+    assert.equal(getApiErrorMessage({ data }, ''), expected);
+    assert.equal(getApiErrorMessage({ data }, '兜底'), `兜底：${expected}`);
   }
 });
 
@@ -37,8 +34,8 @@ test('accepts JSON object strings, JSON strings and plain text data', () => {
     ['"服务不可用"', '服务不可用'],
     [' Bad Gateway ', 'Bad Gateway'],
   ]) {
-    assert.equal(getApiErrorDetail(data), expected);
-    assert.equal(getApiErrorMessage({ data }, '兜底'), expected);
+    assert.equal(getApiErrorMessage({ data }, ''), expected);
+    assert.equal(getApiErrorMessage({ data }, '兜底'), `兜底：${expected}`);
   }
 });
 
@@ -59,12 +56,11 @@ test('falls back for empty, non-string or unrecognized data', () => {
     '500',
     'true',
   ]) {
-    assert.equal(getApiErrorDetail(data), undefined);
     assert.equal(getApiErrorMessage({ data }, '兜底'), '兜底');
   }
 });
 
-test('filters HTML from details, Error messages and fallback text', () => {
+test('filters HTML from details, Error messages and prefix text', () => {
   for (const html of [
     '<!DOCTYPE html>',
     '<html><body>Bad Gateway</body></html>',
@@ -72,18 +68,23 @@ test('filters HTML from details, Error messages and fallback text', () => {
     '失败 <BR /> 请重试',
     '</div>',
   ]) {
-    assert.equal(getApiErrorDetail(html), undefined);
-    assert.equal(getApiErrorDetail({ message: html }), undefined);
+    assert.equal(
+      getApiErrorMessage({ data: { message: html } }, '兜底'),
+      '兜底',
+    );
     assert.equal(getApiErrorMessage({ data: html }, '兜底'), '兜底');
     assert.equal(getApiErrorMessage(new Error(html), '兜底'), '兜底');
     assert.equal(getApiErrorMessage(undefined, html), '请求失败');
   }
   assert.equal(
-    getApiErrorDetail({ message: '<h1>错误</h1>', error: '可展示文案' }),
+    getApiErrorMessage(
+      { data: { message: '<h1>错误</h1>', error: '可展示文案' } },
+      '',
+    ),
     '可展示文案',
   );
   assert.equal(
-    getApiErrorDetail('数值 1 < 2，重试 > 0'),
+    getApiErrorMessage({ data: '数值 1 < 2，重试 > 0' }, ''),
     '数值 1 < 2，重试 > 0',
   );
 });
@@ -92,23 +93,28 @@ test('limits messages to 200 characters with an ellipsis only when needed', () =
   const exact = '错'.repeat(200);
   const long = '错'.repeat(201);
   const expected = `${'错'.repeat(199)}…`;
-  assert.equal(getApiErrorDetail(exact), exact);
-  assert.equal(getApiErrorDetail(long), expected);
-  assert.equal(getApiErrorDetail({ detail: ` ${long} ` }), expected);
-  assert.equal(getApiErrorMessage({ data: long }, '兜底'), expected);
-  assert.equal(getApiErrorMessage(new Error(long), '兜底'), expected);
+  assert.equal(getApiErrorMessage({ data: exact }, ''), exact);
+  assert.equal(
+    getApiErrorMessage({ data: { detail: ` ${long} ` } }, ''),
+    expected,
+  );
+  assert.equal(getApiErrorMessage({ data: long }, ''), expected);
+  assert.equal(getApiErrorMessage(new Error(long), ''), expected);
   assert.equal(getApiErrorMessage(undefined, long), expected);
   assert.equal(
-    getApiErrorDetail(`${'错'.repeat(198)} ${'尾'.repeat(5)}`),
+    getApiErrorMessage({ data: `${'错'.repeat(198)} ${'尾'.repeat(5)}` }, ''),
     `${'错'.repeat(198)}…`,
   );
 });
 
-test('uses parsed data before Error messages and HTTP/timeout fallbacks', () => {
+test('uses parsed data before Error messages and HTTP/timeout details', () => {
   const error = new Error('网络中断');
   error.data = { message: '业务详情' };
-  assert.equal(getApiErrorMessage(error, '兜底'), '业务详情');
-  assert.equal(getApiErrorMessage(new Error(' 网络中断 '), '兜底'), '网络中断');
+  assert.equal(getApiErrorMessage(error, '兜底'), '兜底：业务详情');
+  assert.equal(
+    getApiErrorMessage(new Error(' 网络中断 '), '兜底'),
+    '兜底：网络中断',
+  );
   assert.equal(getApiErrorMessage(new Error(''), '兜底'), '兜底');
   assert.equal(getApiErrorMessage(undefined, ' 兜底 '), '兜底');
   assert.equal(getApiErrorMessage('boom', '兜底'), '兜底');
@@ -117,15 +123,73 @@ test('uses parsed data before Error messages and HTTP/timeout fallbacks', () => 
   for (const status of [400, 401, 503]) {
     assert.equal(
       getApiErrorMessage(httpError(status), '兜底'),
-      `请求失败[${status}]`,
+      `兜底：请求失败[${status}]`,
     );
   }
   const timeout = new TimeoutError(new Request('https://example.invalid/test'));
-  assert.equal(getApiErrorMessage(timeout, '兜底'), '请求超时，请稍后再试');
+  assert.equal(
+    getApiErrorMessage(timeout, '兜底'),
+    '兜底：请求超时，请稍后再试',
+  );
   for (const reason of [httpError(), timeout]) {
     reason.data = { detail: '业务详情' };
-    assert.equal(getApiErrorMessage(reason, '兜底'), '业务详情');
+    assert.equal(getApiErrorMessage(reason, '兜底'), '兜底：业务详情');
   }
+});
+
+test('normalizes and preserves the prefix for every available detail', () => {
+  const timeout = new TimeoutError(new Request('https://example.invalid/test'));
+  for (const [reason, detail] of [
+    [{ data: { message: '业务详情' } }, '业务详情'],
+    [httpError(503), '请求失败[503]'],
+    [timeout, '请求超时，请稍后再试'],
+    [new Error(' 网络中断 '), '网络中断'],
+  ]) {
+    assert.equal(
+      getApiErrorMessage(reason, ' 保存失败 '),
+      `保存失败：${detail}`,
+    );
+    for (const prefix of ['', ' ', '<h1>保存失败</h1>']) {
+      assert.equal(getApiErrorMessage(reason, prefix), detail);
+    }
+  }
+});
+
+test('returns only the normalized prefix or default when there is no detail', () => {
+  for (const reason of [
+    undefined,
+    null,
+    'boom',
+    {},
+    new Error(''),
+    { data: {} },
+  ]) {
+    assert.equal(getApiErrorMessage(reason, ' 保存失败 '), '保存失败');
+    for (const prefix of ['', ' ', '<h1>保存失败</h1>']) {
+      assert.equal(getApiErrorMessage(reason, prefix), '请求失败');
+    }
+  }
+});
+
+test('limits the entire prefix and detail combination to 200 characters', () => {
+  const prefix = '保存失败';
+  const exactDetail = '错'.repeat(195);
+  const exact = `${prefix}：${exactDetail}`;
+  assert.equal(exact.length, 200);
+  assert.equal(getApiErrorMessage({ data: exactDetail }, prefix), exact);
+  for (const reason of [
+    { data: '错'.repeat(196) },
+    { data: '错'.repeat(201) },
+    new Error('错'.repeat(201)),
+  ]) {
+    const message = getApiErrorMessage(reason, prefix);
+    assert.equal(message, `${prefix}：${'错'.repeat(194)}…`);
+    assert.equal(message.length, 200);
+  }
+  const longPrefix = '前'.repeat(201);
+  const expected = `${'前'.repeat(199)}…`;
+  assert.equal(getApiErrorMessage({ data: '详情' }, longPrefix), expected);
+  assert.equal(getApiErrorMessage(undefined, longPrefix), expected);
 });
 
 test('never reads or clones the response body, with or without parsed data', () => {
@@ -139,7 +203,7 @@ test('never reads or clones the response body, with or without parsed data', () 
   }
   assert.equal(
     getApiErrorMessage({ data: { message: '已解析文案' }, response }, '兜底'),
-    '已解析文案',
+    '兜底：已解析文案',
   );
   assert.equal(getApiErrorMessage({ response }, '兜底'), '兜底');
   assert.equal(getApiErrorMessage({ response }, '兜底'), '兜底');
@@ -152,15 +216,14 @@ test('never reads or clones the response body, with or without parsed data', () 
       throw new Error('response must not be accessed when data is available');
     },
   };
-  assert.equal(getApiErrorMessage(reason, '兜底'), '已解析文案');
+  assert.equal(getApiErrorMessage(reason, '兜底'), '兜底：已解析文案');
 });
 
-test('contains throwing getters and proxies without replacing the fallback', () => {
+test('contains throwing getters and proxies without replacing the prefix', () => {
   const throwing = () => {
     throw new Error('getter failed');
   };
   const malformedData = Object.defineProperty({}, 'message', { get: throwing });
-  assert.equal(getApiErrorDetail(malformedData), undefined);
   assert.equal(getApiErrorMessage({ data: malformedData }, '兜底'), '兜底');
 
   const messageError = Object.defineProperty(new Error('original'), 'message', {
@@ -180,7 +243,9 @@ test('contains throwing getters and proxies without replacing the fallback', () 
     statusError,
     statusGetterError,
   ]) {
-    assert.equal(getApiErrorMessage(reason, '兜底'), '兜底');
+    assert.equal(getApiErrorMessage(reason, ' 兜底 '), '兜底');
+    assert.equal(getApiErrorMessage(reason, ''), '请求失败');
+    assert.equal(getApiErrorMessage(reason, '<h1>失败</h1>'), '请求失败');
   }
 });
 
@@ -190,7 +255,7 @@ test('does not rewrite or otherwise mutate the original error or parsed data', (
   error.data = data;
   Object.freeze(error);
   const before = Object.getOwnPropertyDescriptors(error);
-  assert.equal(getApiErrorMessage(error, '兜底'), '业务详情');
+  assert.equal(getApiErrorMessage(error, '兜底'), '兜底：业务详情');
   assert.deepEqual(Object.getOwnPropertyDescriptors(error), before);
   assert.equal(error.data, data);
   assert.match(error.message, /^Request failed with status code 400/);
@@ -210,7 +275,7 @@ test('uses parsed ky data after the response body is consumed', async () => {
     .catch((error) => error);
   assert.ok(error instanceof HTTPError);
   assert.equal(error.response.bodyUsed, true);
-  assert.equal(getApiErrorMessage(error, '兜底'), '用户名已存在');
+  assert.equal(getApiErrorMessage(error, '兜底'), '兜底：用户名已存在');
 });
 
 test('client preserves the native error while the helper extracts details or status', async () => {
@@ -240,7 +305,7 @@ test('client preserves the native error while the helper extracts details or sta
     const originalMessage = error.message;
     const before = Object.getOwnPropertyDescriptors(error);
     assert.match(originalMessage, /^Request failed with status code 400/);
-    assert.equal(getApiErrorMessage(error, '兜底'), expected);
+    assert.equal(getApiErrorMessage(error, '兜底'), `兜底：${expected}`);
     assert.equal(error.message, originalMessage);
     assert.deepEqual(Object.getOwnPropertyDescriptors(error), before);
   }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { getApiErrorMessage, Toast } from '@novelia/web-kit';
+import { Toast } from '@novelia/web-kit';
 import { NButton, NInput, NModal, NSpace, NText } from 'naive-ui';
 import { computed, ref, watch } from 'vue';
 
@@ -13,7 +13,7 @@ interface UserActionTarget {
 const props = defineProps<{ target: UserActionTarget | null }>();
 const emit = defineEmits<{
   close: [];
-  success: [message: string];
+  success: [];
 }>();
 
 const api = useAdminApi();
@@ -119,12 +119,17 @@ async function confirm() {
 
   inProgress.value = true;
   try {
-    await updateUserRole(target.action, target.user.username, actionReason);
-    emit('success', `${config.result} ${target.user.username}`);
-  } catch (error) {
-    Toast.error(
-      `${config.title}失败：${getApiErrorMessage(error, '请求失败')}`,
+    await Toast.promise(
+      updateUserRole(target.action, target.user.username, actionReason),
+      {
+        loading: `正在${config.title}`,
+        success: `${config.result} ${target.user.username}`,
+        error: `${config.title}失败`,
+      },
     );
+    emit('success');
+  } catch {
+    // Toast.promise 已展示失败原因，保留弹窗以便重试。
   } finally {
     inProgress.value = false;
   }

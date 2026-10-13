@@ -13,7 +13,7 @@ import XTime from './ui/XTime.vue';
 import XTooltip from './ui/XTooltip.vue';
 import { useWebKit } from './context';
 import { Toast } from './ui/toast';
-import { getApiErrorMessage } from './utils/apiError';
+import { getApiErrorMessage } from './ui/toast/apiError';
 
 export { createWebKit } from './create';
 export { useWebKitViewport } from './viewport';
