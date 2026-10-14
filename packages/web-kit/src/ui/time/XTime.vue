@@ -7,8 +7,8 @@ import {
   formatTimeValue,
   TIME_PRESETS,
   timeValueToDate,
-} from '../utils/time';
-import type { XTimeProps } from './types';
+  type XTimeProps,
+} from './time';
 
 const props = withDefaults(defineProps<XTimeProps>(), {
   preset: 'datetime',

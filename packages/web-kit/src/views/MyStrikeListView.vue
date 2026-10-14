@@ -7,7 +7,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useWebKit, useWebKitInternals } from '../context';
 import XAsyncContent from '../ui/XAsyncContent.vue';
 import XPagination from '../ui/XPagination.vue';
-import XTime from '../ui/XTime.vue';
+import XTime from '../ui/time/XTime.vue';
 import { getApiErrorMessage } from '../ui/toast/apiError';
 
 const PAGE_SIZE = 20;

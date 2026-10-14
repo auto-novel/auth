@@ -9,7 +9,7 @@ import XConfirmDialog from './ui/XConfirmDialog.vue';
 import XDrawer from './ui/drawer/XDrawer.vue';
 import XPagination from './ui/XPagination.vue';
 import XSelect from './ui/XSelect.vue';
-import XTime from './ui/XTime.vue';
+import XTime from './ui/time/XTime.vue';
 import XTooltip from './ui/XTooltip.vue';
 import { useWebKit } from './context';
 import { Toast } from './ui/toast';
@@ -61,6 +61,7 @@ export type {
   ToastUpdateOptions,
 } from './ui/toast';
 export type { XDrawerProps } from './ui/drawer/types';
+export type { XTimePreset, XTimeProps, XTimeValue } from './ui/time/time';
 export type { Theme, ThemeOverride, ThemePreference, WebTheme } from './theme';
 export type { UserRole, Whoami, WhoamiUser } from './auth/whoami';
 export type {
@@ -81,8 +82,5 @@ export type {
   XPaginationProps,
   XSelectOption,
   XSelectProps,
-  XTimePreset,
-  XTimeProps,
-  XTimeValue,
   XTooltipProps,
 } from './ui/types';

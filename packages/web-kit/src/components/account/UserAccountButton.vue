@@ -28,7 +28,7 @@ import { RouterLink, type RouteLocationRaw } from 'vue-router';
 
 import { useWebKit, useWebKitInternals } from '../../context';
 import type { WebKitMenuOption } from '../../types';
-import XTime from '../../ui/XTime.vue';
+import XTime from '../../ui/time/XTime.vue';
 import AccountMenuOptions from './AccountMenuOptions.vue';
 import AccountMenuPanel from './AccountMenuPanel.vue';
 
