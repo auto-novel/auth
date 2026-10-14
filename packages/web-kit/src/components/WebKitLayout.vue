@@ -11,7 +11,7 @@ import { useRoute } from 'vue-router';
 import { selectedGroupKeys } from '../menu';
 import type { WebKitMenuOption } from '../types';
 import XDrawer from '../ui/drawer/XDrawer.vue';
-import { useWebKitViewport } from '../viewport';
+import { useWebKitViewport } from '../utils/viewport';
 import UserAccountButton from './account/UserAccountButton.vue';
 import { WebKitSidebar, useSidebarPreference } from './sidebar';
 
