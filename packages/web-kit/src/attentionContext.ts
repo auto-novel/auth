@@ -1,5 +1,5 @@
 import type { AttentionStatus, StrikeReadState } from './api/requests';
-import type { Whoami, WhoamiUser } from './auth/whoami';
+import type { Whoami } from './auth/whoami';
 import {
   readonly,
   ref,
@@ -16,7 +16,6 @@ export interface AttentionContext {
 }
 
 interface AttentionSession {
-  userId: number;
   pendingThroughId?: number;
   request?: Promise<void>;
 }
@@ -29,7 +28,7 @@ interface AttentionApi {
 
 const POLL_INTERVAL = 60 * 1000;
 
-export function createAttention(api: AttentionApi) {
+export function createAttention(api: AttentionApi): AttentionContext {
   const status = ref<AttentionStatus>();
   let session: AttentionSession | undefined;
   let timer: ReturnType<typeof globalThis.setInterval> | undefined;
@@ -86,32 +85,9 @@ export function createAttention(api: AttentionApi) {
     return refresh();
   }
 
-  function stopTimer() {
-    if (timer === undefined) return;
-    globalThis.clearInterval(timer);
-    timer = undefined;
-  }
-
-  /** 只在已登录时保留轮询定时器。 */
-  function syncTimer() {
-    if (session) {
-      timer ??= globalThis.setInterval(refreshWhenVisible, POLL_INTERVAL);
-      return;
-    }
-    stopTimer();
-  }
-
   function refreshWhenVisible() {
     if (typeof document === 'undefined') return;
     if (document.visibilityState === 'visible') void refresh();
-  }
-
-  function handleUser(user: WhoamiUser | undefined) {
-    if (user?.id === session?.userId) return;
-    session = user ? { userId: user.id } : undefined;
-    status.value = undefined;
-    syncTimer();
-    if (session) void refresh();
   }
 
   if (typeof document !== 'undefined') {
@@ -119,17 +95,26 @@ export function createAttention(api: AttentionApi) {
   }
   // immediate + sync：创建时补一次当前用户，之后登录/登出都在同一个 tick 内
   // 切换状态与轮询定时器，与页面读取 whoami 的时机一致。
-  watch(() => api.whoami.value.user, handleUser, {
-    immediate: true,
-    flush: 'sync',
-  });
-  syncTimer();
+  watch(
+    () => api.whoami.value.user?.id,
+    (userId) => {
+      session = userId !== undefined ? {} : undefined;
+      status.value = undefined;
+      // 只在已登录时保留轮询定时器。
+      if (session) {
+        timer ??= globalThis.setInterval(refreshWhenVisible, POLL_INTERVAL);
+        void refresh();
+      } else if (timer !== undefined) {
+        globalThis.clearInterval(timer);
+        timer = undefined;
+      }
+    },
+    { immediate: true, flush: 'sync' },
+  );
 
-  const context: AttentionContext = Object.freeze({
+  return Object.freeze({
     status: readonly(status),
     refresh,
     updateStrikeReadState,
   });
-
-  return context;
 }
