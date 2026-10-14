@@ -16,8 +16,8 @@ import {
   useRouter,
 } from 'vue-router';
 
-import { externalLinkAttrs } from '../menu';
-import type { WebKitMenuOption } from '../types';
+import { externalLinkAttrs } from '../../menu';
+import type { WebKitMenuOption } from '../../types';
 
 const props = withDefaults(
   defineProps<{

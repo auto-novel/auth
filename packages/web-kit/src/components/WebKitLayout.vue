@@ -9,12 +9,11 @@ import { computed, nextTick, ref, useId, watch } from 'vue';
 import { useRoute } from 'vue-router';
 
 import { selectedGroupKeys } from '../menu';
-import { useSidebarPreference } from '../sidebar';
 import type { WebKitMenuOption } from '../types';
 import XDrawer from '../ui/drawer/XDrawer.vue';
 import { useWebKitViewport } from '../viewport';
 import UserAccountButton from './account/UserAccountButton.vue';
-import WebKitSidebar from './WebKitSidebar.vue';
+import { WebKitSidebar, useSidebarPreference } from './sidebar';
 
 const props = defineProps<{
   navigationOptions: WebKitMenuOption[];

@@ -2,8 +2,8 @@
 import { DarkModeOutlined, LightModeOutlined } from '@vicons/material';
 import { ref } from 'vue';
 
-import { useWebKit, useWebKitInternals } from '../context';
-import type { WebKitMenuOption } from '../types';
+import { useWebKit, useWebKitInternals } from '../../context';
+import type { WebKitMenuOption } from '../../types';
 import SidebarFooter from './SidebarFooter.vue';
 import SidebarNavigation from './SidebarNavigation.vue';
 
@@ -43,7 +43,7 @@ const showMascot = ref(false);
       aria-hidden="true"
     >
       <img
-        src="../assets/mascot.webp"
+        src="../../assets/mascot.webp"
         alt=""
         class="pointer-events-none absolute top-2 left-2 h-[120px] w-auto max-w-none"
       />
@@ -118,7 +118,7 @@ const showMascot = ref(false);
   <Teleport to="body">
     <img
       v-if="showMascot && !mobileHeader"
-      src="../assets/mascot.webp"
+      src="../../assets/mascot.webp"
       alt=""
       aria-hidden="true"
       draggable="false"
@@ -151,8 +151,8 @@ const showMascot = ref(false);
   height: 36px;
   flex: 0 0 36px;
   background-color: var(--color-primary);
-  -webkit-mask: url('../assets/robot.svg') center / 32px 32px no-repeat;
-  mask: url('../assets/robot.svg') center / 32px 32px no-repeat;
+  -webkit-mask: url('../../assets/robot.svg') center / 32px 32px no-repeat;
+  mask: url('../../assets/robot.svg') center / 32px 32px no-repeat;
 }
 
 .brand-title {

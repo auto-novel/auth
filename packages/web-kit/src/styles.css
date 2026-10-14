@@ -1,4 +1,4 @@
-@import './components/sidebar.css';
+@import './components/sidebar/sidebar.css';
 
 @source './components';
 @source './notifications';

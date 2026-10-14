@@ -15,7 +15,8 @@ registerHooks({
   },
 });
 
-const { useSidebarPreference } = await import('../src/sidebar.ts');
+const { useSidebarPreference } =
+  await import('../src/components/sidebar/preference.ts');
 
 const SIDEBAR_KEY = 'web-kit:sidebar:v1';
 
