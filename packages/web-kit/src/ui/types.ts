@@ -61,13 +61,6 @@ export interface XConfirmDialogProps {
   danger?: boolean;
 }
 
-export interface XPaginationProps {
-  page: number;
-  totalPages: number;
-  /** 启用全局左右方向键翻页，默认关闭；同页仅在一个分页条上开启。 */
-  keyboard?: boolean;
-}
-
 export interface XSelectOption {
   label: string;
   value: string;

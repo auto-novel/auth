@@ -5,23 +5,12 @@ import {
   PaginationNext,
   PaginationPrev,
   PaginationRoot,
-  PopoverContent,
-  PopoverPortal,
-  PopoverRoot,
-  PopoverTrigger,
 } from 'reka-ui';
-
 import { onKeyDown } from '@vueuse/core';
-import {
-  computed,
-  onActivated,
-  onDeactivated,
-  onMounted,
-  ref,
-  watch,
-} from 'vue';
+import { onActivated, onDeactivated, onMounted, ref, watch } from 'vue';
 
-import XButton from './XButton.vue';
+import XButton from '../XButton.vue';
+import PageJump from './PageJump.vue';
 import type { XPaginationProps } from './types';
 
 const props = defineProps<XPaginationProps>();
@@ -31,8 +20,6 @@ const emit = defineEmits<{
 }>();
 
 const openJumpIndex = ref<number | null>(null);
-const jumpPage = ref<number | string>(props.page);
-
 const active = ref(false);
 onMounted(() => {
   active.value = true;
@@ -105,30 +92,13 @@ onKeyDown(
 );
 
 function setJumpOpen(open: boolean, index: number) {
-  openJumpIndex.value = open ? index : null;
-  if (open) jumpPage.value = props.page;
+  if (open) openJumpIndex.value = index;
+  else if (openJumpIndex.value === index) openJumpIndex.value = null;
 }
-const canJump = computed(() => {
-  const target = Number(jumpPage.value);
-  return (
-    Number.isInteger(target) &&
-    target >= 1 &&
-    target <= props.totalPages &&
-    target !== props.page
-  );
-});
 
 watch([() => props.page, () => props.totalPages], () => {
-  jumpPage.value = props.page;
   openJumpIndex.value = null;
 });
-
-function jumpToPage() {
-  if (canJump.value) {
-    emit('change', Number(jumpPage.value));
-    openJumpIndex.value = null;
-  }
-}
 </script>
 
 <template>
@@ -146,56 +116,25 @@ function jumpToPage() {
       <XButton variant="ghost" size="sm">上一页</XButton>
     </PaginationPrev>
 
-    <PopoverRoot
+    <PageJump
       :open="openJumpIndex === -1"
+      :page="page"
+      :total-pages="totalPages"
+      content-class="sm:hidden"
       @update:open="setJumpOpen($event, -1)"
+      @change="$emit('change', $event)"
     >
-      <PopoverTrigger as-child>
-        <XButton
-          variant="ghost"
-          size="sm"
-          class="text-xs text-muted sm:hidden"
-          :disabled="totalPages < 1"
-          :aria-label="`当前第 ${page} 页，共 ${totalPages} 页，跳转到指定页`"
-          title="跳转到指定页"
-        >
-          {{ page }} / {{ totalPages }}
-        </XButton>
-      </PopoverTrigger>
-      <PopoverPortal>
-        <PopoverContent
-          :side-offset="6"
-          :collision-padding="8"
-          class="floating-panel z-40 flex items-center gap-2 p-3 outline-none sm:hidden"
-          aria-label="跳转到指定页"
-        >
-          <label class="flex items-center gap-2 text-xs text-muted">
-            跳至
-            <input
-              v-model="jumpPage"
-              type="number"
-              inputmode="numeric"
-              min="1"
-              :max="totalPages"
-              step="1"
-              :disabled="totalPages < 1"
-              aria-label="跳转页码"
-              class="h-9 w-16 rounded-sm border border-border bg-transparent px-2 text-sm text-ink outline-none transition focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/15 disabled:cursor-not-allowed disabled:opacity-50"
-              @keydown.enter.prevent="jumpToPage"
-            />
-            页
-          </label>
-          <XButton
-            variant="outline"
-            size="sm"
-            :disabled="!canJump"
-            @click="jumpToPage"
-          >
-            跳转
-          </XButton>
-        </PopoverContent>
-      </PopoverPortal>
-    </PopoverRoot>
+      <XButton
+        variant="ghost"
+        size="sm"
+        class="text-xs text-muted sm:hidden"
+        :disabled="totalPages < 1"
+        :aria-label="`当前第 ${page} 页，共 ${totalPages} 页，跳转到指定页`"
+        title="跳转到指定页"
+      >
+        {{ page }} / {{ totalPages }}
+      </XButton>
+    </PageJump>
     <PaginationList
       v-slot="{ items }"
       class="hidden items-center gap-1 sm:flex"
@@ -214,56 +153,24 @@ function jumpToPage() {
             {{ item.value }}
           </XButton>
         </PaginationListItem>
-        <PopoverRoot
+        <PageJump
           v-else
           :open="openJumpIndex === index"
+          :page="page"
+          :total-pages="totalPages"
           @update:open="setJumpOpen($event, index)"
+          @change="$emit('change', $event)"
         >
-          <PopoverTrigger as-child>
-            <XButton
-              variant="ghost"
-              size="icon-sm"
-              class="text-xs text-muted"
-              aria-label="跳转到指定页"
-              title="跳转到指定页"
-            >
-              …
-            </XButton>
-          </PopoverTrigger>
-          <PopoverPortal>
-            <PopoverContent
-              :side-offset="6"
-              :collision-padding="8"
-              class="floating-panel z-40 flex items-center gap-2 p-3 outline-none"
-              aria-label="跳转到指定页"
-            >
-              <label class="flex items-center gap-2 text-xs text-muted">
-                跳至
-                <input
-                  v-model="jumpPage"
-                  type="number"
-                  inputmode="numeric"
-                  min="1"
-                  :max="totalPages"
-                  step="1"
-                  :disabled="totalPages < 1"
-                  aria-label="跳转页码"
-                  class="h-9 w-16 rounded-sm border border-border bg-transparent px-2 text-sm text-ink outline-none transition focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/15 disabled:cursor-not-allowed disabled:opacity-50"
-                  @keydown.enter.prevent="jumpToPage"
-                />
-                页
-              </label>
-              <XButton
-                variant="outline"
-                size="sm"
-                :disabled="!canJump"
-                @click="jumpToPage"
-              >
-                跳转
-              </XButton>
-            </PopoverContent>
-          </PopoverPortal>
-        </PopoverRoot>
+          <XButton
+            variant="ghost"
+            size="icon-sm"
+            class="text-xs text-muted"
+            aria-label="跳转到指定页"
+            title="跳转到指定页"
+          >
+            …
+          </XButton>
+        </PageJump>
       </template>
     </PaginationList>
 
