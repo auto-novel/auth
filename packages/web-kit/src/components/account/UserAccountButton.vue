@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import {
-  CloseOutlined,
   ExitToAppOutlined,
   GavelOutlined,
   KeyboardArrowDownOutlined,
@@ -14,16 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from 'reka-ui';
-import {
-  computed,
-  type CSSProperties,
-  nextTick,
-  onBeforeUnmount,
-  onMounted,
-  ref,
-  useTemplateRef,
-  watch,
-} from 'vue';
+import { computed, ref, watch } from 'vue';
 import { RouterLink, type RouteLocationRaw } from 'vue-router';
 
 import { useWebKit, useWebKitInternals } from '../../context';
@@ -31,42 +21,14 @@ import type { WebKitMenuOption } from '../../types';
 import XTime from '../../ui/time/XTime.vue';
 import AccountMenuOptions from './AccountMenuOptions.vue';
 import AccountMenuPanel from './AccountMenuPanel.vue';
+import LoginDialog from './LoginDialog.vue';
 
 defineProps<{ options: WebKitMenuOption[] }>();
 
-const { logout: signOut, whoami, theme: webTheme } = useWebKit();
+const { logout: signOut, whoami } = useWebKit();
 const { attention, options: kitOptions, accountActions } = useWebKitInternals();
-const loginFrame = useTemplateRef('loginFrame');
 const menuOpen = ref(false);
 const loginOpen = ref(false);
-const loginViewportStyle = ref<CSSProperties>({});
-
-watch(loginOpen, (open, _, onCleanup) => {
-  loginViewportStyle.value = {};
-  if (!open) return;
-
-  // iframe 无法感知宿主被键盘缩小的可见视口，由父页面同步其位置和高度。
-  const viewport = window.visualViewport;
-  if (!viewport) return;
-
-  const syncViewport = () => {
-    loginViewportStyle.value = {
-      top: `${viewport.offsetTop}px`,
-      height: `${viewport.height}px`,
-      bottom: 'auto',
-    };
-  };
-
-  syncViewport();
-  viewport.addEventListener('resize', syncViewport);
-  viewport.addEventListener('scroll', syncViewport);
-  onCleanup(() => {
-    viewport.removeEventListener('resize', syncViewport);
-    viewport.removeEventListener('scroll', syncViewport);
-  });
-});
-const loginError = ref<string>();
-const completingLogin = ref(false);
 const strikesEnabled = computed(() => kitOptions.strikes.enabled);
 const strikesTo = computed(() => kitOptions.strikes.to as RouteLocationRaw);
 const hasUnreadStrikes = computed(
@@ -81,44 +43,9 @@ const accountLabel = computed(() => {
   return `账号 @${user.username}${attention}`;
 });
 
-const loginFrameSrc = computed(() =>
-  accountActions.createLoginUrl(webTheme.theme.value),
-);
-
 watch(menuOpen, (open) => {
   if (open) void attention.refresh();
 });
-
-function openLogin() {
-  loginError.value = undefined;
-  loginOpen.value = true;
-}
-
-function closeLogin() {
-  if (completingLogin.value) return;
-  loginOpen.value = false;
-  loginError.value = undefined;
-}
-
-async function handleMessage(event: MessageEvent) {
-  if (!loginOpen.value || completingLogin.value) return;
-  const completion = accountActions.handleLoginMessage(
-    event,
-    loginFrame.value?.contentWindow,
-  );
-  if (!completion) return;
-
-  completingLogin.value = true;
-  loginError.value = undefined;
-  try {
-    await completion;
-    loginOpen.value = false;
-  } catch {
-    loginError.value = '登录状态同步失败，请重试';
-  } finally {
-    completingLogin.value = false;
-  }
-}
 
 async function logout() {
   menuOpen.value = false;
@@ -127,25 +54,6 @@ async function logout() {
   } catch {
     // The auth session clears the local session even if the remote session has expired.
   }
-}
-
-function handleKeydown(event: KeyboardEvent) {
-  if (event.key === 'Escape' && loginOpen.value) closeLogin();
-}
-
-onMounted(() => {
-  window.addEventListener('message', handleMessage);
-  window.addEventListener('keydown', handleKeydown);
-});
-
-onBeforeUnmount(() => {
-  window.removeEventListener('message', handleMessage);
-  window.removeEventListener('keydown', handleKeydown);
-});
-
-async function focusLoginFrame() {
-  await nextTick();
-  loginFrame.value?.focus();
 }
 </script>
 
@@ -247,57 +155,17 @@ async function focusLoginFrame() {
       </DropdownMenuPortal>
     </DropdownMenuRoot>
 
-    <button v-else type="button" class="account-trigger" @click="openLogin">
+    <button
+      v-else
+      type="button"
+      class="account-trigger"
+      @click="loginOpen = true"
+    >
       登录/注册
     </button>
   </div>
 
-  <Teleport to="body">
-    <!--
-      The login page is embedded full-page, matching how the auth app renders
-      it standalone. A constrained modal iframe would
-      make the page's own viewport-based layout diverge from that rendering.
-    -->
-    <div
-      v-if="loginOpen"
-      class="fixed inset-0 z-50 bg-surface"
-      :style="loginViewportStyle"
-      role="dialog"
-      aria-modal="true"
-      aria-label="登录或注册"
-      @vue:mounted="focusLoginFrame"
-    >
-      <button
-        type="button"
-        class="absolute top-3 right-3 z-10 grid size-9 place-items-center rounded-full bg-black/55 text-white transition hover:bg-black/70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-        aria-label="关闭登录窗口"
-        @click="closeLogin"
-      >
-        <CloseOutlined class="size-5" aria-hidden="true" />
-      </button>
-
-      <iframe
-        ref="loginFrame"
-        class="block h-full w-full border-0"
-        :src="loginFrameSrc"
-        title="登录或注册"
-      />
-
-      <p
-        v-if="loginError"
-        class="absolute bottom-4 left-1/2 w-[min(420px,calc(100%-2rem))] -translate-x-1/2 rounded-md border border-error-border bg-surface px-4 py-3 text-sm text-error-strong shadow"
-        style="
-          background-image: linear-gradient(
-            var(--color-error-soft),
-            var(--color-error-soft)
-          );
-        "
-        role="alert"
-      >
-        {{ loginError }}
-      </p>
-    </div>
-  </Teleport>
+  <LoginDialog v-model:open="loginOpen" />
 </template>
 
 <style scoped>
