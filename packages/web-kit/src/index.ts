@@ -7,6 +7,7 @@ import XAsyncContent from './ui/XAsyncContent.vue';
 import XButton from './ui/XButton.vue';
 import XConfirmDialog from './ui/XConfirmDialog.vue';
 import XDrawer from './ui/drawer/XDrawer.vue';
+import XDialog from './ui/dialog/XDialog.vue';
 import XPagination from './ui/pagination/XPagination.vue';
 import XSelect from './ui/XSelect.vue';
 import XTime from './ui/time/XTime.vue';
@@ -44,6 +45,7 @@ export {
   XButton,
   XConfirmDialog,
   XDrawer,
+  XDialog,
   XPagination,
   XSelect,
   XTime,
@@ -61,6 +63,7 @@ export type {
   ToastUpdateOptions,
 } from './ui/toast';
 export type { XDrawerProps } from './ui/drawer/types';
+export type { XDialogProps } from './ui/dialog/types';
 export type { XPaginationProps } from './ui/pagination/types';
 export type { XTimePreset, XTimeProps, XTimeValue } from './ui/time/time';
 export type { Theme, ThemeOverride, ThemePreference, WebTheme } from './theme';
