@@ -1,5 +1,13 @@
 .vscode/
 
+# AI
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+.claude/
+.codex/
+.cursor/
+
 # Deploy
 /data/
 .env
