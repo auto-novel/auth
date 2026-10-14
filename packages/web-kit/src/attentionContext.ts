@@ -32,7 +32,7 @@ const POLL_INTERVAL = 60 * 1000;
 export function createAttention(api: AttentionApi) {
   const status = ref<AttentionStatus>();
   let session: AttentionSession | undefined;
-  let timer: number | undefined;
+  let timer: ReturnType<typeof globalThis.setInterval> | undefined;
 
   async function synchronize(current: AttentionSession) {
     while (session === current) {
