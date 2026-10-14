@@ -16,6 +16,7 @@ import { Toast } from './ui/toast';
 import { getApiErrorMessage } from './ui/toast/apiError';
 
 export { createWebKit } from './create';
+export { copyToClipboard } from './utils/clipboard';
 export { useWebKitViewport } from './utils/viewport';
 export type { ViewportMode, WebKitViewport } from './utils/viewport';
 export { isKnownRole, roleLabels, roles } from './auth/whoami';
