@@ -95,7 +95,24 @@ watch(
           }"
           :style="panelStyle"
         >
-          <DrawerTitle class="sr-only">{{ title }}</DrawerTitle>
+          <header
+            v-if="showHeader"
+            class="flex shrink-0 items-center justify-between gap-3 border-b border-divider px-6 py-4 leading-none"
+          >
+            <slot name="header">
+              <DrawerTitle
+                class="flex min-h-9 items-center text-lg leading-none font-medium"
+              >
+                {{ title }}
+              </DrawerTitle>
+              <div v-if="$slots.action" class="flex items-center gap-3">
+                <slot name="action" />
+              </div>
+            </slot>
+          </header>
+          <DrawerTitle v-if="!showHeader || $slots.header" class="sr-only">
+            {{ title }}
+          </DrawerTitle>
           <DrawerDescription v-if="description" class="sr-only">
             {{ description }}
           </DrawerDescription>

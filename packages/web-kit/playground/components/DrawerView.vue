@@ -7,6 +7,9 @@ type DrawerSide = 'left' | 'right' | 'top' | 'bottom';
 
 const open = ref(false);
 const externalOpen = ref(false);
+const headerOpen = ref(false);
+const actionOpen = ref(false);
+const customHeaderOpen = ref(false);
 const side = ref<DrawerSide>('right');
 const width = ref<number | string>(360);
 const height = ref<number | string>(360);
@@ -77,6 +80,32 @@ const open = ref(false);
   </XDrawer>
 </template>`;
 
+const headerCode = `<XDrawer v-model:open="open" title="编辑资料" show-header :width="360">
+  <template #trigger>
+    <XButton variant="outline">编辑资料</XButton>
+  </template>
+  <!-- 不传 action 时，仅显示 title。 -->
+  <template #action>
+    <XButton variant="ghost" size="sm" @click="open = false">关闭</XButton>
+  </template>
+  <div class="min-h-0 flex-1 overflow-y-auto p-6">表单内容</div>
+</XDrawer>`;
+
+const customHeaderCode = `<XDrawer v-model:open="open" title="筛选条件" show-header :width="360">
+  <template #trigger>
+    <XButton variant="outline">筛选条件</XButton>
+  </template>
+  <!-- header 替换整个标题栏内容，不会再渲染默认 title 或 action。 -->
+  <template #header>
+    <div>
+      <h2 class="text-lg font-medium">筛选条件</h2>
+      <p class="text-xs text-muted">仅查看符合条件的结果</p>
+    </div>
+    <XButton variant="ghost" size="sm" @click="open = false">关闭</XButton>
+  </template>
+  <div class="min-h-0 flex-1 overflow-y-auto p-6">筛选内容</div>
+</XDrawer>`;
+
 const props = [
   {
     name: 'open',
@@ -88,7 +117,15 @@ const props = [
     name: 'title',
     type: 'string',
     default: '必填',
-    description: '无障碍标题，组件仅以 sr-only 渲染；可见标题需自行添加。',
+    description:
+      '无障碍标题；showHeader 开启时显示在默认标题栏中，关闭或使用 #header 时以 sr-only 渲染。',
+  },
+  {
+    name: 'showHeader',
+    type: 'boolean',
+    default: 'false',
+    description:
+      '显示标题栏，可通过 #action 添加操作区或 #header 替换标题栏内容。',
   },
   {
     name: 'description',
@@ -240,6 +277,89 @@ const props = [
     </section>
 
     <section
+      aria-labelledby="drawer-header"
+      class="border-t border-divider pt-6"
+    >
+      <h2 id="drawer-header" class="mb-2 font-medium">标题栏与操作区</h2>
+      <p class="mb-4 text-sm text-muted">
+        showHeader 默认关闭，上方示例自行放置可见标题。开启后默认显示 title；
+        action 插槽添加右侧操作区，header
+        插槽替换整个标题栏内容（包括默认操作区）。
+      </p>
+      <div class="flex flex-wrap items-center gap-3">
+        <XDrawer
+          v-model:open="headerOpen"
+          title="默认标题栏"
+          show-header
+          :width="360"
+        >
+          <template #trigger>
+            <XButton variant="outline">默认标题栏</XButton>
+          </template>
+          <div class="min-h-0 flex-1 overflow-y-auto p-6">
+            <p class="mb-4 text-sm text-muted">
+              标题由 title 提供，内容区无需重复添加标题。
+            </p>
+            <XButton @click="headerOpen = false">关闭</XButton>
+          </div>
+        </XDrawer>
+        <XDrawer
+          v-model:open="actionOpen"
+          title="编辑资料"
+          show-header
+          :width="360"
+        >
+          <template #trigger>
+            <XButton variant="outline">标题栏操作区</XButton>
+          </template>
+          <template #action>
+            <XButton variant="ghost" size="sm" @click="actionOpen = false">
+              关闭
+            </XButton>
+          </template>
+          <div class="min-h-0 flex-1 overflow-y-auto p-6">
+            <label class="flex flex-col gap-2 text-sm">
+              名称
+              <input
+                class="rounded-sm border border-border bg-surface p-2 text-ink outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/15"
+                placeholder="通过标题栏按钮关闭"
+              />
+            </label>
+          </div>
+        </XDrawer>
+        <XDrawer
+          v-model:open="customHeaderOpen"
+          title="筛选条件"
+          show-header
+          :width="360"
+        >
+          <template #trigger>
+            <XButton variant="outline">自定义标题栏</XButton>
+          </template>
+          <template #header>
+            <div>
+              <h2 class="text-lg font-medium">筛选条件</h2>
+              <p class="text-xs text-muted">仅查看符合条件的结果</p>
+            </div>
+            <XButton
+              variant="ghost"
+              size="sm"
+              @click="customHeaderOpen = false"
+            >
+              关闭
+            </XButton>
+          </template>
+          <div class="min-h-0 flex-1 overflow-y-auto p-6">
+            <p class="text-sm text-muted">
+              自定义标题栏可以组合标题、副标题和按钮。title
+              仍为抽屉提供隐藏的无障碍标题。
+            </p>
+          </div>
+        </XDrawer>
+      </div>
+    </section>
+
+    <section
       aria-labelledby="drawer-props"
       class="border-t border-divider pt-6"
     >
@@ -283,7 +403,19 @@ const props = [
         </dd>
         <dt><code>#default</code></dt>
         <dd class="text-muted">
-          抽屉内容，无插槽参数。自行放置可见标题、表单、滚动容器及关闭按钮。
+          抽屉内容，无插槽参数。自行放置表单、滚动容器及关闭按钮；未开启
+          showHeader 时可自行添加可见标题。
+        </dd>
+        <dt><code>#action</code></dt>
+        <dd class="text-muted">
+          默认标题栏右侧操作区，无插槽参数。仅在 showHeader 开启且未提供 #header
+          时显示，可放置关闭或保存按钮。
+        </dd>
+        <dt><code>#header</code></dt>
+        <dd class="text-muted">
+          替换整个标题栏内容，无插槽参数。仅在 showHeader
+          开启时显示，保留标题栏容器的布局、内边距和分隔线；title
+          仍作为隐藏的无障碍标题。
         </dd>
         <dt><code>v-model:open</code></dt>
         <dd class="text-muted">
@@ -308,6 +440,14 @@ const props = [
       <pre
         class="overflow-x-auto rounded-sm border border-border bg-surface p-4 text-xs leading-6 text-ink"
       ><code>{{ externalCode }}</code></pre>
+      <h3 class="mb-2 mt-6 text-sm font-medium">默认标题栏与 action 操作区</h3>
+      <pre
+        class="overflow-x-auto rounded-sm border border-border bg-surface p-4 text-xs leading-6 text-ink"
+      ><code>{{ headerCode }}</code></pre>
+      <h3 class="mb-2 mt-6 text-sm font-medium">header 自定义标题栏</h3>
+      <pre
+        class="overflow-x-auto rounded-sm border border-border bg-surface p-4 text-xs leading-6 text-ink"
+      ><code>{{ customHeaderCode }}</code></pre>
     </section>
   </ComponentPage>
 </template>
