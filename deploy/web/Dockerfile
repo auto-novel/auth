@@ -4,6 +4,7 @@ ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable
 WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN corepack install
 COPY apps/admin/package.json ./apps/admin/package.json
 COPY apps/login/package.json ./apps/login/package.json
 COPY packages/web-kit/package.json ./packages/web-kit/package.json
