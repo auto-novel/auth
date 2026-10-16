@@ -8,15 +8,12 @@
     "node": ">=22.13.0"
   },
   "scripts": {
-    "dev": "pnpm --filter auth-login dev",
+    "dev": "pnpm dev:web",
+    "dev:web": "pnpm --filter auth-login dev",
     "dev:admin": "pnpm --filter auth-admin dev",
-    "dev:remote": "pnpm --filter auth-login dev:remote",
-    "dev:local": "pnpm --filter auth-login dev:local",
-    "dev:native": "pnpm --filter auth-login dev:native",
     "dev:web-kit": "pnpm --filter @novelia/web-kit dev",
-    "build": "pnpm --filter @novelia/web-kit build && pnpm --filter auth-login build && pnpm --filter auth-admin build",
-    "preview": "pnpm --filter auth-login preview",
-    "preview:web-kit": "pnpm --filter @novelia/web-kit preview"
+    "build": "pnpm --stream -r run build",
+    "test": "pnpm --stream -r --if-present run test"
   },
   "devDependencies": {
     "prettier": "^3.9.6"
