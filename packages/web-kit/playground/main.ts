@@ -31,6 +31,11 @@ const router = createRouter({
       component: () => import('./ComponentsView.vue'),
     },
     {
+      path: '/components/toast',
+      name: 'components-toast',
+      component: () => import('./components/ToastView.vue'),
+    },
+    {
       path: '/components/drawer',
       name: 'components-drawer',
       component: () => import('./components/DrawerView.vue'),

@@ -28,6 +28,11 @@ const navigationOptions: WebKitMenuOption[] = [
     children: [
       { key: 'components', label: '基础组件总览 Overview', to: '/components' },
       {
+        key: 'components-toast',
+        label: '通知 Toast',
+        to: '/components/toast',
+      },
+      {
         key: 'components-drawer',
         label: '抽屉 Drawer',
         to: '/components/drawer',
