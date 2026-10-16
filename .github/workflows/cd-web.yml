@@ -1,4 +1,4 @@
-name: Publish Web
+name: CD Web
 
 on:
   workflow_dispatch:
@@ -6,16 +6,20 @@ on:
     branches: [main]
     paths:
       - .github/workflows/cd-web.yml
+      - .dockerignore
       - deploy/web/**
-      - apps/login/**
-      - apps/admin/**
-      - packages/web-kit/**
       - package.json
       - pnpm-lock.yaml
       - pnpm-workspace.yaml
+      - apps/login/**
+      - apps/admin/**
+      - packages/web-kit/**
+
+permissions:
+  contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}-web
+  group: cd-web-${{ github.ref }}
   cancel-in-progress: true
 
 env:
@@ -23,8 +27,14 @@ env:
   IMAGE_NAME: auth-web
 
 jobs:
+  check:
+    uses: ./.github/workflows/ci-web.yml
+
   build-and-push:
+    needs: check
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     permissions:
       contents: read
@@ -52,8 +62,8 @@ jobs:
             VITE_COMMIT_SHA=${{ github.sha }}
             VITE_BUILD_TIME=${{ steps.build_metadata.outputs.build_time }}
           tags: ghcr.io/${{ env.IMAGE_OWNER }}/${{ env.IMAGE_NAME }}:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=${{ env.IMAGE_NAME }}
+          cache-to: type=gha,mode=max,scope=${{ env.IMAGE_NAME }}
 
       - uses: actions/delete-package-versions@v5
         with:

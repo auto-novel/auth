@@ -1,0 +1,51 @@
+name: CI Web
+
+on:
+  workflow_call:
+  pull_request:
+    paths:
+      - .github/workflows/ci-web.yml
+      - .dockerignore
+      - deploy/web/**
+      - package.json
+      - pnpm-lock.yaml
+      - pnpm-workspace.yaml
+      - apps/login/**
+      - apps/admin/**
+      - packages/web-kit/**
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-web-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: CI Web
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    env:
+      HUSKY: '0'
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Type-check and build
+        run: pnpm --stream --filter 'auth-login...' --filter 'auth-admin...' run build
+
+      - name: Test
+        run: |
+          pnpm --stream --filter 'auth-login...' --filter 'auth-admin...' --if-present run test
