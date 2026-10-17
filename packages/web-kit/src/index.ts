@@ -24,6 +24,15 @@ export type { ViewportMode, WebKitViewport } from './utils/viewport';
 export { isKnownRole, roleLabels, roles } from './auth/whoami';
 export { useLocalStorage, useSessionStorage, useStorage } from './storage';
 export type { StoredRefOptions } from './storage';
+export { useUploadProgress, uploadFile, UploadError } from './utils/upload';
+export type {
+  UploadFileOptions,
+  UploadProgress,
+  UploadProgressEvent,
+  UploadProgressItem,
+  UploadRequestOptions,
+  UploadStatus,
+} from './utils/upload';
 export type { ApiClientOptions as AuthClientOptions } from './api/client';
 export type {
   AttentionStatus,

@@ -258,6 +258,59 @@ function handleDrop(files: File[], event: DragEvent) {
 
 拖入计数和文件提取由 VueUse `useDropZone` 管理。当前 VueUse 14.4 在 Safari 会跳过拖入阶段的有效性判断：非文件拖拽不会显示遮罩，但可能被阻止浏览器默认行为；禁用组件后不受影响。
 
+## 上传进度
+
+`useUploadProgress(files)` 接收 `readonly File[]`，以文件对象为 Map 键、`file.size` 为初始总大小。仅初始化固定批次，不监听数组变化；同一对象去重，同名的不同文件独立管理。创建 composable 不会发送请求。
+
+```ts
+import { useUploadProgress } from '@novelia/web-kit';
+
+// files 来自文件选择或拖放。
+const uploads = useUploadProgress(files);
+const controller = new AbortController();
+const results = await Promise.allSettled(
+  files.map((file) =>
+    uploads.upload(file, {
+      url: '/api/upload',
+      signal: controller.signal,
+    }),
+  ),
+);
+// 上传期间 uploads.cancel(file) 真正中止单个请求；controller.abort() 取消整批。
+// 成功结果的 value 是 Response，可调用 json()、text() 或 blob()。
+```
+
+对外仅提供 `uploads`、`isUploading`、`upload(file, options)` 和 `cancel(file)`：
+
+- `uploads` 为响应式 `ReadonlyMap<File, UploadProgressItem>`，无需 `.value`。条目包含只读的 `status`（`idle / uploading / success / error / canceled`）、`isUploading`、`loaded`、`total`、`progress` 和 `error`。条目更新时整体替换，派生单文件状态可用 `computed(() => uploads.uploads.get(file))`。顶层 `isUploading` 是只读 Ref。
+- `upload` 内部管理开始、进度和结果状态。未登记或已有活跃请求的文件直接拒绝；其他文件可并发。结束后再次调用即可重试，自动清理旧错误和进度，无需手动 reset。
+- `cancel(file)` 真正中断请求并立即标记取消，可马上重试；取消空闲、已结束或未知文件不做处理。也支持请求选项的 `signal`。旧请求不会污染重试任务。卸载时需要取消的任务由调用方调用 `cancel` 或中止 signal。
+- `loaded/total` 表示请求体传输字节数，FormData 可能包含额外开销。总大小未知时 `total/progress` 为 `null`。百分比范围 0–100，空文件初始为 0；达到 100% 不代表服务端确认成功，只有收到 2xx 响应才进入 `success`。
+
+### 独立 XHR 上传
+
+`uploadFile(file, options): Promise<Response>` 只负责请求，不依赖 Vue 或进度管理器。需要自定义状态管理时可直接使用：
+
+```ts
+import { uploadFile } from '@novelia/web-kit';
+
+const response = await uploadFile(file, {
+  url: signedUrl,
+  method: 'PUT',
+  bodyType: 'file',
+  onProgress: ({ loaded, total }) => {
+    // total 为 number | null，未知时可显示不定进度。
+  },
+});
+const text = await response.text();
+```
+
+- 两种入口共用 `UploadRequestOptions`。默认 `POST` 和 `bodyType: 'form-data'`，文件字段默认 `file`；只有此模式可传 `fieldName`。不要手动设置 multipart 的 `Content-Type`，浏览器会补充 boundary。`bodyType: 'file'` 直接发送文件，适用于预签名 PUT。旧 `multipart` 参数已移除。
+- 支持 `headers`、`timeout`（毫秒，默认 0 不限时）、`withCredentials`（默认 false）和 `signal`；不自动附加认证令牌、刷新令牌或重试。仅独立函数的 `UploadFileOptions` 额外提供 `onProgress` 回调。
+- 响应统一返回标准 `Response`，读取 `status`、`headers`、`json()`、`text()` 或 `blob()`，不再暴露 XHR 或 `responseType`。响应由 XHR 数据构造，不包含 fetch 的 URL/重定向元数据。仅 2xx 视为成功，不判断业务状态。
+- HTTP、网络和超时错误拒绝为 `UploadError`，含 `kind`（`http / network / timeout`）；仅 HTTP 错误含 `response`，可读取错误响应体。取消拒绝为 `AbortError`；配置、发送或进度回调异常保留原错误。所有结束路径清理事件监听。
+- SSR 导入安全；实际上传需要浏览器 XHR。
+
 ## 其他组件
 
 按钮、选择框、分页、菜单、提示框、确认框、时间显示和异步内容组件都可以从包入口按需导入，如 `XButton`、`XSelect`、`XPagination`、`XTooltip`、`XTime`。
