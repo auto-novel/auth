@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { MoreHorizOutlined } from '@vicons/material';
+import { MoreVertOutlined } from '@vicons/material';
 import {
   DropdownMenuContent,
   DropdownMenuPortal,
@@ -30,7 +30,7 @@ const { contentStyle } = useOverlayLayer(open);
         aria-label="更多操作"
         title="更多操作"
       >
-        <MoreHorizOutlined
+        <MoreVertOutlined
           :class="compact ? 'size-4' : 'size-5'"
           aria-hidden="true"
         />
