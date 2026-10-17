@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { useLocalStorage, useSessionStorage } from '../src/storage.ts';
+import { useLocalStorage, useSessionStorage } from '../../src/utils/storage.ts';
 
 const THEMES = new Set(['light', 'dark']);
 

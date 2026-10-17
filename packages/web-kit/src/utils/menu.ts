@@ -1,4 +1,4 @@
-import type { WebKitMenuOption } from './types';
+import type { WebKitMenuOption } from '../types';
 
 export function externalLinkAttrs(
   option: Extract<WebKitMenuOption, { type: 'external' }>,

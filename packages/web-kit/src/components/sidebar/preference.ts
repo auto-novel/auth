@@ -1,6 +1,6 @@
 import { type Ref } from 'vue';
 
-import { useLocalStorage } from '../../storage';
+import { useLocalStorage } from '../../utils/storage';
 
 const SIDEBAR_STORAGE_KEY = 'web-kit:sidebar:v1';
 

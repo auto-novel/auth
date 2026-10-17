@@ -1,7 +1,7 @@
 import { isHTTPError } from 'ky';
 import { computed, readonly, shallowRef, watch } from 'vue';
 
-import { useLocalStorage } from '../storage';
+import { useLocalStorage } from '../utils/storage';
 import type { AccessTokenProvider } from '../api/client';
 
 import { isKnownRole, roleLabels } from './whoami';

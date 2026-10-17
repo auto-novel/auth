@@ -22,8 +22,12 @@ export { copyToClipboard } from './utils/clipboard';
 export { useWebKitViewport } from './utils/viewport';
 export type { ViewportMode, WebKitViewport } from './utils/viewport';
 export { isKnownRole, roleLabels, roles } from './auth/whoami';
-export { useLocalStorage, useSessionStorage, useStorage } from './storage';
-export type { StoredRefOptions } from './storage';
+export {
+  useLocalStorage,
+  useSessionStorage,
+  useStorage,
+} from './utils/storage';
+export type { StoredRefOptions } from './utils/storage';
 export { useUploadProgress, uploadFile, UploadError } from './utils/upload';
 export type {
   UploadFileOptions,

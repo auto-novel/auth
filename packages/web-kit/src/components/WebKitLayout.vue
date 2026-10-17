@@ -8,7 +8,7 @@ import {
 import { computed, nextTick, ref, useId, watch } from 'vue';
 import { useRoute } from 'vue-router';
 
-import { selectedGroupKeys } from '../menu';
+import { selectedGroupKeys } from '../utils/menu';
 import type { WebKitMenuOption } from '../types';
 import XDrawer from '../ui/drawer/XDrawer.vue';
 import { useWebKitViewport } from '../utils/viewport';
