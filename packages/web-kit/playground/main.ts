@@ -56,6 +56,11 @@ const router = createRouter({
       component: () => import('./components/PaginationView.vue'),
     },
     {
+      path: '/components/drop-zone',
+      name: 'components-drop-zone',
+      component: () => import('./components/DropZoneView.vue'),
+    },
+    {
       path: '/components/async-content',
       name: 'components-async-content',
       component: () => import('./components/AsyncContentView.vue'),

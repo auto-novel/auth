@@ -236,6 +236,28 @@ const routes = [
 
 在 `createWebKit()` 的配置中设 `strikes: { enabled: false }` 可关闭入口，或用 `strikes: { to: '/my-strikes' }` 修改地址。
 
+## 文件拖放
+
+`XDropZone` 挂载后监听整个窗口，从系统拖入文件时显示全屏遮罩，拖离窗口、按 Escape、窗口失焦或放下文件后关闭。普通文本、链接和页面内拖拽不会触发。每个页面只需挂载一个实例，无需安装插件。
+
+```vue
+<script setup lang="ts">
+import { XDropZone } from '@novelia/web-kit';
+
+function handleDrop(files: File[], event: DragEvent) {
+  // 自行校验、读取、上传或保存文件。
+}
+</script>
+
+<template>
+  <XDropZone :disabled="false" @drop="handleDrop">松开以导入文件</XDropZone>
+</template>
+```
+
+`drop` 事件提供原始 `File[]` 和 `DragEvent`，不做类型、数量、大小校验，不读取文件或发起请求，也不保留文件列表。不支持目录递归读取或点击选择文件；需要时由调用方另外实现。默认插槽自定义提示文字，`#icon` 替换图标。`disabled` 默认为 `false`，设为 `true` 后立即关闭遮罩且不再拦截拖放（浏览器可能会直接打开拖入的文件）。卸载时自动清理监听器。
+
+拖入计数和文件提取由 VueUse `useDropZone` 管理。当前 VueUse 14.4 在 Safari 会跳过拖入阶段的有效性判断：非文件拖拽不会显示遮罩，但可能被阻止浏览器默认行为；禁用组件后不受影响。
+
 ## 其他组件
 
 按钮、选择框、分页、菜单、提示框、确认框、时间显示和异步内容组件都可以从包入口按需导入，如 `XButton`、`XSelect`、`XPagination`、`XTooltip`、`XTime`。

@@ -10,6 +10,11 @@ import { RouterLink } from 'vue-router';
 
 const componentPages = [
   {
+    to: '/components/drop-zone',
+    title: '文件拖放 · XDropZone',
+    description: '系统文件拖入时显示全屏遮罩，由调用方处理原始文件。',
+  },
+  {
     to: '/components/toast',
     title: '通知 · Toast',
     description: '通知类型、进出场动画、生命周期与 Promise 状态更新。',

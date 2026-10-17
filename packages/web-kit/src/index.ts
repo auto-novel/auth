@@ -7,6 +7,7 @@ import XAsyncContent from './ui/XAsyncContent.vue';
 import XButton from './ui/XButton.vue';
 import XConfirmDialog from './ui/XConfirmDialog.vue';
 import XDrawer from './ui/drawer/XDrawer.vue';
+import XDropZone from './ui/drop-zone/XDropZone.vue';
 import XDialog from './ui/dialog/XDialog.vue';
 import XPagination from './ui/pagination/XPagination.vue';
 import XSelect from './ui/XSelect.vue';
@@ -45,6 +46,7 @@ export {
   XButton,
   XConfirmDialog,
   XDrawer,
+  XDropZone,
   XDialog,
   XPagination,
   XSelect,
@@ -63,6 +65,7 @@ export type {
   ToastUpdateOptions,
 } from './ui/toast';
 export type { XDrawerProps } from './ui/drawer/types';
+export type { XDropZoneProps } from './ui/drop-zone/types';
 export type { XDialogProps } from './ui/dialog/types';
 export type { XPaginationProps } from './ui/pagination/types';
 export type { XTimePreset, XTimeProps, XTimeValue } from './ui/time/time';
