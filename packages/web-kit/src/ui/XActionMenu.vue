@@ -6,6 +6,9 @@ import {
   DropdownMenuRoot,
   DropdownMenuTrigger,
 } from 'reka-ui';
+import { ref } from 'vue';
+
+import { useOverlayLayer } from './overlayLayer';
 
 import XButton from './XButton.vue';
 import type { XActionMenuProps } from './types';
@@ -14,10 +17,12 @@ withDefaults(defineProps<XActionMenuProps>(), {
   side: 'bottom',
   align: 'end',
 });
+const open = ref(false);
+const { contentStyle } = useOverlayLayer(open);
 </script>
 
 <template>
-  <DropdownMenuRoot>
+  <DropdownMenuRoot v-model:open="open">
     <DropdownMenuTrigger as-child>
       <XButton
         variant="ghost"
@@ -33,11 +38,12 @@ withDefaults(defineProps<XActionMenuProps>(), {
     </DropdownMenuTrigger>
     <DropdownMenuPortal>
       <DropdownMenuContent
+        :style="contentStyle"
         :side="side"
         :align="align"
         :side-offset="6"
         :collision-padding="8"
-        class="floating-panel z-40 p-1 outline-none"
+        class="floating-panel p-1 outline-none"
         :class="compact ? 'w-32' : 'w-40'"
       >
         <slot />

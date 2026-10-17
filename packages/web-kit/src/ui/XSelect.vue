@@ -16,6 +16,9 @@ import {
   SelectViewport,
   type AcceptableValue,
 } from 'reka-ui';
+import { ref } from 'vue';
+
+import { useOverlayLayer } from './overlayLayer';
 
 import type { XSelectProps } from './types';
 
@@ -29,11 +32,14 @@ function handleChange(value: AcceptableValue) {
   model.value = value;
   emit('change');
 }
+const open = ref(false);
+const { contentStyle } = useOverlayLayer(open);
 </script>
 
 <template>
   <div>
     <SelectRoot
+      v-model:open="open"
       :model-value="model"
       :disabled="disabled"
       :required="required"
@@ -53,9 +59,10 @@ function handleChange(value: AcceptableValue) {
       </SelectTrigger>
       <SelectPortal>
         <SelectContent
+          :style="contentStyle"
           position="popper"
           :side-offset="6"
-          class="x-select-content floating-panel z-40 min-w-(--reka-select-trigger-width) overflow-hidden p-1 text-ink"
+          class="x-select-content floating-panel min-w-(--reka-select-trigger-width) overflow-hidden p-1 text-ink"
         >
           <ScrollAreaRoot type="auto" class="overflow-hidden">
             <SelectViewport as-child>

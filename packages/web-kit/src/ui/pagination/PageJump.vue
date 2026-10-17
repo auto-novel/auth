@@ -8,6 +8,7 @@ import {
 import { computed, ref, watch } from 'vue';
 
 import XButton from '../XButton.vue';
+import { useOverlayLayer } from '../overlayLayer';
 
 const props = defineProps<{
   open: boolean;
@@ -21,6 +22,7 @@ const emit = defineEmits<{
   change: [page: number];
 }>();
 
+const { contentStyle } = useOverlayLayer(() => props.open);
 const jumpPage = ref<number | string>(props.page);
 const canJump = computed(() => {
   const target = Number(jumpPage.value);
@@ -50,9 +52,10 @@ function jumpToPage() {
     </PopoverTrigger>
     <PopoverPortal>
       <PopoverContent
+        :style="contentStyle"
         :side-offset="6"
         :collision-padding="8"
-        class="floating-panel z-40 flex items-center gap-2 p-3 outline-none"
+        class="floating-panel flex items-center gap-2 p-3 outline-none"
         :class="contentClass"
         aria-label="跳转到指定页"
       >

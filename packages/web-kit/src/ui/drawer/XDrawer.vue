@@ -10,6 +10,7 @@ import {
 } from 'reka-ui';
 import { computed, shallowRef, watch } from 'vue';
 
+import { useOverlayLayer } from '../overlayLayer';
 import type { XDrawerProps } from './types';
 
 defineOptions({ inheritAttrs: false });
@@ -23,6 +24,8 @@ const props = withDefaults(defineProps<XDrawerProps>(), {
 const emit = defineEmits<{
   'update:open': [open: boolean];
 }>();
+
+const { overlayStyle, contentStyle } = useOverlayLayer(() => props.open);
 
 const horizontal = computed(
   () => props.side === 'left' || props.side === 'right',
@@ -74,7 +77,10 @@ watch(
         leave-active-class="transition-opacity duration-200 motion-reduce:transition-none"
         leave-to-class="opacity-0"
       >
-        <DrawerOverlay class="fixed inset-0 z-50 bg-black/40" />
+        <DrawerOverlay
+          class="fixed inset-0 bg-black/40"
+          :style="overlayStyle"
+        />
       </Transition>
       <Transition
         enter-from-class="x-drawer-offscreen"
@@ -86,14 +92,14 @@ watch(
             ...(description ? {} : { 'aria-describedby': undefined }),
           }"
           :final-focus="returnFocus ?? true"
-          class="x-drawer-panel fixed z-50 flex flex-col overflow-hidden bg-modal text-ink shadow-2xl outline-none"
+          class="x-drawer-panel fixed flex flex-col overflow-hidden bg-modal text-ink shadow-2xl outline-none"
           :class="{
             'inset-y-0 left-0 max-w-[calc(100vw-3rem)]': side === 'left',
             'inset-y-0 right-0 max-w-[calc(100vw-3rem)]': side === 'right',
             'inset-x-0 top-0 max-h-[calc(100dvh-3rem)]': side === 'top',
             'inset-x-0 bottom-0 max-h-[calc(100dvh-3rem)]': side === 'bottom',
           }"
-          :style="panelStyle"
+          :style="[panelStyle, contentStyle]"
         >
           <header
             v-if="showHeader"

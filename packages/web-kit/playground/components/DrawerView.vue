@@ -1,5 +1,14 @@
 <script setup lang="ts">
-import { XButton, XDrawer, XSelect } from '@novelia/web-kit';
+import {
+  XActionMenu,
+  XActionMenuItem,
+  XButton,
+  XConfirmDialog,
+  XDialog,
+  XDrawer,
+  XSelect,
+  XTooltip,
+} from '@novelia/web-kit';
 import { computed, ref } from 'vue';
 import ComponentPage from './ComponentPage.vue';
 
@@ -10,6 +19,15 @@ const externalOpen = ref(false);
 const headerOpen = ref(false);
 const actionOpen = ref(false);
 const customHeaderOpen = ref(false);
+const layerDrawerOpen = ref(false);
+const layerDialogOpen = ref(false);
+const layerConfirmOpen = ref(false);
+const innerDrawerOpen = ref(false);
+const layerSelection = ref('one');
+const layerOptions = [
+  { label: '选项一', value: 'one' },
+  { label: '选项二', value: 'two' },
+];
 const side = ref<DrawerSide>('right');
 const width = ref<number | string>(360);
 const height = ref<number | string>(360);
@@ -357,6 +375,96 @@ const props = [
           </div>
         </XDrawer>
       </div>
+    </section>
+
+    <section
+      aria-labelledby="drawer-layers"
+      class="border-t border-divider pt-6"
+    >
+      <h2 id="drawer-layers" class="mb-2 font-medium">嵌套弹层与浮层层级</h2>
+      <p class="mb-4 text-sm text-muted">
+        抽屉中打开
+        Dialog，再打开确认框或另一层抽屉。检查遮罩覆盖、下拉框、菜单、
+        Tooltip、Esc 逐层关闭和焦点恢复；关闭动画结束后再重新打开。
+        当前不保证退出动画中交错重开的 Popper 层级、交互栈与焦点顺序同步。
+      </p>
+      <!-- 提前声明确认框，验证层级不依赖组件或 Portal 的声明顺序。 -->
+      <XConfirmDialog
+        v-model:open="layerConfirmOpen"
+        title="确认操作"
+        description="确认框的遮罩应覆盖之前打开的抽屉和 Dialog。"
+      />
+      <XDrawer
+        v-model:open="layerDrawerOpen"
+        title="第一层抽屉"
+        show-header
+        :width="360"
+      >
+        <template #trigger>
+          <XButton variant="outline">检查嵌套弹层</XButton>
+        </template>
+        <div class="space-y-4 p-6">
+          <XSelect
+            v-model="layerSelection"
+            :options="layerOptions"
+            aria-label="抽屉内选项"
+          />
+          <XDialog v-model:open="layerDialogOpen" title="抽屉中的 Dialog">
+            <template #trigger>
+              <XButton>打开 Dialog</XButton>
+            </template>
+            <div class="space-y-4 pr-8">
+              <h3 class="text-lg font-medium">抽屉中的 Dialog</h3>
+              <XSelect
+                v-model="layerSelection"
+                :options="layerOptions"
+                aria-label="Dialog 内选项"
+              />
+              <div class="flex flex-wrap items-center gap-3">
+                <XButton variant="outline" @click="layerConfirmOpen = true">
+                  打开确认框
+                </XButton>
+                <XActionMenu>
+                  <XActionMenuItem @activate="layerConfirmOpen = true">
+                    从菜单确认
+                  </XActionMenuItem>
+                </XActionMenu>
+                <XTooltip>
+                  <template #trigger>
+                    <XButton variant="ghost">提示</XButton>
+                  </template>
+                  提示应显示在 Dialog 上方
+                </XTooltip>
+                <XDrawer
+                  v-model:open="innerDrawerOpen"
+                  title="Dialog 中的抽屉"
+                  show-header
+                  :width="320"
+                >
+                  <template #trigger>
+                    <XButton variant="outline">再开抽屉</XButton>
+                  </template>
+                  <div class="space-y-4 p-6">
+                    <p class="text-sm text-muted">反向嵌套也应位于最上方。</p>
+                    <XButton @click="layerConfirmOpen = true">
+                      打开确认框
+                    </XButton>
+                    <XButton variant="outline" @click="innerDrawerOpen = false">
+                      关闭本层抽屉
+                    </XButton>
+                  </div>
+                </XDrawer>
+              </div>
+              <XButton variant="outline" @click="layerDialogOpen = false">
+                关闭 Dialog
+              </XButton>
+            </div>
+          </XDialog>
+          <XButton variant="outline" @click="layerDrawerOpen = false">
+            关闭第一层抽屉
+          </XButton>
+        </div>
+      </XDrawer>
     </section>
 
     <section

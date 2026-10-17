@@ -6,6 +6,9 @@ import {
   TooltipRoot,
   TooltipTrigger,
 } from 'reka-ui';
+import { ref } from 'vue';
+
+import { useOverlayLayer } from './overlayLayer';
 
 import type { XTooltipProps } from './types';
 
@@ -17,22 +20,25 @@ withDefaults(defineProps<XTooltipProps>(), {
   sideOffset: 8,
   delayDuration: 200,
 });
+const open = ref(false);
+const { contentStyle } = useOverlayLayer(open);
 </script>
 
 <template>
   <TooltipProvider :delay-duration="delayDuration">
-    <TooltipRoot>
+    <TooltipRoot v-model:open="open">
       <TooltipTrigger as-child>
         <slot name="trigger" />
       </TooltipTrigger>
       <TooltipPortal>
         <TooltipContent
+          :style="contentStyle"
           v-bind="$attrs"
           :side="side"
           :align="align"
           :side-offset="sideOffset"
           :collision-padding="8"
-          class="floating-panel z-50 px-3 py-2 text-xs text-ink"
+          class="floating-panel px-3 py-2 text-xs text-ink"
         >
           <slot />
         </TooltipContent>

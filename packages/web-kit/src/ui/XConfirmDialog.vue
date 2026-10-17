@@ -10,9 +10,10 @@ import {
 } from 'reka-ui';
 
 import XButton from './XButton.vue';
+import { useOverlayLayer } from './overlayLayer';
 import type { XConfirmDialogProps } from './types';
 
-withDefaults(defineProps<XConfirmDialogProps>(), {
+const props = withDefaults(defineProps<XConfirmDialogProps>(), {
   confirmLabel: '确认',
 });
 
@@ -20,6 +21,8 @@ const emit = defineEmits<{
   'update:open': [open: boolean];
   confirm: [];
 }>();
+
+const { overlayStyle, contentStyle } = useOverlayLayer(() => props.open);
 
 function confirm() {
   // 先执行确认，再关闭弹窗，避免父组件提前清空待执行的动作。
@@ -31,9 +34,13 @@ function confirm() {
 <template>
   <AlertDialogRoot :open="open" @update:open="$emit('update:open', $event)">
     <AlertDialogPortal>
-      <AlertDialogOverlay class="fixed inset-0 z-40 bg-black/45" />
+      <AlertDialogOverlay
+        class="fixed inset-0 bg-black/45"
+        :style="overlayStyle"
+      />
       <AlertDialogContent
-        class="fixed top-1/2 left-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-floating bg-modal p-5 shadow-floating outline-none sm:p-6"
+        :style="contentStyle"
+        class="fixed top-1/2 left-1/2 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-floating bg-modal p-5 shadow-floating outline-none sm:p-6"
       >
         <AlertDialogTitle class="text-lg font-medium text-ink">
           {{ title }}

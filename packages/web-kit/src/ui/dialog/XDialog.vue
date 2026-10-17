@@ -11,6 +11,7 @@ import {
 } from 'reka-ui';
 import { ref, shallowRef, watch, type CSSProperties } from 'vue';
 
+import { useOverlayLayer } from '../overlayLayer';
 import type { XDialogProps } from './types';
 
 defineOptions({ inheritAttrs: false });
@@ -26,6 +27,7 @@ const emit = defineEmits<{
   closeAutoFocus: [event: Event];
 }>();
 
+const { overlayStyle, contentStyle } = useOverlayLayer(() => props.open);
 const viewportStyle = ref<CSSProperties>({});
 const returnFocus = shallowRef<HTMLElement | null>(null);
 
@@ -87,20 +89,20 @@ function restoreFocus(event: Event) {
       <slot name="trigger" />
     </DialogTrigger>
     <DialogPortal>
-      <DialogOverlay class="fixed inset-0 z-50 bg-black/45" />
+      <DialogOverlay class="fixed inset-0 bg-black/45" :style="overlayStyle" />
       <DialogContent
         v-bind="{
           ...$attrs,
           ...(description ? {} : { 'aria-describedby': undefined }),
         }"
         aria-modal="true"
-        class="fixed z-50 bg-modal text-ink outline-none"
+        class="fixed bg-modal text-ink outline-none"
         :class="
           fullScreen
             ? 'inset-0'
             : 'top-1/2 left-1/2 max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-floating p-5 shadow-floating sm:p-6'
         "
-        :style="viewportStyle"
+        :style="[viewportStyle, contentStyle]"
         @open-auto-focus="emit('openAutoFocus', $event)"
         @close-auto-focus="restoreFocus"
         @escape-key-down="!closable && $event.preventDefault()"
