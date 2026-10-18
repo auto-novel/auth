@@ -8,7 +8,7 @@ import {
 } from 'reka-ui';
 import { ref } from 'vue';
 
-import { useOverlayLayer } from './overlayLayer';
+import { useOverlayLayer } from '../overlayLayer';
 
 import type { XTooltipProps } from './types';
 

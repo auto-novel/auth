@@ -2,7 +2,7 @@
 import { Inventory2Outlined } from '@vicons/material';
 import { computed } from 'vue';
 
-import XButton from './XButton.vue';
+import XButton from '../button/XButton.vue';
 import type { XAsyncContentProps } from './types';
 
 const props = withDefaults(defineProps<XAsyncContentProps>(), {

@@ -1,21 +1,21 @@
 import WebKitApp from './components/WebKitApp.vue';
 import WebKitLayout from './components/WebKitLayout.vue';
 import MyStrikeListView from './views/MyStrikeListView.vue';
-import XActionMenu from './ui/XActionMenu.vue';
-import XActionMenuItem from './ui/XActionMenuItem.vue';
-import XAsyncContent from './ui/XAsyncContent.vue';
+import XActionMenu from './ui/action-menu/XActionMenu.vue';
+import XActionMenuItem from './ui/action-menu/XActionMenuItem.vue';
+import XAsyncContent from './ui/async-content/XAsyncContent.vue';
 import XAspectRatio from './ui/aspect-ratio/XAspectRatio.vue';
 import XSlider from './ui/slider/XSlider.vue';
 import XSwitch from './ui/switch/XSwitch.vue';
-import XButton from './ui/XButton.vue';
-import XConfirmDialog from './ui/XConfirmDialog.vue';
+import XButton from './ui/button/XButton.vue';
+import XConfirmDialog from './ui/dialog/XConfirmDialog.vue';
 import XDrawer from './ui/drawer/XDrawer.vue';
 import XDropZone from './ui/drop-zone/XDropZone.vue';
 import XDialog from './ui/dialog/XDialog.vue';
 import XPagination from './ui/pagination/XPagination.vue';
-import XSelect from './ui/XSelect.vue';
+import XSelect from './ui/select/XSelect.vue';
 import XTime from './ui/time/XTime.vue';
-import XTooltip from './ui/XTooltip.vue';
+import XTooltip from './ui/tooltip/XTooltip.vue';
 import { useWebKit } from './context';
 import { Toast } from './ui/toast';
 import { getApiErrorMessage } from './ui/toast/apiError';
@@ -88,7 +88,7 @@ export type { XSliderProps } from './ui/slider/types';
 export type { XSwitchProps } from './ui/switch/types';
 export type { XDrawerProps } from './ui/drawer/types';
 export type { XDropZoneProps } from './ui/drop-zone/types';
-export type { XDialogProps } from './ui/dialog/types';
+export type { XConfirmDialogProps, XDialogProps } from './ui/dialog/types';
 export type { XPaginationProps } from './ui/pagination/types';
 export type { XTimePreset, XTimeProps, XTimeValue } from './ui/time/time';
 export type { Theme, ThemeOverride, ThemePreference, WebTheme } from './theme';
@@ -103,12 +103,12 @@ export type {
 export type {
   XActionMenuItemProps,
   XActionMenuProps,
-  XAsyncContentProps,
+} from './ui/action-menu/types';
+export type { XAsyncContentProps } from './ui/async-content/types';
+export type {
   XButtonProps,
   XButtonSize,
   XButtonVariant,
-  XConfirmDialogProps,
-  XSelectOption,
-  XSelectProps,
-  XTooltipProps,
-} from './ui/types';
+} from './ui/button/types';
+export type { XSelectOption, XSelectProps } from './ui/select/types';
+export type { XTooltipProps } from './ui/tooltip/types';

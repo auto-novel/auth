@@ -14,3 +14,13 @@ export interface XDialogProps {
   closable?: boolean;
   closeLabel?: string;
 }
+
+/** confirm 仅通知操作；调用方在成功后关闭，loading 阻止交互关闭。 */
+export interface XConfirmDialogProps {
+  open: boolean;
+  title: string;
+  description: string;
+  confirmLabel?: string;
+  loading?: boolean;
+  danger?: boolean;
+}

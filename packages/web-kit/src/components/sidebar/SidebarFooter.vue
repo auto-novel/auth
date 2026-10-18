@@ -3,7 +3,7 @@ import { AccessTimeOutlined, CommitOutlined } from '@vicons/material';
 import { computed } from 'vue';
 
 import XTime from '../../ui/time/XTime.vue';
-import XTooltip from '../../ui/XTooltip.vue';
+import XTooltip from '../../ui/tooltip/XTooltip.vue';
 
 const props = defineProps<{
   repoUrl: string;

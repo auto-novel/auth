@@ -10,7 +10,7 @@ import ts from 'typescript';
 registerTS(() => ts);
 
 const filename = fileURLToPath(
-  new URL('../src/ui/XAsyncContent.vue', import.meta.url),
+  new URL('../src/ui/async-content/XAsyncContent.vue', import.meta.url),
 );
 const { descriptor } = parse(readFileSync(filename, 'utf8'), { filename });
 const script = compileScript(descriptor, {
@@ -32,7 +32,7 @@ async function render(props = {}, slots = {}) {
     '@vicons/material': {
       Inventory2Outlined: () => Vue.h('svg', { 'data-empty-icon': '' }),
     },
-    './XButton.vue': {
+    '../button/XButton.vue': {
       emits: ['click'],
       setup(_, { emit, slots }) {
         clickRetry = () => emit('click');

@@ -9,7 +9,7 @@ import {
 import { onKeyDown } from '@vueuse/core';
 import { onActivated, onDeactivated, onMounted, ref, watch } from 'vue';
 
-import XButton from '../XButton.vue';
+import XButton from '../button/XButton.vue';
 import PageJump from './PageJump.vue';
 import type { XPaginationProps } from './types';
 

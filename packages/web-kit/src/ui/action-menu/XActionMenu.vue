@@ -8,9 +8,9 @@ import {
 } from 'reka-ui';
 import { ref } from 'vue';
 
-import { useOverlayLayer } from './overlayLayer';
+import { useOverlayLayer } from '../overlayLayer';
 
-import XButton from './XButton.vue';
+import XButton from '../button/XButton.vue';
 import type { XActionMenuProps } from './types';
 
 withDefaults(defineProps<XActionMenuProps>(), {

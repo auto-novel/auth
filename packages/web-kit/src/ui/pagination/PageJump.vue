@@ -7,7 +7,7 @@ import {
 } from 'reka-ui';
 import { computed, ref, watch } from 'vue';
 
-import XButton from '../XButton.vue';
+import XButton from '../button/XButton.vue';
 import { useOverlayLayer } from '../overlayLayer';
 
 const props = defineProps<{

@@ -9,8 +9,8 @@ import {
   AlertDialogTitle,
 } from 'reka-ui';
 
-import XButton from './XButton.vue';
-import { useOverlayLayer } from './overlayLayer';
+import XButton from '../button/XButton.vue';
+import { useOverlayLayer } from '../overlayLayer';
 import type { XConfirmDialogProps } from './types';
 
 const props = withDefaults(defineProps<XConfirmDialogProps>(), {

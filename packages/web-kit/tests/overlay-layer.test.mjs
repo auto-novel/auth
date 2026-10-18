@@ -265,10 +265,10 @@ test('七类浮层 Content 均不通过 key 强制重建', () => {
   for (const [relativePath, tag] of [
     ['dialog/XDialog.vue', 'DialogContent'],
     ['drawer/XDrawer.vue', 'DrawerContent'],
-    ['XConfirmDialog.vue', 'AlertDialogContent'],
-    ['XActionMenu.vue', 'DropdownMenuContent'],
-    ['XSelect.vue', 'SelectContent'],
-    ['XTooltip.vue', 'TooltipContent'],
+    ['dialog/XConfirmDialog.vue', 'AlertDialogContent'],
+    ['action-menu/XActionMenu.vue', 'DropdownMenuContent'],
+    ['select/XSelect.vue', 'SelectContent'],
+    ['tooltip/XTooltip.vue', 'TooltipContent'],
     ['pagination/PageJump.vue', 'PopoverContent'],
   ]) {
     const filename = new URL(`../src/ui/${relativePath}`, import.meta.url);

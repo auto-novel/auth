@@ -5,7 +5,7 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 import { useWebKit, useWebKitInternals } from '../context';
-import XAsyncContent from '../ui/XAsyncContent.vue';
+import XAsyncContent from '../ui/async-content/XAsyncContent.vue';
 import XPagination from '../ui/pagination/XPagination.vue';
 import XTime from '../ui/time/XTime.vue';
 import { getApiErrorMessage } from '../ui/toast/apiError';
