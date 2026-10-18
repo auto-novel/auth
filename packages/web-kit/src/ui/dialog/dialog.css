@@ -1,0 +1,24 @@
+/* 通过统一样式入口加载，避免组件提前注册 components 层，改变全局层顺序。
+   默认尺寸和内边距仍允许 utilities 覆盖。 */
+@layer components {
+  .x-dialog-panel {
+    width: 32rem;
+    max-width: calc(100% - 2rem);
+    max-height: calc(100dvh - 2rem);
+    overflow: hidden;
+  }
+
+  .x-dialog-body {
+    padding: 1.25rem;
+  }
+
+  @media (width >= 40rem) {
+    .x-dialog-body {
+      padding: 1.5rem;
+    }
+  }
+
+  .x-dialog-close-space {
+    padding-right: 3.5rem;
+  }
+}

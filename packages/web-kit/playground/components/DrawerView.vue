@@ -414,7 +414,6 @@ const props = [
               <XButton>打开 Dialog</XButton>
             </template>
             <div class="space-y-4 pr-8">
-              <h3 class="text-lg font-medium">抽屉中的 Dialog</h3>
               <XSelect
                 v-model="layerSelection"
                 :options="layerOptions"

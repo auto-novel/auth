@@ -1,4 +1,5 @@
 @import './components/sidebar/sidebar.css';
+@import './ui/dialog/dialog.css';
 
 @source './components';
 @source './notifications';
