@@ -43,6 +43,8 @@ export interface XAsyncContentProps {
   error?: string;
   empty?: boolean;
   errorTitle?: string;
+  /** 是否显示重试按钮；默认 true，无重试操作时应设为 false。 */
+  retryable?: boolean;
   retryLabel?: string;
   emptyTitle?: string;
   emptyDescription?: string;

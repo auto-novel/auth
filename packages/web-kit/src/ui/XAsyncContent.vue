@@ -9,6 +9,7 @@ const props = withDefaults(defineProps<XAsyncContentProps>(), {
   error: '',
   empty: false,
   errorTitle: '加载失败',
+  retryable: true,
   retryLabel: '再试一次',
   emptyTitle: '暂无内容',
   size: 'default',
@@ -45,7 +46,19 @@ const retryClass = computed(() => (props.size === 'compact' ? 'mt-4' : 'mt-5'));
 
 <template>
   <div class="contents">
-    <slot v-if="loading" name="loading" />
+    <slot v-if="loading" name="loading">
+      <div
+        class="grid place-items-center gap-3 py-9 text-sm text-muted"
+        :class="stateClass"
+        role="status"
+      >
+        <span
+          class="size-8 animate-spin rounded-full border-2 border-current border-t-transparent motion-reduce:animate-none"
+          aria-hidden="true"
+        />
+        <span>正在加载…</span>
+      </div>
+    </slot>
 
     <div
       v-else-if="error"
@@ -70,7 +83,7 @@ const retryClass = computed(() => (props.size === 'compact' ? 'mt-4' : 'mt-5'));
         >
           {{ error }}
         </p>
-        <XButton :class="retryClass" @click="$emit('retry')">
+        <XButton v-if="retryable" :class="retryClass" @click="$emit('retry')">
           {{ retryLabel }}
         </XButton>
       </div>

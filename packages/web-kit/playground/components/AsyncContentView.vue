@@ -6,6 +6,8 @@ import ComponentPage from './ComponentPage.vue';
 const state = ref('content');
 const size = ref<'compact' | 'default' | 'large'>('default');
 const retryCount = ref(0);
+const retryable = ref(true);
+const customLoading = ref(false);
 const states = [
   { label: '正常内容', value: 'content' },
   { label: '加载中', value: 'loading' },
@@ -33,7 +35,8 @@ const code = `<XAsyncContent
   empty-title="暂无记录"
   @retry="reload"
 >
-  <template #loading>正在加载…</template>
+  <!-- 默认显示加载动画，也可通过 #loading 自定义 -->
+  <!-- 无重试操作时设置 :retryable="false" -->
   <!-- 正常内容 -->
 </XAsyncContent>`;
 </script>
@@ -66,6 +69,14 @@ const code = `<XAsyncContent
             <option value="large">large</option>
           </select>
         </label>
+        <label class="flex items-center gap-2 text-sm text-muted">
+          <input v-model="retryable" type="checkbox" />
+          显示重试按钮
+        </label>
+        <label class="flex items-center gap-2 text-sm text-muted">
+          <input v-model="customLoading" type="checkbox" />
+          自定义加载界面
+        </label>
       </div>
       <div
         class="rounded-sm border border-border bg-surface"
@@ -75,12 +86,13 @@ const code = `<XAsyncContent
           :loading="loading"
           :error="error"
           :empty="empty"
+          :retryable="retryable"
           :size="size"
           empty-title="暂无记录"
           empty-description="试着切换到正常内容，或调整筛选条件。"
           @retry="retry"
         >
-          <template #loading>
+          <template v-if="customLoading" #loading>
             <div
               class="grid min-h-52 place-items-center p-6 text-sm text-muted"
               role="status"
@@ -110,8 +122,11 @@ const code = `<XAsyncContent
           状态优先级：loading → 非空 error → empty → 默认内容；“加载 + 错误 +
           空状态”可验证优先级。
         </li>
-        <li>加载界面由 #loading 插槽提供，组件不内置加载动画。</li>
-        <li>@retry 通知调用方重试，不自动清除错误或发起请求。</li>
+        <li>默认显示加载动画和文案；#loading 插槽可完全替换默认加载界面。</li>
+        <li>
+          retryable 默认 true；无重试操作时设为 false。@retry
+          只通知调用方，不自动清除错误或发起请求。
+        </li>
         <li>
           emptyTitle / emptyDescription 自定义空状态文案；errorTitle /
           retryLabel 自定义错误文案。
