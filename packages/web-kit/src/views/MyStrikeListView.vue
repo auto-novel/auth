@@ -174,7 +174,7 @@ onBeforeUnmount(() => requestId++);
           v-if="!loading && !error && totalPages > 1"
           :page="page"
           :total-pages="totalPages"
-          @change="changePage"
+          @update:page="changePage"
         />
       </section>
     </div>

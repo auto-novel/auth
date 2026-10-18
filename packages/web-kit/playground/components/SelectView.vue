@@ -64,8 +64,8 @@ const code =
       <h2 class="mb-3 font-medium">接口与交互</h2>
       <p class="text-sm leading-6 text-muted">
         options 中的 value 应为唯一字符串；使用 label 或 aria-label
-        为选择器命名。disabled 禁用交互，required 标记必选，rounded
-        切换圆角外观。change 事件不携带值，请从 v-model 读取。
+        为选择器命名。disabled 禁用交互，required 标记必选。 update:modelValue
+        携带最新值；class、id 和 aria-* 属性直接作用于触发控件。
       </p>
     </section>
   </ComponentPage>

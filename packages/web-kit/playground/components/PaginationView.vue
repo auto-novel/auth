@@ -5,13 +5,13 @@ import ComponentPage from './ComponentPage.vue';
 
 const page = ref(2);
 const code =
-  '<XPagination\n  :page="page"\n  :total-pages="20"\n  keyboard\n  @change="page = $event"\n/>';
+  '<XPagination\n  v-model:page="page"\n  :total-pages="20"\n  keyboard\n/>';
 </script>
 
 <template>
   <ComponentPage
     title="分页 · XPagination"
-    description="通过 page 和 change 控制页码，支持跳页面板、响应式外观和可选的全局方向键。"
+    description="通过 v-model:page 控制页码，支持跳页面板、响应式外观和可选的全局方向键。"
     :code="code"
   >
     <section
@@ -22,12 +22,7 @@ const code =
       <p class="mb-4 text-sm text-muted">
         检查上一页、下一页和页码切换；已开启左右方向键翻页，输入框和弹窗内不触发。桌面端点击省略号，移动端点击中间页数，可跳转到指定页，支持回车确认。
       </p>
-      <XPagination
-        :page="page"
-        :total-pages="20"
-        keyboard
-        @change="page = $event"
-      />
+      <XPagination v-model:page="page" :total-pages="20" keyboard />
       <p class="mt-3 text-xs text-muted">当前页：{{ page }} / 20</p>
     </section>
     <section class="border-t border-divider pt-6">

@@ -17,8 +17,7 @@ defineOptions({ inheritAttrs: false });
 
 const props = withDefaults(defineProps<XDrawerProps>(), {
   side: 'right',
-  width: 280,
-  height: 280,
+  size: 280,
 });
 
 const emit = defineEmits<{
@@ -34,7 +33,7 @@ const swipeDirection = computed(() =>
   props.side === 'top' ? 'up' : props.side === 'bottom' ? 'down' : props.side,
 );
 const panelStyle = computed(() => {
-  const size = horizontal.value ? props.width : props.height;
+  const size = props.size;
   const length = typeof size === 'number' ? `${size}px` : size;
   const exit = props.side === 'left' || props.side === 'top' ? '-100%' : '100%';
   return {
@@ -102,7 +101,7 @@ watch(
           :style="[panelStyle, contentStyle]"
         >
           <header
-            v-if="showHeader"
+            v-if="showHeader || $slots.header"
             class="flex shrink-0 items-center justify-between gap-3 border-b border-divider px-6 py-4 leading-none"
           >
             <slot name="header">

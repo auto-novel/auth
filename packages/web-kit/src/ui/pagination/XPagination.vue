@@ -16,7 +16,7 @@ import type { XPaginationProps } from './types';
 const props = defineProps<XPaginationProps>();
 
 const emit = defineEmits<{
-  change: [page: number];
+  'update:page': [page: number];
 }>();
 
 const openJumpIndex = ref<number | null>(null);
@@ -80,7 +80,7 @@ onKeyDown(
       return;
 
     event.preventDefault();
-    emit('change', nextPage);
+    emit('update:page', nextPage);
   },
   {
     // 忽略长按产生的重复事件，每次按下只翻一页。
@@ -110,7 +110,7 @@ watch([() => props.page, () => props.totalPages], () => {
     show-edges
     class="flex items-center justify-between border-t border-divider px-4 py-3 text-sm sm:px-6"
     aria-label="分页"
-    @update:page="$emit('change', $event)"
+    @update:page="$emit('update:page', $event)"
   >
     <PaginationPrev as-child>
       <XButton variant="ghost" size="sm">上一页</XButton>
@@ -122,7 +122,7 @@ watch([() => props.page, () => props.totalPages], () => {
       :total-pages="totalPages"
       content-class="sm:hidden"
       @update:open="setJumpOpen($event, -1)"
-      @change="$emit('change', $event)"
+      @change="$emit('update:page', $event)"
     >
       <XButton
         variant="ghost"
@@ -159,7 +159,7 @@ watch([() => props.page, () => props.totalPages], () => {
           :page="page"
           :total-pages="totalPages"
           @update:open="setJumpOpen($event, index)"
-          @change="$emit('change', $event)"
+          @change="$emit('update:page', $event)"
         >
           <XButton
             variant="ghost"

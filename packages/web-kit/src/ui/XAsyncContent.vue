@@ -9,16 +9,17 @@ const props = withDefaults(defineProps<XAsyncContentProps>(), {
   error: '',
   empty: false,
   errorTitle: '加载失败',
-  retryable: true,
   retryLabel: '再试一次',
   emptyTitle: '暂无内容',
   size: 'default',
-  headingTag: 'h2',
-  stateClass: '',
-  errorIcon: true,
 });
 
-defineEmits<{ retry: [] }>();
+defineSlots<{
+  default?(): unknown;
+  loading?(): unknown;
+  error?(props: { error: string; retry: (() => void) | undefined }): unknown;
+  empty?(): unknown;
+}>();
 
 const minHeightClass = computed(
   () =>
@@ -49,7 +50,6 @@ const retryClass = computed(() => (props.size === 'compact' ? 'mt-4' : 'mt-5'));
     <slot v-if="loading" name="loading">
       <div
         class="grid place-items-center gap-3 py-9 text-sm text-muted"
-        :class="stateClass"
         role="status"
       >
         <span
@@ -60,58 +60,53 @@ const retryClass = computed(() => (props.size === 'compact' ? 'mt-4' : 'mt-5'));
       </div>
     </slot>
 
-    <div
-      v-else-if="error"
-      class="grid place-items-center text-center"
-      :class="[minHeightClass, statePaddingClass, stateClass]"
-    >
-      <div>
-        <slot v-if="errorIcon" name="error-icon">
+    <slot v-else-if="error" name="error" :error="error" :retry="onRetry">
+      <div
+        class="grid place-items-center text-center"
+        :class="[minHeightClass, statePaddingClass]"
+      >
+        <div>
           <div
             class="mx-auto grid size-12 place-items-center rounded-full bg-error-soft text-error-strong"
             aria-hidden="true"
           >
             !
           </div>
-        </slot>
-        <component v-if="errorTitle" :is="headingTag" :class="headingClass">
-          {{ errorTitle }}
-        </component>
-        <p
-          class="text-sm text-muted"
-          :class="errorIcon || errorTitle ? 'mt-2' : ''"
-        >
-          {{ error }}
-        </p>
-        <XButton v-if="retryable" :class="retryClass" @click="$emit('retry')">
-          {{ retryLabel }}
-        </XButton>
-      </div>
-    </div>
 
-    <div
-      v-else-if="empty"
-      class="grid place-items-center text-center"
-      :class="[minHeightClass, statePaddingClass, stateClass]"
-    >
-      <div>
-        <slot name="empty-icon">
+          <h2 v-if="errorTitle" :class="headingClass">
+            {{ errorTitle }}
+          </h2>
+          <p class="mt-2 text-sm text-muted">
+            {{ error }}
+          </p>
+          <XButton v-if="onRetry" :class="retryClass" @click="onRetry()">
+            {{ retryLabel }}
+          </XButton>
+        </div>
+      </div>
+    </slot>
+    <slot v-else-if="empty" name="empty">
+      <div
+        class="grid place-items-center text-center"
+        :class="[minHeightClass, statePaddingClass]"
+      >
+        <div>
           <div
             class="mx-auto grid size-12 place-items-center rounded-full bg-paper text-muted"
             aria-hidden="true"
           >
             <Inventory2Outlined class="size-6" />
           </div>
-        </slot>
-        <component :is="headingTag" :class="headingClass">
-          {{ emptyTitle }}
-        </component>
-        <p v-if="emptyDescription" :class="descriptionClass">
-          {{ emptyDescription }}
-        </p>
-      </div>
-    </div>
 
+          <h2 :class="headingClass">
+            {{ emptyTitle }}
+          </h2>
+          <p v-if="emptyDescription" :class="descriptionClass">
+            {{ emptyDescription }}
+          </p>
+        </div>
+      </div>
+    </slot>
     <slot v-else />
   </div>
 </template>

@@ -36,7 +36,7 @@ const code = `<XAsyncContent
   @retry="reload"
 >
   <!-- 默认显示加载动画，也可通过 #loading 自定义 -->
-  <!-- 无重试操作时设置 :retryable="false" -->
+  <!-- 不提供 onRetry 时隐藏重试按钮 -->
   <!-- 正常内容 -->
 </XAsyncContent>`;
 </script>
@@ -86,11 +86,10 @@ const code = `<XAsyncContent
           :loading="loading"
           :error="error"
           :empty="empty"
-          :retryable="retryable"
+          :on-retry="retryable ? retry : undefined"
           :size="size"
           empty-title="暂无记录"
           empty-description="试着切换到正常内容，或调整筛选条件。"
-          @retry="retry"
         >
           <template v-if="customLoading" #loading>
             <div
@@ -124,7 +123,7 @@ const code = `<XAsyncContent
         </li>
         <li>默认显示加载动画和文案；#loading 插槽可完全替换默认加载界面。</li>
         <li>
-          retryable 默认 true；无重试操作时设为 false。@retry
+          提供 onRetry 回调时才显示重试按钮；回调
           只通知调用方，不自动清除错误或发起请求。
         </li>
         <li>
@@ -132,8 +131,8 @@ const code = `<XAsyncContent
           retryLabel 自定义错误文案。
         </li>
         <li>
-          size 控制错误和空状态的最小高度与间距；#empty-icon 和 #error-icon
-          可替换图标。
+          size 控制错误和空状态的最小高度与间距；#empty 和 #error
+          可替换整个状态区；#error 提供 error 和 retry 插槽参数。
         </li>
       </ul>
     </section>

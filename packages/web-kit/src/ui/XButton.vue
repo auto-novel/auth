@@ -18,10 +18,6 @@ const variantClass = computed(
         'rounded-sm border border-border text-muted hover:border-primary hover:text-primary',
       danger: 'rounded-sm bg-error text-on-error hover:bg-error-hover',
       ghost: 'rounded-sm text-muted hover:bg-paper hover:text-primary',
-      'ghost-active': 'rounded-sm text-primary hover:bg-paper',
-      subtle: 'rounded-sm text-muted hover:bg-divider/40 hover:text-ink',
-      toolbar: 'rounded-sm text-ink hover:bg-divider/40',
-      plain: '',
     })[props.variant],
 );
 
@@ -34,7 +30,6 @@ const sizeClass = computed(
       icon: 'size-9',
       'icon-sm': 'size-8',
       'icon-xs': 'size-6',
-      none: '',
     })[props.size],
 );
 </script>

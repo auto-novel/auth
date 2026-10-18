@@ -22,77 +22,72 @@ import { useOverlayLayer } from './overlayLayer';
 
 import type { XSelectProps } from './types';
 
+defineOptions({ inheritAttrs: false });
 defineProps<XSelectProps>();
 
 const model = defineModel<string>({ required: true });
-const emit = defineEmits<{ change: [] }>();
 
 function handleChange(value: AcceptableValue) {
   if (typeof value !== 'string') return;
   model.value = value;
-  emit('change');
 }
 const open = ref(false);
 const { contentStyle } = useOverlayLayer(open);
 </script>
 
 <template>
-  <div>
-    <SelectRoot
-      v-model:open="open"
-      :model-value="model"
-      :disabled="disabled"
-      :required="required"
-      @update:model-value="handleChange"
+  <SelectRoot
+    v-model:open="open"
+    :model-value="model"
+    :disabled="disabled"
+    :required="required"
+    @update:model-value="handleChange"
+  >
+    <SelectTrigger
+      v-bind="$attrs"
+      class="rounded-sm x-select-trigger flex min-h-10 w-full min-w-0 items-center justify-between gap-2 border border-border bg-transparent px-3 text-left text-sm font-normal text-ink outline-none transition focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/15 disabled:cursor-not-allowed disabled:opacity-50"
     >
-      <SelectTrigger
-        :id="id"
-        :aria-label="ariaLabel"
-        class="x-select-trigger flex min-h-10 w-full min-w-0 items-center justify-between gap-2 border border-border bg-transparent px-3 text-left text-sm font-normal text-ink outline-none transition focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/15 disabled:cursor-not-allowed disabled:opacity-50"
-        :class="rounded ? 'rounded-md' : 'rounded-sm'"
+      <SelectValue class="min-w-0 truncate" />
+      <ExpandMoreOutlined
+        class="x-select-chevron size-4 shrink-0 text-muted"
+        aria-hidden="true"
+      />
+    </SelectTrigger>
+    <SelectPortal>
+      <SelectContent
+        :style="contentStyle"
+        position="popper"
+        :side-offset="6"
+        class="x-select-content floating-panel min-w-(--reka-select-trigger-width) overflow-hidden p-1 text-ink"
       >
-        <SelectValue class="min-w-0 truncate" />
-        <ExpandMoreOutlined
-          class="x-select-chevron size-4 shrink-0 text-muted"
-          aria-hidden="true"
-        />
-      </SelectTrigger>
-      <SelectPortal>
-        <SelectContent
-          :style="contentStyle"
-          position="popper"
-          :side-offset="6"
-          class="x-select-content floating-panel min-w-(--reka-select-trigger-width) overflow-hidden p-1 text-ink"
-        >
-          <ScrollAreaRoot type="auto" class="overflow-hidden">
-            <SelectViewport as-child>
-              <ScrollAreaViewport class="x-select-viewport" :tabindex="-1">
-                <SelectItem
-                  v-for="option in options"
-                  :key="option.value"
-                  :value="option.value"
-                  class="x-select-item menu-item relative cursor-default pl-8 select-none"
-                >
-                  <SelectItemIndicator class="absolute left-2 text-primary">
-                    <CheckOutlined class="size-4" aria-hidden="true" />
-                  </SelectItemIndicator>
-                  <SelectItemText class="min-w-0 truncate">
-                    {{ option.label }}
-                  </SelectItemText>
-                </SelectItem>
-              </ScrollAreaViewport>
-            </SelectViewport>
-            <ScrollAreaScrollbar
-              orientation="vertical"
-              class="x-select-scrollbar"
-            >
-              <ScrollAreaThumb class="x-select-scrollbar-thumb" />
-            </ScrollAreaScrollbar>
-          </ScrollAreaRoot>
-        </SelectContent>
-      </SelectPortal>
-    </SelectRoot>
-  </div>
+        <ScrollAreaRoot type="auto" class="overflow-hidden">
+          <SelectViewport as-child>
+            <ScrollAreaViewport class="x-select-viewport" :tabindex="-1">
+              <SelectItem
+                v-for="option in options"
+                :key="option.value"
+                :value="option.value"
+                class="x-select-item menu-item relative cursor-default pl-8 select-none"
+              >
+                <SelectItemIndicator class="absolute left-2 text-primary">
+                  <CheckOutlined class="size-4" aria-hidden="true" />
+                </SelectItemIndicator>
+                <SelectItemText class="min-w-0 truncate">
+                  {{ option.label }}
+                </SelectItemText>
+              </SelectItem>
+            </ScrollAreaViewport>
+          </SelectViewport>
+          <ScrollAreaScrollbar
+            orientation="vertical"
+            class="x-select-scrollbar"
+          >
+            <ScrollAreaThumb class="x-select-scrollbar-thumb" />
+          </ScrollAreaScrollbar>
+        </ScrollAreaRoot>
+      </SelectContent>
+    </SelectPortal>
+  </SelectRoot>
 </template>
 
 <!-- The popper panel is not the component root, so scoped selectors miss it. -->

@@ -14,24 +14,24 @@ const code = `<XSlider v-model="value" name="volume" aria-label="音量" />
   :max="1"
   :step="0.1"
   aria-label="精细调节"
-  @change="onChange"
+  @commit="onChange"
 />
 
-// change 不携带参数，从 v-model 读取
-function onChange() {
-  console.log(decimalValue.value);
+// commit 携带本次提交值
+function onChange(value: number) {
+  console.log(value);
 }`;
 
-function onChange() {
+function onChange(value: number) {
   changeCount.value += 1;
-  lastChangedValue.value = decimalValue.value;
+  lastChangedValue.value = value;
 }
 </script>
 
 <template>
   <ComponentPage
     title="滑块 · XSlider"
-    description="用数字 v-model 绑定数值，支持范围、步长、禁用状态和 change 通知。"
+    description="用数字 v-model 绑定数值，支持范围、步长、禁用状态和 commit 通知。"
     :code="code"
   >
     <section aria-labelledby="test-slider" class="border-t border-divider pt-6">
@@ -55,7 +55,7 @@ function onChange() {
       class="border-t border-divider pt-6"
     >
       <h2 id="test-slider-decimal" class="mb-3 font-medium">
-        小数步长与 change
+        小数步长与 commit
       </h2>
       <label class="flex max-w-sm flex-col gap-2 text-sm text-muted">
         精细调节 · {{ decimalValue.toFixed(1) }}
@@ -65,11 +65,11 @@ function onChange() {
           :max="1"
           :step="0.1"
           aria-label="精细调节"
-          @change="onChange"
+          @commit="onChange"
         />
       </label>
       <p class="mt-3 text-xs text-muted" aria-live="polite">
-        change 次数：{{ changeCount }} · 最近提交值：{{
+        commit 次数：{{ changeCount }} · 最近提交值：{{
           lastChangedValue ?? '尚未提交'
         }}
       </p>
@@ -79,8 +79,8 @@ function onChange() {
       <p class="text-sm leading-6 text-muted">
         v-model 默认为 0；min、max、step 默认分别为 0、100、1。disabled
         禁用交互，name 用于表单字段命名。使用 label 或 aria-label 为滑块命名。
-        v-model 在拖动时实时更新；change
-        在拖动结束或键盘调节提交时触发，不携带参数，从 v-model 读取最新值。
+        v-model 在拖动时实时更新；commit
+        在拖动结束或键盘调节提交时触发，携带提交值。
       </p>
     </section>
   </ComponentPage>

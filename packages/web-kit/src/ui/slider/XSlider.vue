@@ -1,6 +1,14 @@
 <script setup lang="ts">
 import { SliderRange, SliderRoot, SliderThumb, SliderTrack } from 'reka-ui';
+import { useAttrs } from 'vue';
 import type { XSliderProps } from './types';
+
+defineOptions({ inheritAttrs: false });
+const attrs = useAttrs();
+function thumbAttrs() {
+  const { class: _class, style: _style, ...rest } = attrs;
+  return rest;
+}
 
 withDefaults(defineProps<XSliderProps>(), {
   min: 0,
@@ -9,7 +17,7 @@ withDefaults(defineProps<XSliderProps>(), {
 });
 
 const model = defineModel<number>({ default: 0 });
-const emit = defineEmits<{ change: [] }>();
+const emit = defineEmits<{ commit: [value: number] }>();
 
 function updateValue(values: number[] | undefined) {
   const value = values?.[0];
@@ -18,13 +26,17 @@ function updateValue(values: number[] | undefined) {
 
 function commitValue(values: number[]) {
   // Reka may commit keyboard changes before emitting update:modelValue.
+  const value = values[0];
+  if (value === undefined) return;
   updateValue(values);
-  emit('change');
+  emit('commit', value);
 }
 </script>
 
 <template>
   <SliderRoot
+    :class="$attrs.class"
+    :style="$attrs.style"
     :model-value="[model]"
     :min="min"
     :max="max"
@@ -41,9 +53,7 @@ function commitValue(values: number[]) {
       <SliderRange class="absolute h-full rounded-full bg-primary" />
     </SliderTrack>
     <SliderThumb
-      :id="id"
-      :aria-label="ariaLabel"
-      :aria-labelledby="ariaLabelledby"
+      v-bind="thumbAttrs()"
       class="block size-4 rounded-full border-2 border-primary bg-surface shadow-sm outline-none transition-shadow focus-visible:ring-4 focus-visible:ring-primary/20 data-disabled:pointer-events-none motion-reduce:transition-none"
     />
   </SliderRoot>

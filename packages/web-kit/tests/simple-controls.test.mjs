@@ -62,14 +62,14 @@ async function setup(kind, modelValue) {
         Vue.h(module.exports.default, {
           modelValue,
           'onUpdate:modelValue': (value) => events.push(['update', value]),
-          onChange: () => events.push(['change']),
+          onCommit: (value) => events.push(['commit', value]),
         }),
     }),
   );
   return { ...root, events };
 }
 
-test('Slider 对外为数字模型，拖动只更新，提交时先更新再触发 change', async () => {
+test('Slider 对外为数字模型，拖动只更新，提交时先更新再触发 commit', async () => {
   const { props, emit, events } = await setup('Slider', 20);
   assert.deepEqual(props.modelValue, [20]);
   emit('update:modelValue', undefined);
@@ -79,12 +79,15 @@ test('Slider 对外为数字模型，拖动只更新，提交时先更新再触�
   assert.deepEqual(events, [['update', 30]]);
   // Reka can commit keyboard changes before update:modelValue.
   emit('valueCommit', [40]);
-  assert.deepEqual(events.slice(-2), [['update', 40], ['change']]);
+  assert.deepEqual(events.slice(-2), [
+    ['update', 40],
+    ['commit', 40],
+  ]);
 });
 
-test('Switch 默认关闭，先更新布尔模型再触发 change', async () => {
+test('Switch 默认关闭，仅更新布尔模型', async () => {
   const { props, emit, events } = await setup('Switch');
   assert.equal(props.modelValue, false);
   emit('update:modelValue', true);
-  assert.deepEqual(events, [['update', true], ['change']]);
+  assert.deepEqual(events, [['update', true]]);
 });

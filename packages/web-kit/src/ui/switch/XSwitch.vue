@@ -5,11 +5,9 @@ import type { XSwitchProps } from './types';
 defineProps<XSwitchProps>();
 
 const model = defineModel<boolean>({ default: false });
-const emit = defineEmits<{ change: [] }>();
 
 function updateValue(value: boolean) {
   model.value = value;
-  emit('change');
 }
 </script>
 

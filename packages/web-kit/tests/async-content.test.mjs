@@ -56,8 +56,8 @@ async function render(props = {}, slots = {}) {
           module.exports.default,
           {
             loading: false,
-            ...props,
             onRetry: () => retryCount++,
+            ...props,
           },
           { default: () => Vue.h('article', '成功内容'), ...slots },
         ),
@@ -71,14 +71,12 @@ test('加载中默认提供可访问的加载指示，优先于错误、空态�
     loading: true,
     error: '请求错误',
     empty: true,
-    stateClass: 'custom-state',
   });
   assert.match(html, /role="status"/);
   assert.match(html, /正在加载…/);
   assert.match(html, /animate-spin/);
   assert.match(html, /motion-reduce:animate-none/);
   assert.match(html, /aria-hidden="true"/);
-  assert.match(html, /custom-state/);
   assert.doesNotMatch(html, /请求错误|暂无内容|成功内容/);
   assert.equal(clickRetry, undefined);
 });
@@ -92,7 +90,7 @@ test('自定义 loading 插槽完全替换默认加载界面', async () => {
   assert.doesNotMatch(html, /正在加载|animate-spin|成功内容/);
 });
 
-test('错误态默认显示重试按钮，点击触发一次 retry', async () => {
+test('错误态提供回调时显示重试按钮，点击执行一次', async () => {
   const result = await render({ error: '请求错误', empty: true });
   assert.match(result.html, /加载失败/);
   assert.match(result.html, /请求错误/);
@@ -103,10 +101,10 @@ test('错误态默认显示重试按钮，点击触发一次 retry', async () =>
   assert.equal(result.retryCount(), 1);
 });
 
-test('retryable=false 保留错误信息但不渲染重试按钮', async () => {
+test('未提供重试回调时保留错误信息但不渲染按钮', async () => {
   const { html, clickRetry } = await render({
     error: '请求错误',
-    retryable: false,
+    onRetry: undefined,
   });
   assert.match(html, /加载失败/);
   assert.match(html, /请求错误/);
@@ -126,4 +124,29 @@ test('空态优先于内容，无异步状态时渲染默认插槽', async () =>
   const content = await render();
   assert.match(content.html, /<article>成功内容<\/article>/);
   assert.doesNotMatch(content.html, /正在加载|加载失败|暂无内容|<button/);
+});
+
+test('error/empty 插槽完全替换默认状态，并提供错误和重试操作', async () => {
+  let slotProps;
+  const error = await render(
+    { error: '自定义错误' },
+    {
+      error: (props) => {
+        slotProps = props;
+        return Vue.h('aside', props.error);
+      },
+    },
+  );
+  assert.match(error.html, /<aside>自定义错误<\/aside>/);
+  assert.doesNotMatch(error.html, /加载失败|再试一次/);
+  slotProps.retry();
+  assert.equal(error.retryCount(), 1);
+  const empty = await render(
+    { empty: true },
+    {
+      empty: () => Vue.h('aside', '自定义空态'),
+    },
+  );
+  assert.match(empty.html, /自定义空态/);
+  assert.doesNotMatch(empty.html, /暂无内容/);
 });

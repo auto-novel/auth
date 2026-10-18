@@ -1,17 +1,8 @@
 import type { Component } from 'vue';
 
-export type XButtonVariant =
-  | 'primary'
-  | 'outline'
-  | 'danger'
-  | 'ghost'
-  | 'ghost-active'
-  | 'subtle'
-  | 'toolbar'
-  | 'plain';
+export type XButtonVariant = 'primary' | 'outline' | 'danger' | 'ghost';
 
-export type XButtonSize =
-  'md' | 'sm' | 'xs' | 'icon' | 'icon-sm' | 'icon-xs' | 'none';
+export type XButtonSize = 'md' | 'sm' | 'xs' | 'icon' | 'icon-sm' | 'icon-xs';
 
 export interface XButtonProps {
   as?: string | Component;
@@ -43,17 +34,15 @@ export interface XAsyncContentProps {
   error?: string;
   empty?: boolean;
   errorTitle?: string;
-  /** 是否显示重试按钮；默认 true，无重试操作时应设为 false。 */
-  retryable?: boolean;
+  /** 提供回调时显示重试按钮。 */
+  onRetry?: () => void;
   retryLabel?: string;
   emptyTitle?: string;
   emptyDescription?: string;
   size?: 'compact' | 'default' | 'large';
-  headingTag?: 'h1' | 'h2' | 'p';
-  stateClass?: string;
-  errorIcon?: boolean;
 }
 
+/** confirm 仅通知操作；调用方在成功后关闭，loading 阻止交互关闭。 */
 export interface XConfirmDialogProps {
   open: boolean;
   title: string;
@@ -68,11 +57,10 @@ export interface XSelectOption {
   value: string;
 }
 
+/** class/style、id 与 aria-* 等透传属性作用于选择触发控件。 */
 export interface XSelectProps {
+  modelValue: string;
   options: XSelectOption[];
-  id?: string;
-  ariaLabel?: string;
   disabled?: boolean;
   required?: boolean;
-  rounded?: boolean;
 }

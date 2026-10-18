@@ -10,9 +10,13 @@ import { ref } from 'vue';
 import ComponentPage from './ComponentPage.vue';
 
 const confirmOpen = ref(false);
+function confirm() {
+  Toast.success('示例操作完成');
+  confirmOpen.value = false;
+}
 const menuAlignments = ['start', 'end'] as const;
 const code =
-  '<XActionMenu align="end">\n  <XActionMenuItem @activate="edit">编辑</XActionMenuItem>\n  <XActionMenuItem danger @activate="confirmOpen = true">删除</XActionMenuItem>\n</XActionMenu>\n<XConfirmDialog\n  v-model:open="confirmOpen"\n  title="确认删除"\n  description="删除后无法恢复。"\n  danger\n  @confirm="remove"\n/>';
+  '<XActionMenu align="end">\n  <XActionMenuItem @activate="edit">编辑</XActionMenuItem>\n  <XActionMenuItem danger @activate="confirmOpen = true">删除</XActionMenuItem>\n</XActionMenu>\n<XConfirmDialog\n  v-model:open="confirmOpen"\n  title="确认删除"\n  description="删除后无法恢复。"\n  danger\n  @confirm="async () => { await remove(); confirmOpen = false; }"\n/>';
 </script>
 
 <template>
@@ -58,7 +62,7 @@ const code =
         description="这是确认框的展示示例，确认后会显示成功通知，不会删除实际数据。"
         confirm-label="确认删除"
         danger
-        @confirm="Toast.success('示例操作完成')"
+        @confirm="confirm"
       />
     </section>
     <section class="border-t border-divider pt-6">
@@ -66,7 +70,8 @@ const code =
       <p class="text-sm leading-6 text-muted">
         菜单通过 side 和 align 控制位置，compact 使用紧凑尺寸。菜单项使用
         activate 事件，danger 仅改变外观，不自动确认。确认框使用 v-model:open
-        控制开关，confirm 先于关闭触发；loading 可禁用取消和确认按钮。
+        控制开关，confirm 只通知操作，由调用方在成功后关闭；loading
+        阻止交互关闭及重复确认。
       </p>
     </section>
   </ComponentPage>

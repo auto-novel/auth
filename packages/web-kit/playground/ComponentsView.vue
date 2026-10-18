@@ -37,12 +37,12 @@ const componentPages = [
   {
     to: '/components/slider',
     title: '滑块 · XSlider',
-    description: '数字绑定、禁用状态、小数步长与 change 事件。',
+    description: '数字绑定、禁用状态、小数步长与 commit 事件。',
   },
   {
     to: '/components/switch',
     title: '开关 · XSwitch',
-    description: '布尔状态绑定、禁用状态与 change 事件。',
+    description: '布尔状态绑定、禁用状态与模型更新事件。',
   },
   {
     to: '/components/aspect-ratio',
@@ -67,16 +67,7 @@ const componentPages = [
 ];
 const sampleTime = new Date('2025-06-05T15:04:30+08:00');
 const relativeBase = new Date('2025-06-05T15:07:30+08:00');
-const variants: XButtonVariant[] = [
-  'primary',
-  'outline',
-  'danger',
-  'ghost',
-  'ghost-active',
-  'subtle',
-  'toolbar',
-  'plain',
-];
+const variants: XButtonVariant[] = ['primary', 'outline', 'danger', 'ghost'];
 </script>
 
 <template>

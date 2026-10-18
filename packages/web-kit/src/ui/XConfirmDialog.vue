@@ -25,14 +25,15 @@ const emit = defineEmits<{
 const { overlayStyle, contentStyle } = useOverlayLayer(() => props.open);
 
 function confirm() {
-  // 先执行确认，再关闭弹窗，避免父组件提前清空待执行的动作。
-  emit('confirm');
-  emit('update:open', false);
+  if (!props.loading) emit('confirm');
 }
 </script>
 
 <template>
-  <AlertDialogRoot :open="open" @update:open="$emit('update:open', $event)">
+  <AlertDialogRoot
+    :open="open"
+    @update:open="!loading && emit('update:open', $event)"
+  >
     <AlertDialogPortal>
       <AlertDialogOverlay
         class="fixed inset-0 bg-black/45"
