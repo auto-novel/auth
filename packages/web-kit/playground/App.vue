@@ -33,6 +33,11 @@ const navigationOptions: WebKitMenuOption[] = [
         to: '/components/toast',
       },
       {
+        key: 'components-dialog',
+        label: '对话框 Dialog',
+        to: '/components/dialog',
+      },
+      {
         key: 'components-drawer',
         label: '抽屉 Drawer',
         to: '/components/drawer',

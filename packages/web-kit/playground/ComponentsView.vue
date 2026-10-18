@@ -20,6 +20,11 @@ const componentPages = [
     description: '通知类型、进出场动画、生命周期与 Promise 状态更新。',
   },
   {
+    to: '/components/dialog',
+    title: '对话框 · XDialog',
+    description: '基础用法、全屏布局、关闭控制与焦点管理。',
+  },
+  {
     to: '/components/drawer',
     title: '抽屉 · XDrawer',
     description: '四方向、尺寸控制、受控开关与拖动关闭。',

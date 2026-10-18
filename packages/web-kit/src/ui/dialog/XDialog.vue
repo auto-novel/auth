@@ -116,7 +116,7 @@ function restoreFocus(event: Event) {
         <button
           v-if="closable"
           type="button"
-          class="absolute top-3 right-3 z-10 grid size-9 place-items-center rounded-full bg-black/55 text-white transition hover:bg-black/70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+          class="absolute top-3 right-3 z-10 grid size-9 place-items-center rounded-full bg-transparent text-muted transition-colors hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           :aria-label="closeLabel"
           @click="updateOpen(false)"
         >
