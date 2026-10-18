@@ -43,6 +43,21 @@ const navigationOptions: WebKitMenuOption[] = [
         to: '/components/select',
       },
       {
+        key: 'components-slider',
+        label: '滑块 Slider',
+        to: '/components/slider',
+      },
+      {
+        key: 'components-switch',
+        label: '开关 Switch',
+        to: '/components/switch',
+      },
+      {
+        key: 'components-aspect-ratio',
+        label: '宽高比 Aspect Ratio',
+        to: '/components/aspect-ratio',
+      },
+      {
         key: 'components-action-menu',
         label: '菜单与确认框 Action Menu & Confirm Dialog',
         to: '/components/action-menu',

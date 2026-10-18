@@ -46,6 +46,21 @@ const router = createRouter({
       component: () => import('./components/SelectView.vue'),
     },
     {
+      path: '/components/slider',
+      name: 'components-slider',
+      component: () => import('./components/SliderView.vue'),
+    },
+    {
+      path: '/components/switch',
+      name: 'components-switch',
+      component: () => import('./components/SwitchView.vue'),
+    },
+    {
+      path: '/components/aspect-ratio',
+      name: 'components-aspect-ratio',
+      component: () => import('./components/AspectRatioView.vue'),
+    },
+    {
       path: '/components/action-menu',
       name: 'components-action-menu',
       component: () => import('./components/ActionMenuView.vue'),

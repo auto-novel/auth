@@ -4,6 +4,9 @@ import MyStrikeListView from './views/MyStrikeListView.vue';
 import XActionMenu from './ui/XActionMenu.vue';
 import XActionMenuItem from './ui/XActionMenuItem.vue';
 import XAsyncContent from './ui/XAsyncContent.vue';
+import XAspectRatio from './ui/aspect-ratio/XAspectRatio.vue';
+import XSlider from './ui/slider/XSlider.vue';
+import XSwitch from './ui/switch/XSwitch.vue';
 import XButton from './ui/XButton.vue';
 import XConfirmDialog from './ui/XConfirmDialog.vue';
 import XDrawer from './ui/drawer/XDrawer.vue';
@@ -56,6 +59,9 @@ export {
   XActionMenu,
   XActionMenuItem,
   XAsyncContent,
+  XAspectRatio,
+  XSlider,
+  XSwitch,
   XButton,
   XConfirmDialog,
   XDrawer,
@@ -77,6 +83,9 @@ export type {
   ToastStatus,
   ToastUpdateOptions,
 } from './ui/toast';
+export type { XAspectRatioProps } from './ui/aspect-ratio/types';
+export type { XSliderProps } from './ui/slider/types';
+export type { XSwitchProps } from './ui/switch/types';
 export type { XDrawerProps } from './ui/drawer/types';
 export type { XDropZoneProps } from './ui/drop-zone/types';
 export type { XDialogProps } from './ui/dialog/types';

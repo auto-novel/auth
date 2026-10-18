@@ -30,6 +30,21 @@ const componentPages = [
     description: '值绑定、禁用状态、键盘操作与长列表。',
   },
   {
+    to: '/components/slider',
+    title: '滑块 · XSlider',
+    description: '数字绑定、禁用状态、小数步长与 change 事件。',
+  },
+  {
+    to: '/components/switch',
+    title: '开关 · XSwitch',
+    description: '布尔状态绑定、禁用状态与 change 事件。',
+  },
+  {
+    to: '/components/aspect-ratio',
+    title: '宽高比 · XAspectRatio',
+    description: '16:9 与默认正方形布局、自适应插槽内容。',
+  },
+  {
     to: '/components/action-menu',
     title: '操作菜单与确认框',
     description: '对齐、菜单项状态与危险操作确认流程。',
