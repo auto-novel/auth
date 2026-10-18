@@ -3,9 +3,10 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import * as Vue from 'vue';
 import { renderToString } from 'vue/server-renderer';
+import { ConfigProvider, useDirection } from 'reka-ui';
 
 // Only test wrapper logic; Reka owns keyboard, pointer and rendering behavior.
-async function setup(modelValue) {
+async function setup(props, providerDir) {
   let root;
   const passThrough = {
     setup:
@@ -16,8 +17,8 @@ async function setup(modelValue) {
   const stub = {
     props: ['modelValue'],
     emits: ['update:modelValue', 'valueCommit'],
-    setup(props, { emit, slots }) {
-      root = { props, emit };
+    setup(props, { attrs, emit, slots }) {
+      root = { props, attrs, emit };
       return () => Vue.h('div', slots.default?.());
     },
   };
@@ -28,6 +29,7 @@ async function setup(modelValue) {
       SliderThumb: passThrough,
       SliderTrack: passThrough,
       SliderRange: passThrough,
+      useDirection,
     },
   };
   const XSlider = compileComponent(
@@ -35,21 +37,29 @@ async function setup(modelValue) {
     dependencies,
   );
   const events = [];
-  await renderToString(
+  const renderSlider = () =>
+    Vue.h(XSlider, {
+      ...props,
+      'onUpdate:modelValue': (value) => events.push(['update', value]),
+      onCommit: (value) => events.push(['commit', value]),
+    });
+  const html = await renderToString(
     Vue.createSSRApp({
       render: () =>
-        Vue.h(XSlider, {
-          modelValue,
-          'onUpdate:modelValue': (value) => events.push(['update', value]),
-          onCommit: (value) => events.push(['commit', value]),
-        }),
+        providerDir
+          ? Vue.h(
+              ConfigProvider,
+              { dir: providerDir },
+              { default: renderSlider },
+            )
+          : renderSlider(),
     }),
   );
-  return { ...root, events };
+  return { ...root, events, html };
 }
 
 test('Slider 对外为数字模型，拖动只更新，提交时先更新再触发 commit', async () => {
-  const { props, emit, events } = await setup(20);
+  const { props, emit, events } = await setup({ modelValue: 20 });
   assert.deepEqual(props.modelValue, [20]);
   emit('update:modelValue', undefined);
   emit('update:modelValue', []);
@@ -62,4 +72,120 @@ test('Slider 对外为数字模型，拖动只更新，提交时先更新再触�
     ['update', 40],
     ['commit', 40],
   ]);
+});
+
+test('未设置值时按 min 呈现，交互后才产出数值', async () => {
+  const { props, emit, events } = await setup({ modelValue: null, min: 10 });
+  assert.deepEqual(props.modelValue, [10]);
+  assert.deepEqual(events, []);
+  emit('update:modelValue', [12]);
+  assert.deepEqual(events, [['update', 12]]);
+});
+
+test('snapToMarks 吸附最近刻度', async () => {
+  const { emit, events } = await setup({
+    modelValue: 30,
+    marks: { 0: '低', 50: '中', 100: '高' },
+    snapToMarks: true,
+  });
+  emit('update:modelValue', [38]);
+  emit('valueCommit', [90]);
+  assert.deepEqual(events, [
+    ['update', 50],
+    ['update', 100],
+    ['commit', 100],
+  ]);
+});
+
+test('snapToMarks 下键盘跳到相邻刻度，回放的 update 不会抵消它', async () => {
+  const { attrs, emit, events } = await setup({
+    modelValue: 50,
+    marks: { 0: '低', 50: '中', 100: '高' },
+    snapToMarks: true,
+  });
+  // Reka 的键盘提交：先 valueCommit，再 update:modelValue 回放同一个原始值。
+  attrs.onKeydownCapture();
+  emit('valueCommit', [51]);
+  emit('update:modelValue', [51]);
+  assert.deepEqual(events, [
+    ['update', 100],
+    ['commit', 100],
+  ]);
+  // 指针拖动仍按最近刻度吸附到 50，与当前值相同，不产生新事件。
+  attrs.onPointerdownCapture();
+  emit('update:modelValue', [51]);
+  assert.deepEqual(events.at(-1), ['commit', 100]);
+});
+
+test('表单字段不使用默认整数步长校验小数值', async () => {
+  const { html } = await setup({
+    modelValue: 0.15,
+    min: 0.05,
+    max: 1.05,
+    step: 0.1,
+    name: 'decimal',
+  });
+  const input = html.match(/<input\b[^>]*>/)?.[0];
+  assert.ok(input);
+  assert.match(input, /type="number"/);
+  assert.match(input, /step="any"/);
+  assert.match(input, /value="0\.15"/);
+});
+
+test('刻度方向与横向 RTL、反向及纵向组合保持一致', async () => {
+  for (const orientation of ['horizontal', 'vertical']) {
+    for (const dir of ['ltr', 'rtl']) {
+      for (const inverted of [false, true]) {
+        const { html } = await setup({
+          orientation,
+          dir,
+          inverted,
+          marks: { 20: '低', 80: '高' },
+        });
+        const reversed =
+          orientation === 'vertical' ? inverted : inverted !== (dir === 'rtl');
+        const edge = orientation === 'vertical' ? 'bottom' : 'left';
+        const context = `${orientation}/${dir}/inverted=${inverted}`;
+        assert.match(
+          html,
+          new RegExp(`style="${edge}:${reversed ? 80 : 20}%;">低</span>`),
+          context,
+        );
+        assert.match(
+          html,
+          new RegExp(`style="${edge}:${reversed ? 20 : 80}%;">高</span>`),
+          context,
+        );
+      }
+    }
+  }
+});
+
+test('刻度与根节点使用 ConfigProvider 方向，显式 dir 优先', async () => {
+  const inherited = await setup({ marks: { 20: '低' } }, 'rtl');
+  assert.equal(inherited.attrs.dir, 'rtl');
+  assert.match(inherited.html, /style="left:80%;">低<\/span>/);
+
+  const explicit = await setup({ dir: 'ltr', marks: { 20: '低' } }, 'rtl');
+  assert.equal(explicit.attrs.dir, 'ltr');
+  assert.match(explicit.html, /style="left:20%;">低<\/span>/);
+});
+
+test('刻度文案、常显气泡与 name 生成的表单字段都会渲染', async () => {
+  const { html } = await setup({
+    modelValue: 30,
+    marks: { 0: '低', 50: '中', 100: '高' },
+    tooltip: 'always',
+    formatValue: (value) => `${value}%`,
+    name: 'volume',
+  });
+  assert.match(html, /中/);
+  assert.match(html, />30%</);
+  assert.match(html, /name="volume"/);
+
+  const { html: plain } = await setup({
+    modelValue: 30,
+    formatValue: (value) => `${value}%`,
+  });
+  assert.doesNotMatch(plain, />30%</);
 });

@@ -61,7 +61,14 @@ export type {
   ToastUpdateOptions,
 } from './ui/toast';
 export type { XAspectRatioProps } from './ui/aspect-ratio/types';
-export type { XSliderProps } from './ui/slider/types';
+export type {
+  XSliderMarks,
+  XSliderOrientation,
+  XSliderProps,
+  XSliderSize,
+  XSliderTone,
+  XSliderUi,
+} from './ui/slider/types';
 export type { XSwitchProps } from './ui/switch/types';
 export type { XDrawerProps } from './ui/drawer/types';
 export type { XDropZoneProps } from './ui/drop-zone/types';
