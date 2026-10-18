@@ -16,7 +16,7 @@ Object.defineProperty(globalThis, 'document', {
   configurable: true,
   value: new EventTarget(),
 });
-const { useFileDrop } = await import('../src/ui/drop-zone/useFileDrop.ts');
+const { useFileDrop } = await import('../../src/ui/drop-zone/useFileDrop.ts');
 test.after(() => {
   if (previousWindow)
     Object.defineProperty(globalThis, 'window', previousWindow);

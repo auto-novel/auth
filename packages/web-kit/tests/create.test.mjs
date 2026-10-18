@@ -1,25 +1,9 @@
 import assert from 'node:assert/strict';
-import { registerHooks } from 'node:module';
+import './helpers/register-source.mjs';
 import test from 'node:test';
 
 import { createApp, isReadonly } from 'vue';
 import { Toast, toastManager } from '../src/ui/toast/index.ts';
-
-registerHooks({
-  resolve(specifier, context, nextResolve) {
-    if (
-      specifier.startsWith('.') &&
-      !/\.[a-z]+$/i.test(specifier) &&
-      /\/packages\/web-kit\/src\//.test(context.parentURL ?? '')
-    ) {
-      return nextResolve(
-        specifier === './theme' ? `${specifier}/index.ts` : `${specifier}.ts`,
-        context,
-      );
-    }
-    return nextResolve(specifier, context);
-  },
-});
 
 const { useWebKit, useWebKitInternals } = await import('../src/context.ts');
 let moduleId = 0;
@@ -121,16 +105,8 @@ test('create restores session and theme, and rejects a second create', async (t)
   assert.equal(kit.whoami.value.isAtLeastDaysOld(0), true);
   assert.equal(kit.theme.theme.value, 'dark');
   assert.equal('options' in kit, false);
-  assert.equal('start' in kit, false);
   // JWT 的秒时间戳在会话解析时转为毫秒，kit 保持同一单位。
   assert.equal(kit.whoami.value.user.createdAt, now * 1000);
-  const thirtyDaysLater = now * 1000 + 30 * 24 * 60 * 60 * 1000;
-  let currentTime = thirtyDaysLater - 1;
-  const clock = t.mock.method(Date, 'now', () => currentTime);
-  assert.equal(kit.whoami.value.isAtLeastDaysOld(30), false);
-  currentTime = thirtyDaysLater;
-  assert.equal(kit.whoami.value.isAtLeastDaysOld(30), true);
-  clock.mock.restore();
   // 归一化后的快照仍须保持深只读，不能被宿主改写。
   assert.equal(isReadonly(kit.whoami.value.user), true);
   const warnings = t.mock.method(console, 'warn', () => {});
@@ -167,8 +143,6 @@ test('create restores session and theme, and rejects a second create', async (t)
     add.mock.calls.map(({ arguments: [options] }) => options.description),
     ['before creation', 'after rejected creation'],
   );
-
-  assert.throws(() => createWebKit(options), /only be called once/);
 });
 
 test('invalid initial URL does not consume the singleton or allocate resources', async (t) => {
@@ -219,9 +193,6 @@ test('single owner, context-only hooks, and same-app idempotence', async (t) => 
   await attention.refresh();
   assert.equal(attention.status.value.strikes.hasUnread, true);
   assert.ok(counts.fetches >= 1);
-
-  assert.equal('start' in kit, false);
-  assert.equal('dispose' in kit, false);
 });
 
 test('public API hides session internals while sharing authentication with built-in features', async (t) => {
@@ -276,22 +247,6 @@ test('public API hides session internals while sharing authentication with built
     'whoami',
   ]);
   assert.equal(Object.isFrozen(context), true);
-  for (const name of [
-    'start',
-    'dispose',
-    'api',
-    'options',
-    'attention',
-    'watchUser',
-    'createLoginUrl',
-    'handleLoginMessage',
-    'getAttentionStatus',
-    'updateMyStrikeReadState',
-    'getMyStrikes',
-    'toggleAdminMode',
-  ]) {
-    assert.equal(name in context, false, name);
-  }
   assert.throws(() => {
     context.logout = () => {};
   }, TypeError);

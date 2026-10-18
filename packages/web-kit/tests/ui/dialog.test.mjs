@@ -1,29 +1,11 @@
+import { compileComponent } from '../helpers/compile-component.mjs';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 import * as Vue from 'vue';
 import * as Reka from 'reka-ui';
-import { compileScript, parse, registerTS } from 'vue/compiler-sfc';
 import { renderToString } from 'vue/server-renderer';
-import ts from 'typescript';
-import { useOverlayLayer } from '../src/ui/overlayLayer.ts';
+import { useOverlayLayer } from '../../src/ui/overlayLayer.ts';
 
-registerTS(() => ts);
-const filename = fileURLToPath(
-  new URL('../src/ui/dialog/XDialog.vue', import.meta.url),
-);
-const { descriptor } = parse(readFileSync(filename, 'utf8'), { filename });
-const { content } = compileScript(descriptor, {
-  id: 'dialog-test',
-  inlineTemplate: true,
-});
-const { outputText } = ts.transpileModule(content, {
-  compilerOptions: {
-    module: ts.ModuleKind.CommonJS,
-    target: ts.ScriptTarget.ES2022,
-  },
-});
 const dependencies = {
   vue: Vue,
   // Keep Reka's real semantic components; only bypass Portal's SSR omission.
@@ -31,16 +13,10 @@ const dependencies = {
   '@vicons/material': { CloseOutlined: () => Vue.h('svg') },
   '../overlayLayer': { useOverlayLayer },
 };
-const module = { exports: {} };
-new Function('require', 'module', 'exports', outputText)(
-  (name) => {
-    assert.ok(name in dependencies, `Unexpected import: ${name}`);
-    return dependencies[name];
-  },
-  module,
-  module.exports,
+const XDialog = compileComponent(
+  new URL('../../src/ui/dialog/XDialog.vue', import.meta.url),
+  dependencies,
 );
-const XDialog = module.exports.default;
 
 async function render(props = {}, slots = {}) {
   const html = await renderToString(

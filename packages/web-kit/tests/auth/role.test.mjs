@@ -1,25 +1,10 @@
 import assert from 'node:assert/strict';
-import { registerHooks } from 'node:module';
+import '../helpers/register-source.mjs';
 import test from 'node:test';
 
-import { isKnownRole, roles } from '../src/auth/whoami.ts';
+import { isKnownRole, roles } from '../../src/auth/whoami.ts';
 
-registerHooks({
-  resolve(specifier, context, nextResolve) {
-    // 源码里的相对导入不带扩展名，Node 直接解析会失败；只在 web-kit 源码内补
-    // .ts，不影响依赖包自己的解析。
-    if (
-      specifier.startsWith('.') &&
-      !/\.[a-z]+$/i.test(specifier) &&
-      /\/packages\/web-kit\/src\//.test(context.parentURL ?? '')
-    ) {
-      return nextResolve(`${specifier}.ts`, context);
-    }
-    return nextResolve(specifier, context);
-  },
-});
-
-const { createAuthSession } = await import('../src/auth/session.ts');
+const { createAuthSession } = await import('../../src/auth/session.ts');
 
 function makeToken(role) {
   const payload = {

@@ -1,21 +1,8 @@
 import assert from 'node:assert/strict';
-import { registerHooks } from 'node:module';
+import '../helpers/register-source.mjs';
 import test from 'node:test';
 
-registerHooks({
-  resolve(specifier, context, nextResolve) {
-    if (
-      specifier.startsWith('.') &&
-      !/\.[a-z]+$/i.test(specifier) &&
-      /\/packages\/web-kit\/src\//.test(context.parentURL ?? '')
-    ) {
-      return nextResolve(`${specifier}.ts`, context);
-    }
-    return nextResolve(specifier, context);
-  },
-});
-
-const { createWebTheme } = await import('../src/theme/index.ts');
+const { createWebTheme } = await import('../../src/theme/index.ts');
 
 const THEME_KEY = 'web-kit:theme:v1';
 

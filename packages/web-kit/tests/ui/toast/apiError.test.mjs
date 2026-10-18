@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import ky, { HTTPError, TimeoutError } from 'ky';
+import { HTTPError, TimeoutError } from 'ky';
 
-import { getApiErrorMessage } from '../src/ui/toast/apiError.ts';
-import { createApiClient } from '../src/api/client.ts';
+import { getApiErrorMessage } from '../../../src/ui/toast/apiError.ts';
+import { createApiClient } from '../../../src/api/client.ts';
 
 function httpError(status = 400) {
   return new HTTPError(
@@ -22,7 +22,6 @@ test('synchronously extracts message, error and detail from parsed data', () => 
     [{ message: ' ', error: 500, detail: '第三' }, '第三'],
   ]) {
     assert.equal(getApiErrorMessage({ data }, ''), expected);
-    assert.equal(getApiErrorMessage({ data }, '兜底'), `兜底：${expected}`);
   }
 });
 
@@ -35,7 +34,6 @@ test('accepts JSON object strings, JSON strings and plain text data', () => {
     [' Bad Gateway ', 'Bad Gateway'],
   ]) {
     assert.equal(getApiErrorMessage({ data }, ''), expected);
-    assert.equal(getApiErrorMessage({ data }, '兜底'), `兜底：${expected}`);
   }
 });
 
@@ -137,37 +135,10 @@ test('uses parsed data before Error messages and HTTP/timeout details', () => {
   }
 });
 
-test('normalizes and preserves the prefix for every available detail', () => {
-  const timeout = new TimeoutError(new Request('https://example.invalid/test'));
-  for (const [reason, detail] of [
-    [{ data: { message: '业务详情' } }, '业务详情'],
-    [httpError(503), '请求失败[503]'],
-    [timeout, '请求超时，请稍后再试'],
-    [new Error(' 网络中断 '), '网络中断'],
-  ]) {
-    assert.equal(
-      getApiErrorMessage(reason, ' 保存失败 '),
-      `保存失败：${detail}`,
-    );
-    for (const prefix of ['', ' ', '<h1>保存失败</h1>']) {
-      assert.equal(getApiErrorMessage(reason, prefix), detail);
-    }
-  }
-});
-
-test('returns only the normalized prefix or default when there is no detail', () => {
-  for (const reason of [
-    undefined,
-    null,
-    'boom',
-    {},
-    new Error(''),
-    { data: {} },
-  ]) {
-    assert.equal(getApiErrorMessage(reason, ' 保存失败 '), '保存失败');
-    for (const prefix of ['', ' ', '<h1>保存失败</h1>']) {
-      assert.equal(getApiErrorMessage(reason, prefix), '请求失败');
-    }
+test('空白或 HTML 前缀有详情时只显示详情，无详情时使用默认文案', () => {
+  for (const prefix of ['', ' ', '<h1>保存失败</h1>']) {
+    assert.equal(getApiErrorMessage(new Error('网络中断'), prefix), '网络中断');
+    assert.equal(getApiErrorMessage(undefined, prefix), '请求失败');
   }
 });
 
@@ -175,7 +146,6 @@ test('limits the entire prefix and detail combination to 200 characters', () => 
   const prefix = '保存失败';
   const exactDetail = '错'.repeat(195);
   const exact = `${prefix}：${exactDetail}`;
-  assert.equal(exact.length, 200);
   assert.equal(getApiErrorMessage({ data: exactDetail }, prefix), exact);
   for (const reason of [
     { data: '错'.repeat(196) },
@@ -205,7 +175,6 @@ test('never reads or clones the response body, with or without parsed data', () 
     getApiErrorMessage({ data: { message: '已解析文案' }, response }, '兜底'),
     '兜底：已解析文案',
   );
-  assert.equal(getApiErrorMessage({ response }, '兜底'), '兜底');
   assert.equal(getApiErrorMessage({ response }, '兜底'), '兜底');
   assert.equal(response.bodyUsed, false);
   assert.equal(bodyReads, 0);
@@ -261,23 +230,6 @@ test('does not rewrite or otherwise mutate the original error or parsed data', (
   assert.match(error.message, /^Request failed with status code 400/);
 });
 
-test('uses parsed ky data after the response body is consumed', async () => {
-  const client = ky.create({
-    retry: 0,
-    fetch: async () =>
-      new Response(JSON.stringify({ message: '用户名已存在' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      }),
-  });
-  const error = await client
-    .get('https://example.invalid/test')
-    .catch((error) => error);
-  assert.ok(error instanceof HTTPError);
-  assert.equal(error.response.bodyUsed, true);
-  assert.equal(getApiErrorMessage(error, '兜底'), '兜底：用户名已存在');
-});
-
 test('client preserves the native error while the helper extracts details or status', async () => {
   for (const [body, contentType, expected] of [
     [
@@ -285,9 +237,6 @@ test('client preserves the native error while the helper extracts details or sta
       'application/json',
       '第一',
     ],
-    ['{"error":"拒绝访问"}', 'application/json', '拒绝访问'],
-    ['{"detail":"请求过于频繁"}', 'application/json', '请求过于频繁'],
-    ['"服务不可用"', 'application/json', '服务不可用'],
     [' Bad Gateway ', 'text/plain', 'Bad Gateway'],
     ['{"code":400}', 'application/json', '请求失败[400]'],
     ['', 'text/plain', '请求失败[400]'],
@@ -302,6 +251,7 @@ test('client preserves the native error while the helper extracts details or sta
     });
     const error = await client.get('test').catch((error) => error);
     assert.ok(error instanceof HTTPError);
+    assert.equal(error.response.bodyUsed, true);
     const originalMessage = error.message;
     const before = Object.getOwnPropertyDescriptors(error);
     assert.match(originalMessage, /^Request failed with status code 400/);

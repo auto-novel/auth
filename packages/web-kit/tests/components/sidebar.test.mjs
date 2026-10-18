@@ -1,22 +1,9 @@
 import assert from 'node:assert/strict';
-import { registerHooks } from 'node:module';
+import '../helpers/register-source.mjs';
 import test from 'node:test';
 
-registerHooks({
-  resolve(specifier, context, nextResolve) {
-    if (
-      specifier.startsWith('.') &&
-      !/\.[a-z]+$/i.test(specifier) &&
-      /\/packages\/web-kit\/src\//.test(context.parentURL ?? '')
-    ) {
-      return nextResolve(`${specifier}.ts`, context);
-    }
-    return nextResolve(specifier, context);
-  },
-});
-
 const { useSidebarPreference } =
-  await import('../src/components/sidebar/preference.ts');
+  await import('../../src/components/sidebar/preference.ts');
 
 const SIDEBAR_KEY = 'web-kit:sidebar:v1';
 

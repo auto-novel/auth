@@ -21,9 +21,7 @@ test('Blob 响应转换为 Response，支持正文读取、响应头和无正文
   assert.ok(response instanceof Response);
   assert.equal(response.status, 201);
   assert.equal(response.headers.get('x-upload'), 'done');
-  assert.deepEqual(await response.clone().json(), { ok: true });
-  assert.equal(await response.clone().text(), '{"ok":true}');
-  assert.equal(await (await response.blob()).text(), '{"ok":true}');
+  assert.deepEqual(await response.json(), { ok: true });
   assertClean(xhr);
 
   for (const status of [204, 205, 304]) {

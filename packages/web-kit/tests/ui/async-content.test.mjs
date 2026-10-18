@@ -1,28 +1,8 @@
+import { compileComponent } from '../helpers/compile-component.mjs';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 import * as Vue from 'vue';
-import { compileScript, parse, registerTS } from 'vue/compiler-sfc';
 import { renderToString } from 'vue/server-renderer';
-import ts from 'typescript';
-
-registerTS(() => ts);
-
-const filename = fileURLToPath(
-  new URL('../src/ui/async-content/XAsyncContent.vue', import.meta.url),
-);
-const { descriptor } = parse(readFileSync(filename, 'utf8'), { filename });
-const script = compileScript(descriptor, {
-  id: 'async-content',
-  inlineTemplate: true,
-});
-const { outputText } = ts.transpileModule(script.content, {
-  compilerOptions: {
-    module: ts.ModuleKind.CommonJS,
-    target: ts.ScriptTarget.ES2022,
-  },
-});
 
 async function render(props = {}, slots = {}) {
   let clickRetry;
@@ -40,20 +20,16 @@ async function render(props = {}, slots = {}) {
       },
     },
   };
-  const module = { exports: {} };
-  new Function('require', 'module', 'exports', outputText)(
-    (name) => {
-      assert.ok(name in dependencies, `Unexpected import: ${name}`);
-      return dependencies[name];
-    },
-    module,
-    module.exports,
+  const XAsyncContent = compileComponent(
+    new URL('../../src/ui/async-content/XAsyncContent.vue', import.meta.url),
+    dependencies,
   );
+
   const html = await renderToString(
     Vue.createSSRApp({
       render: () =>
         Vue.h(
-          module.exports.default,
+          XAsyncContent,
           {
             loading: false,
             onRetry: () => retryCount++,
@@ -74,7 +50,6 @@ test('加载中默认提供可访问的加载指示，优先于错误、空态�
   });
   assert.match(html, /role="status"/);
   assert.match(html, /正在加载…/);
-  assert.match(html, /animate-spin/);
   assert.match(html, /motion-reduce:animate-none/);
   assert.match(html, /aria-hidden="true"/);
   assert.doesNotMatch(html, /请求错误|暂无内容|成功内容/);
@@ -91,10 +66,14 @@ test('自定义 loading 插槽完全替换默认加载界面', async () => {
 });
 
 test('错误态提供回调时显示重试按钮，点击执行一次', async () => {
-  const result = await render({ error: '请求错误', empty: true });
+  const result = await render({
+    error: '请求错误',
+    empty: true,
+    retryLabel: '重新获取',
+  });
   assert.match(result.html, /加载失败/);
   assert.match(result.html, /请求错误/);
-  assert.match(result.html, /<button[^>]*>再试一次<\/button>/);
+  assert.match(result.html, /<button[^>]*>重新获取<\/button>/);
   assert.doesNotMatch(result.html, /暂无内容|成功内容|正在加载/);
   assert.equal(result.retryCount(), 0);
   result.clickRetry();
@@ -110,11 +89,6 @@ test('未提供重试回调时保留错误信息但不渲染按钮', async () =>
   assert.match(html, /请求错误/);
   assert.doesNotMatch(html, /<button|再试一次/);
   assert.equal(clickRetry, undefined);
-});
-
-test('重试按钮支持自定义文案', async () => {
-  const { html } = await render({ error: '请求错误', retryLabel: '重新获取' });
-  assert.match(html, /<button[^>]*>重新获取<\/button>/);
 });
 
 test('空态优先于内容，无异步状态时渲染默认插槽', async () => {

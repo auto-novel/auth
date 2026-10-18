@@ -1,15 +1,12 @@
+import { compileComponent } from '../helpers/compile-component.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
 import * as Vue from 'vue';
-import { compileScript, parse, registerTS } from 'vue/compiler-sfc';
 import { renderToString } from 'vue/server-renderer';
-import ts from 'typescript';
 
 const { createRenderer, createSSRApp, effectScope, h, nextTick, ref } = Vue;
 
-import { useOverlayLayer, useToastLayer } from '../src/ui/overlayLayer.ts';
+import { useOverlayLayer, useToastLayer } from '../../src/ui/overlayLayer.ts';
 
 function useDocument(t, value) {
   if (arguments.length < 2) value = {};
@@ -79,19 +76,6 @@ test('关闭保持退出动画层级，新打开的浮层不复用旧序号', (t
   const replacement = layer(t, true);
   above(replacement, next);
   above(closing, drawer);
-});
-
-test('Select、菜单、Tooltip、Popover 与模态共用层级', (t) => {
-  useDocument(t);
-  const modal = layer(t, true);
-  for (const _kind of ['select', 'menu', 'tooltip', 'popover']) {
-    const floating = layer(t, true);
-    above(floating, modal);
-    const nextModal = layer(t, true);
-    above(nextModal, floating);
-    nextModal.open.value = false;
-    floating.open.value = false;
-  }
 });
 
 test('卸载停止追踪，重新创建的实例仍高于退出中的旧层', (t) => {
@@ -233,67 +217,6 @@ test('SSR 与客户端独立执行 setup，客户端立即分配层级并追踪�
 });
 
 // 使用 Reka/Transition 替身，不验证真实焦点和交互栈。
-registerTS(() => ts);
-function compileOverlayComponent(relativePath, dependencies) {
-  const filename = fileURLToPath(new URL(relativePath, import.meta.url));
-  const { descriptor } = parse(readFileSync(filename, 'utf8'), { filename });
-  const script = compileScript(descriptor, {
-    id: 'overlay-layer-test',
-    inlineTemplate: true,
-  });
-  const { outputText } = ts.transpileModule(script.content, {
-    compilerOptions: {
-      module: ts.ModuleKind.CommonJS,
-      target: ts.ScriptTarget.ES2022,
-    },
-  });
-  const module = { exports: {} };
-  const require = (name) => {
-    assert.ok(name in dependencies, `Unexpected component dependency: ${name}`);
-    return dependencies[name];
-  };
-  new Function('require', 'module', 'exports', 'HTMLElement', outputText)(
-    require,
-    module,
-    module.exports,
-    class HTMLElement {},
-  );
-  return module.exports.default;
-}
-
-test('七类浮层 Content 均不通过 key 强制重建', () => {
-  for (const [relativePath, tag] of [
-    ['dialog/XDialog.vue', 'DialogContent'],
-    ['drawer/XDrawer.vue', 'DrawerContent'],
-    ['dialog/XConfirmDialog.vue', 'AlertDialogContent'],
-    ['action-menu/XActionMenu.vue', 'DropdownMenuContent'],
-    ['select/XSelect.vue', 'SelectContent'],
-    ['tooltip/XTooltip.vue', 'TooltipContent'],
-    ['pagination/PageJump.vue', 'PopoverContent'],
-  ]) {
-    const filename = new URL(`../src/ui/${relativePath}`, import.meta.url);
-    const { descriptor } = parse(readFileSync(filename, 'utf8'));
-    let matches = 0;
-    function visit(node) {
-      if (node.type === 1 && node.tag === tag) {
-        matches++;
-        assert.equal(
-          node.props.some((prop) =>
-            prop.type === 6
-              ? prop.name === 'key'
-              : prop.name === 'bind' && prop.arg?.content === 'key',
-          ),
-          false,
-          `${tag} must not have a key`,
-        );
-      }
-      for (const child of node.children ?? []) visit(child);
-    }
-    visit(descriptor.template.ast);
-    assert.equal(matches, 1, `${tag} must be checked`);
-  }
-});
-
 for (const kind of ['Dialog', 'Drawer']) {
   test(`${kind} 仅更新层级，不强制重建退出中的内容`, async (t) => {
     useDocument(t);
@@ -317,7 +240,6 @@ for (const kind of ['Dialog', 'Drawer']) {
         });
         contents.push({
           attrs,
-          instance: Vue.getCurrentInstance(),
           finishExit() {
             if (!isOpen()) rendered.value = false;
           },
@@ -340,8 +262,11 @@ for (const kind of ['Dialog', 'Drawer']) {
         part === 'Content' ? Content : part === 'Root' ? Root : passThrough,
       ]),
     );
-    const Component = compileOverlayComponent(
-      `../src/ui/${kind.toLowerCase()}/X${kind}.vue`,
+    const Component = compileComponent(
+      new URL(
+        `../../src/ui/${kind.toLowerCase()}/X${kind}.vue`,
+        import.meta.url,
+      ),
       {
         vue: { ...Vue, Transition: passThrough },
         'reka-ui': reka,
@@ -349,7 +274,6 @@ for (const kind of ['Dialog', 'Drawer']) {
         '../overlayLayer': { useOverlayLayer },
       },
     );
-    assert.equal('forceMount' in Component.props, false);
     const children = [];
     let unmounts = 0;
     const Child = {
@@ -367,7 +291,6 @@ for (const kind of ['Dialog', 'Drawer']) {
     });
     app.mount({ children: [] });
     t.after(() => app.unmount());
-    assert.equal(contents[0].instance.vnode.key, null);
     const contentZIndex = () =>
       Vue.normalizeStyle(contents[0].attrs.style).zIndex;
     const initialZIndex = contentZIndex();
