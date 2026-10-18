@@ -10,7 +10,7 @@ function thumbAttrs() {
   return rest;
 }
 
-withDefaults(defineProps<XSliderProps>(), {
+withDefaults(defineProps<Omit<XSliderProps, 'modelValue'>>(), {
   min: 0,
   max: 100,
   step: 1,

@@ -21,28 +21,23 @@ defineSlots<{
   empty?(): unknown;
 }>();
 
-const minHeightClass = computed(
-  () =>
-    ({
-      compact: 'min-h-52',
-      default: 'min-h-80',
-      large: 'min-h-96',
-    })[props.size],
-);
-const statePaddingClass = computed(() =>
-  props.size === 'compact' ? 'p-6' : 'p-8',
-);
-const headingClass = computed(() =>
+const layout = computed(() =>
   props.size === 'compact'
-    ? 'mt-3 text-sm font-medium text-ink'
-    : 'mt-4 text-lg font-semibold text-ink',
+    ? {
+        minHeight: 'min-h-52',
+        padding: 'p-6',
+        heading: 'mt-3 text-sm font-medium text-ink',
+        description: 'mt-1 text-xs text-muted',
+        retry: 'mt-4',
+      }
+    : {
+        minHeight: props.size === 'large' ? 'min-h-96' : 'min-h-80',
+        padding: 'p-8',
+        heading: 'mt-4 text-lg font-semibold text-ink',
+        description: 'mt-2 text-sm text-muted',
+        retry: 'mt-5',
+      },
 );
-const descriptionClass = computed(() =>
-  props.size === 'compact'
-    ? 'mt-1 text-xs text-muted'
-    : 'mt-2 text-sm text-muted',
-);
-const retryClass = computed(() => (props.size === 'compact' ? 'mt-4' : 'mt-5'));
 </script>
 
 <template>
@@ -63,7 +58,7 @@ const retryClass = computed(() => (props.size === 'compact' ? 'mt-4' : 'mt-5'));
     <slot v-else-if="error" name="error" :error="error" :retry="onRetry">
       <div
         class="grid place-items-center text-center"
-        :class="[minHeightClass, statePaddingClass]"
+        :class="[layout.minHeight, layout.padding]"
       >
         <div>
           <div
@@ -73,13 +68,13 @@ const retryClass = computed(() => (props.size === 'compact' ? 'mt-4' : 'mt-5'));
             !
           </div>
 
-          <h2 v-if="errorTitle" :class="headingClass">
+          <h2 v-if="errorTitle" :class="layout.heading">
             {{ errorTitle }}
           </h2>
           <p class="mt-2 text-sm text-muted">
             {{ error }}
           </p>
-          <XButton v-if="onRetry" :class="retryClass" @click="onRetry()">
+          <XButton v-if="onRetry" :class="layout.retry" @click="onRetry()">
             {{ retryLabel }}
           </XButton>
         </div>
@@ -88,7 +83,7 @@ const retryClass = computed(() => (props.size === 'compact' ? 'mt-4' : 'mt-5'));
     <slot v-else-if="empty" name="empty">
       <div
         class="grid place-items-center text-center"
-        :class="[minHeightClass, statePaddingClass]"
+        :class="[layout.minHeight, layout.padding]"
       >
         <div>
           <div
@@ -98,10 +93,10 @@ const retryClass = computed(() => (props.size === 'compact' ? 'mt-4' : 'mt-5'));
             <Inventory2Outlined class="size-6" />
           </div>
 
-          <h2 :class="headingClass">
+          <h2 :class="layout.heading">
             {{ emptyTitle }}
           </h2>
-          <p v-if="emptyDescription" :class="descriptionClass">
+          <p v-if="emptyDescription" :class="layout.description">
             {{ emptyDescription }}
           </p>
         </div>

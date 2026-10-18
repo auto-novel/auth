@@ -2,7 +2,6 @@
 @import './ui/dialog/dialog.css';
 
 @source './components';
-@source './notifications';
 @source './ui';
 @source './views';
 
@@ -21,6 +20,7 @@
   --color-error-hover: #b32844;
   --color-error-strong: #a81f3b;
   --color-error-soft: rgb(208 48 80 / 10%);
+  --color-error-surface: #faeaee;
   --color-error-border: rgb(208 48 80 / 30%);
   --color-on-error: #ffffff;
   --color-warning: #b45309;
@@ -67,6 +67,7 @@
     --color-error-hover: #d97070;
     --color-error-strong: #ffbcbc;
     --color-error-soft: rgb(232 128 128 / 15%);
+    --color-error-surface: #37282b;
     --color-error-border: rgb(232 128 128 / 30%);
     --color-on-error: #0b0b0d;
     --color-warning: #f2c97d;
@@ -174,6 +175,52 @@
       outline: 2px solid var(--color-primary);
       outline-offset: -2px;
     }
+  }
+
+  /* Shared enter/exit motion for popover-style floating panels. */
+  .floating-panel-motion {
+    --floating-enter-offset: -4px;
+  }
+
+  .floating-panel-motion[data-side='top'] {
+    --floating-enter-offset: 4px;
+  }
+
+  .floating-panel-motion[data-state='open'] {
+    animation: floating-panel-open 180ms cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  .floating-panel-motion[data-state='closed'] {
+    pointer-events: none;
+    animation: floating-panel-close 120ms ease-in forwards;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .floating-panel-motion[data-state] {
+      animation: none;
+    }
+  }
+}
+
+@keyframes floating-panel-open {
+  from {
+    opacity: 0;
+    transform: translateY(var(--floating-enter-offset)) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes floating-panel-close {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(var(--floating-enter-offset)) scale(0.96);
   }
 }
 

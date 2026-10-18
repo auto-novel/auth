@@ -1,3 +1,14 @@
+<script lang="ts">
+const INTERACTIVE_SELECTOR =
+  'input, textarea, select, [contenteditable]:not([contenteditable="false"]), [role="textbox"], [role="combobox"], [role="slider"], [role="spinbutton"], [role="tablist"], [role="menu"], [role="listbox"], [role="dialog"], [role="alertdialog"]';
+const MODAL_SELECTOR =
+  'dialog[open], [role="dialog"][data-state="open"], [role="alertdialog"][data-state="open"], [aria-modal="true"]:not([hidden]):not([data-state="closed"])';
+
+function isElement(node: unknown): node is Element {
+  return typeof Element !== 'undefined' && node instanceof Element;
+}
+</script>
+
 <script setup lang="ts">
 import {
   PaginationList,
@@ -48,22 +59,16 @@ onKeyDown(
       return;
 
     const document = (event.currentTarget as Window | null)?.document;
-    const ElementClass = document?.defaultView?.Element;
-    const interactiveSelector =
-      'input, textarea, select, [contenteditable]:not([contenteditable="false"]), [role="textbox"], [role="combobox"], [role="slider"], [role="spinbutton"], [role="tablist"], [role="menu"], [role="listbox"], [role="dialog"], [role="alertdialog"]';
     if (
-      (ElementClass &&
-        event
-          .composedPath()
-          .some(
-            (target) =>
-              target instanceof ElementClass &&
-              (target.closest(interactiveSelector) ||
-                (target as HTMLElement).isContentEditable),
-          )) ||
-      document?.querySelector(
-        'dialog[open], [role="dialog"][data-state="open"], [role="alertdialog"][data-state="open"], [aria-modal="true"]:not([hidden]):not([data-state="closed"])',
-      )
+      event
+        .composedPath()
+        .some(
+          (node) =>
+            isElement(node) &&
+            (node.closest(INTERACTIVE_SELECTOR) ||
+              (node as HTMLElement).isContentEditable),
+        ) ||
+      document?.querySelector(MODAL_SELECTOR)
     )
       return;
 

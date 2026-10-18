@@ -4,6 +4,7 @@ import { ref } from 'vue';
 
 import { useWebKit, useWebKitInternals } from '../../context';
 import type { WebKitMenuOption } from '../../types';
+import MenuIcon from '../menu/MenuIcon.vue';
 import SidebarFooter from './SidebarFooter.vue';
 import SidebarNavigation from './SidebarNavigation.vue';
 
@@ -62,11 +63,7 @@ const showMascot = ref(false);
       >
         <span class="brand-logo" aria-hidden="true" />
       </button>
-      <span
-        class="brand-title text-ink"
-        :class="collapsed ? 'opacity-0' : 'opacity-100'"
-        :aria-hidden="collapsed"
-      >
+      <span class="brand-title text-ink" :aria-hidden="collapsed">
         {{ kitOptions.brand }}
       </span>
     </div>
@@ -90,18 +87,11 @@ const showMascot = ref(false);
         :title="isDark ? '切换到浅色主题' : '切换到深色主题'"
         @click="toggleTheme"
       >
-        <span
-          class="grid size-5 flex-none place-items-center"
-          aria-hidden="true"
-        >
+        <MenuIcon size="md">
           <DarkModeOutlined v-if="isDark" class="size-5" />
           <LightModeOutlined v-else class="size-5" />
-        </span>
-        <span
-          class="web-kit-sidebar-label"
-          :class="collapsed ? 'opacity-0' : 'opacity-100'"
-          :aria-hidden="collapsed"
-        >
+        </MenuIcon>
+        <span class="web-kit-sidebar-label" :aria-hidden="collapsed">
           切换主题
         </span>
       </button>

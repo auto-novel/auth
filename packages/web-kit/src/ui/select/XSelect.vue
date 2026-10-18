@@ -23,7 +23,7 @@ import { useOverlayLayer } from '../overlayLayer';
 import type { XSelectProps } from './types';
 
 defineOptions({ inheritAttrs: false });
-defineProps<XSelectProps>();
+defineProps<Omit<XSelectProps, 'modelValue'>>();
 
 const model = defineModel<string>({ required: true });
 
@@ -58,7 +58,7 @@ const { contentStyle } = useOverlayLayer(open);
         :style="contentStyle"
         position="popper"
         :side-offset="6"
-        class="x-select-content floating-panel min-w-(--reka-select-trigger-width) overflow-hidden p-1 text-ink"
+        class="x-select-content floating-panel floating-panel-motion min-w-(--reka-select-trigger-width) overflow-hidden p-1 text-ink"
       >
         <ScrollAreaRoot type="auto" class="overflow-hidden">
           <SelectViewport as-child>
@@ -101,7 +101,6 @@ const { contentStyle } = useOverlayLayer(open);
 }
 
 .x-select-content {
-  --select-enter-offset: -4px;
   --select-item-height: 2.25rem;
   transform-origin: var(--reka-select-content-transform-origin);
 }
@@ -144,49 +143,9 @@ const { contentStyle } = useOverlayLayer(open);
   background: var(--color-ink);
 }
 
-.x-select-content[data-side='top'] {
-  --select-enter-offset: 4px;
-}
-
-/* Reka Presence keeps the panel mounted until the exit animation ends. */
-.x-select-content[data-state='open'] {
-  animation: x-select-open 180ms cubic-bezier(0.2, 0, 0, 1);
-}
-
-.x-select-content[data-state='closed'] {
-  pointer-events: none;
-  animation: x-select-close 120ms ease-in forwards;
-}
-
-@keyframes x-select-open {
-  from {
-    opacity: 0;
-    transform: translateY(var(--select-enter-offset)) scale(0.96);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-@keyframes x-select-close {
-  from {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-  to {
-    opacity: 0;
-    transform: translateY(var(--select-enter-offset)) scale(0.96);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .x-select-chevron {
     transition: none;
-  }
-
-  .x-select-content[data-state] {
-    animation: none;
   }
 }
 </style>

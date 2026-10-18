@@ -8,9 +8,10 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from 'reka-ui';
-import { computed, shallowRef, watch } from 'vue';
+import { computed } from 'vue';
 
 import { useOverlayLayer } from '../overlayLayer';
+import { useReturnFocus } from '../returnFocus';
 import type { XDrawerProps } from './types';
 
 defineOptions({ inheritAttrs: false });
@@ -45,19 +46,7 @@ const panelStyle = computed(() => {
 });
 
 // 没有 #trigger 时，Drawer 不会自动记录外部打开按钮。
-const returnFocus = shallowRef<HTMLElement | null>(null);
-watch(
-  () => props.open,
-  (open) => {
-    if (open && typeof document !== 'undefined') {
-      returnFocus.value =
-        document.activeElement instanceof HTMLElement
-          ? document.activeElement
-          : null;
-    }
-  },
-  { flush: 'sync', immediate: true },
-);
+const returnFocus = useReturnFocus(() => props.open);
 </script>
 
 <template>

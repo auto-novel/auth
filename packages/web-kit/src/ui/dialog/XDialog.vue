@@ -9,16 +9,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from 'reka-ui';
-import {
-  ref,
-  shallowRef,
-  useAttrs,
-  useSlots,
-  watch,
-  type CSSProperties,
-} from 'vue';
+import { ref, useAttrs, useSlots, watch, type CSSProperties } from 'vue';
 
 import { useOverlayLayer } from '../overlayLayer';
+import { useReturnFocus } from '../returnFocus';
 import type { XDialogProps } from './types';
 
 defineOptions({ inheritAttrs: false });
@@ -65,20 +59,7 @@ function dialogAttrs() {
 
 const { overlayStyle, contentStyle } = useOverlayLayer(() => props.open);
 const viewportStyle = ref<CSSProperties>({});
-const returnFocus = shallowRef<HTMLElement | null>(null);
-
-watch(
-  () => props.open,
-  (open) => {
-    if (open && typeof document !== 'undefined') {
-      returnFocus.value =
-        document.activeElement instanceof HTMLElement
-          ? document.activeElement
-          : null;
-    }
-  },
-  { immediate: true, flush: 'sync' },
-);
+const returnFocus = useReturnFocus(() => props.open);
 
 watch(
   [() => props.open, () => props.fullScreen],

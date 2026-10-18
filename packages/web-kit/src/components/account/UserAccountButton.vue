@@ -55,6 +55,10 @@ async function logout() {
     // The auth session clears the local session even if the remote session has expired.
   }
 }
+
+function toggleAdminMode() {
+  if (whoami.value.isAdmin) accountActions.toggleAdminMode();
+}
 </script>
 
 <template>
@@ -101,12 +105,17 @@ async function logout() {
         >
           <AccountMenuPanel class="pt-0">
             <DropdownMenuLabel class="p-0">
-              <button
-                v-if="whoami.isAdmin"
-                type="button"
-                class="block w-full cursor-pointer px-3 py-2.5 text-left transition-colors hover:bg-hover"
-                :aria-pressed="whoami.asAdmin"
-                @click="accountActions.toggleAdminMode()"
+              <component
+                :is="whoami.isAdmin ? 'button' : 'div'"
+                :type="whoami.isAdmin ? 'button' : undefined"
+                class="block w-full px-3 py-2.5 text-left"
+                :class="
+                  whoami.isAdmin
+                    ? 'cursor-pointer transition-colors hover:bg-hover'
+                    : undefined
+                "
+                :aria-pressed="whoami.isAdmin ? whoami.asAdmin : undefined"
+                @click="toggleAdminMode"
               >
                 <span class="block text-sm font-medium text-ink">
                   {{ whoami.roleLabel }}{{ whoami.asAdmin ? '+' : '' }}
@@ -115,16 +124,7 @@ async function logout() {
                   注册于
                   <XTime :time="whoami.user?.createdAt" preset="date" />
                 </span>
-              </button>
-              <div v-else class="px-3 py-2.5">
-                <p class="text-sm font-medium text-ink">
-                  {{ whoami.roleLabel }}
-                </p>
-                <p class="mt-0.5 text-xs text-muted">
-                  注册于
-                  <XTime :time="whoami.user?.createdAt" preset="date" />
-                </p>
-              </div>
+              </component>
             </DropdownMenuLabel>
             <DropdownMenuSeparator class="border-t border-divider" />
             <div class="p-1">

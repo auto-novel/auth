@@ -37,9 +37,9 @@ const activeGroups = computed(
 );
 
 watch(
-  [() => props.selectedNavigationKey, () => JSON.stringify(activeGroups.value)],
-  () => {
-    for (const key of activeGroups.value) expanded.value.add(key);
+  activeGroups,
+  (groups) => {
+    for (const key of groups) expanded.value.add(key);
   },
   { immediate: true },
 );
@@ -52,20 +52,13 @@ async function selectNavigation(samePath: boolean) {
   }
 }
 
-watch(viewportMode, () => {
+watch([viewportMode, () => route.fullPath], () => {
   mobileMenuOpen.value = false;
 });
 
 function toggleSidebar() {
   sidebarPreference.value = !sidebarPreference.value;
 }
-
-watch(
-  () => route.fullPath,
-  () => {
-    mobileMenuOpen.value = false;
-  },
-);
 
 watch(
   () => route.path,

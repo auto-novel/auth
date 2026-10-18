@@ -36,4 +36,11 @@
     white-space: nowrap;
     transition: opacity 150ms ease;
   }
+
+  /* 折叠时只隐藏文字，保留图标与按钮 DOM，宽度过渡不抖动。 */
+  .web-kit-sidebar.is-collapsed .web-kit-sidebar-label,
+  .web-kit-sidebar.is-collapsed .web-kit-sidebar-chevron,
+  .web-kit-sidebar.is-collapsed .brand-title {
+    opacity: 0;
+  }
 }

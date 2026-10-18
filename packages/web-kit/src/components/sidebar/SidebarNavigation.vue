@@ -18,6 +18,7 @@ import {
 
 import { externalLinkAttrs } from '../../utils/menu';
 import type { WebKitMenuOption } from '../../types';
+import MenuIcon from '../menu/MenuIcon.vue';
 
 const props = withDefaults(
   defineProps<{
@@ -121,29 +122,16 @@ async function navigate(event: MouseEvent, option: WebKitMenuOption) {
               :aria-controls="groupContentId(option.key, !!collapsed)"
               @click="toggleInlineGroup(option.key)"
             >
-              <span
-                class="grid size-5 flex-none place-items-center"
-                aria-hidden="true"
-              >
-                <component
-                  v-if="option.icon"
-                  :is="option.icon"
-                  class="size-5"
-                />
-              </span>
+              <MenuIcon :icon="option.icon" size="md" />
               <span
                 class="web-kit-sidebar-label flex-1"
-                :class="collapsed ? 'opacity-0' : 'opacity-100'"
                 :aria-hidden="collapsed"
               >
                 {{ option.label }}
               </span>
               <KeyboardArrowDownOutlined
-                class="size-4 flex-none transition-[transform,opacity] duration-150"
-                :class="[
-                  { '-rotate-90': !expanded.has(option.key) },
-                  collapsed ? 'opacity-0' : 'opacity-100',
-                ]"
+                class="web-kit-sidebar-chevron size-4 flex-none transition-[transform,opacity] duration-150"
+                :class="{ '-rotate-90': !expanded.has(option.key) }"
                 aria-hidden="true"
               />
             </button>
@@ -188,15 +176,9 @@ async function navigate(event: MouseEvent, option: WebKitMenuOption) {
         class="web-kit-sidebar-item text-ink hover:bg-hover"
         :title="collapsed ? option.label : undefined"
       >
-        <span
-          class="grid size-5 flex-none place-items-center"
-          aria-hidden="true"
-        >
-          <component v-if="option.icon" :is="option.icon" class="size-5" />
-        </span>
+        <MenuIcon :icon="option.icon" size="md" />
         <span
           class="web-kit-sidebar-label inline-flex items-center gap-1"
-          :class="collapsed ? 'opacity-0' : 'opacity-100'"
           :aria-hidden="collapsed"
         >
           <span class="truncate">{{ option.label }}</span>
@@ -221,17 +203,8 @@ async function navigate(event: MouseEvent, option: WebKitMenuOption) {
           :aria-current="selected === option.key ? 'page' : undefined"
           @click="navigate($event, option)"
         >
-          <span
-            class="grid size-5 flex-none place-items-center"
-            aria-hidden="true"
-          >
-            <component v-if="option.icon" :is="option.icon" class="size-5" />
-          </span>
-          <span
-            class="web-kit-sidebar-label"
-            :class="collapsed ? 'opacity-0' : 'opacity-100'"
-            :aria-hidden="collapsed"
-          >
+          <MenuIcon :icon="option.icon" size="md" />
+          <span class="web-kit-sidebar-label" :aria-hidden="collapsed">
             {{ option.label }}
           </span>
         </a>

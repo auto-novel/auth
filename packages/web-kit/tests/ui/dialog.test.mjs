@@ -5,6 +5,7 @@ import * as Vue from 'vue';
 import * as Reka from 'reka-ui';
 import { renderToString } from 'vue/server-renderer';
 import { useOverlayLayer } from '../../src/ui/overlayLayer.ts';
+import { useReturnFocus } from '../../src/ui/returnFocus.ts';
 
 const dependencies = {
   vue: Vue,
@@ -12,6 +13,7 @@ const dependencies = {
   'reka-ui': { ...Reka, DialogPortal: (_, { slots }) => slots.default?.() },
   '@vicons/material': { CloseOutlined: () => Vue.h('svg') },
   '../overlayLayer': { useOverlayLayer },
+  '../returnFocus': { useReturnFocus },
 };
 const XDialog = compileComponent(
   new URL('../../src/ui/dialog/XDialog.vue', import.meta.url),

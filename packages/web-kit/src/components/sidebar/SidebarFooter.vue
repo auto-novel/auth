@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { AccessTimeOutlined, CommitOutlined } from '@vicons/material';
+import { CommitOutlined } from '@vicons/material';
 import { computed } from 'vue';
 
-import XTime from '../../ui/time/XTime.vue';
 import XTooltip from '../../ui/tooltip/XTooltip.vue';
+import SidebarBuildInfo from './SidebarBuildInfo.vue';
 
 const props = defineProps<{
   repoUrl: string;
@@ -12,7 +12,6 @@ const props = defineProps<{
   collapsed?: boolean;
 }>();
 
-const shortCommit = computed(() => props.commitSha.slice(0, 12) || 'unknown');
 const commitUrl = computed(() =>
   props.commitSha && props.commitSha !== 'unknown'
     ? `${props.repoUrl.replace(/\/+$/, '')}/commit/${props.commitSha}`
@@ -40,43 +39,19 @@ const commitUrl = computed(() =>
           <CommitOutlined class="size-5" aria-hidden="true" />
         </component>
       </template>
-      <div class="sidebar-build-info-item">
-        <span>构建于</span>
-        <XTime :time="buildTime" preset="datetime-numeric" />
-      </div>
-      <div class="commit-text">
-        <span>Commit</span>
-        <code class="commit-value">{{ shortCommit }}</code>
-      </div>
+      <SidebarBuildInfo
+        compact
+        :build-time="buildTime"
+        :commit-sha="commitSha"
+      />
     </XTooltip>
     <template v-else>
       <div class="mb-1.5 border-t border-divider" />
-      <div class="sidebar-build-info-item">
-        <AccessTimeOutlined class="size-[15px] flex-none" aria-hidden="true" />
-        <span class="flex-none">构建于</span>
-        <XTime
-          class="truncate text-ink"
-          :time="buildTime"
-          preset="datetime-numeric"
-        />
-      </div>
-      <div class="sidebar-build-info-item">
-        <CommitOutlined class="size-4 flex-none" aria-hidden="true" />
-        <div class="commit-text">
-          <span class="flex-none">Commit</span>
-          <a
-            v-if="commitUrl"
-            class="commit-link truncate text-primary hover:text-primary-hover"
-            :href="commitUrl"
-            :title="props.commitSha"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <code class="commit-value">{{ shortCommit }}</code>
-          </a>
-          <code v-else class="commit-value">{{ shortCommit }}</code>
-        </div>
-      </div>
+      <SidebarBuildInfo
+        :build-time="buildTime"
+        :commit-sha="commitSha"
+        :commit-url="commitUrl"
+      />
     </template>
   </footer>
 </template>
@@ -97,32 +72,6 @@ const commitUrl = computed(() =>
   transition:
     max-height 300ms cubic-bezier(0.4, 0, 0.2, 1),
     padding 300ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.sidebar-build-info-item {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  line-height: 16px;
-}
-
-.commit-text {
-  display: flex;
-  min-width: 0;
-  align-items: baseline;
-  gap: 5px;
-  line-height: 16px;
-}
-
-.commit-value {
-  display: block;
-  font-size: 11px;
-  line-height: inherit;
-}
-
-.commit-link:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: -2px;
 }
 
 .sidebar-footer--collapsed {

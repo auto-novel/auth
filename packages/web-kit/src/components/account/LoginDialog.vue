@@ -79,13 +79,7 @@ async function focusLoginFrame(event: Event) {
 
     <p
       v-if="error"
-      class="absolute bottom-4 left-1/2 w-[min(420px,calc(100%-2rem))] -translate-x-1/2 rounded-md border border-error-border bg-surface px-4 py-3 text-sm text-error-strong shadow"
-      style="
-        background-image: linear-gradient(
-          var(--color-error-soft),
-          var(--color-error-soft)
-        );
-      "
+      class="absolute bottom-4 left-1/2 w-[min(420px,calc(100%-2rem))] -translate-x-1/2 rounded-md border border-error-border bg-error-surface px-4 py-3 text-sm text-error-strong shadow"
       role="alert"
     >
       {{ error }}

@@ -68,7 +68,7 @@ export const Toast = {
       const { message: text, ...lifecycle } = resolveMessage(message);
       const description =
         status === 'error' ? getApiErrorMessage(reason, text) : text;
-      // 不让 loading 阶段的常驻配置泄漏到结果阶段。
+      // duration 要显式带上：即使调用方没有传，也要覆盖 loading 阶段可能写入的常驻时长。
       const settledOptions = {
         ...options,
         duration: options.duration,

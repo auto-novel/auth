@@ -1,25 +1,3 @@
-import WebKitApp from './components/WebKitApp.vue';
-import WebKitLayout from './components/WebKitLayout.vue';
-import MyStrikeListView from './views/MyStrikeListView.vue';
-import XActionMenu from './ui/action-menu/XActionMenu.vue';
-import XActionMenuItem from './ui/action-menu/XActionMenuItem.vue';
-import XAsyncContent from './ui/async-content/XAsyncContent.vue';
-import XAspectRatio from './ui/aspect-ratio/XAspectRatio.vue';
-import XSlider from './ui/slider/XSlider.vue';
-import XSwitch from './ui/switch/XSwitch.vue';
-import XButton from './ui/button/XButton.vue';
-import XConfirmDialog from './ui/dialog/XConfirmDialog.vue';
-import XDrawer from './ui/drawer/XDrawer.vue';
-import XDropZone from './ui/drop-zone/XDropZone.vue';
-import XDialog from './ui/dialog/XDialog.vue';
-import XPagination from './ui/pagination/XPagination.vue';
-import XSelect from './ui/select/XSelect.vue';
-import XTime from './ui/time/XTime.vue';
-import XTooltip from './ui/tooltip/XTooltip.vue';
-import { useWebKit } from './context';
-import { Toast } from './ui/toast';
-import { getApiErrorMessage } from './ui/toast/apiError';
-
 export { createWebKit } from './create';
 export { copyToClipboard } from './utils/clipboard';
 export { useWebKitViewport } from './utils/viewport';
@@ -52,29 +30,28 @@ export type {
   StrikeReadState,
 } from './api/requests';
 
-export {
-  MyStrikeListView,
-  WebKitApp,
-  WebKitLayout,
-  XActionMenu,
-  XActionMenuItem,
-  XAsyncContent,
-  XAspectRatio,
-  XSlider,
-  XSwitch,
-  XButton,
-  XConfirmDialog,
-  XDrawer,
-  XDropZone,
-  XDialog,
-  XPagination,
-  XSelect,
-  XTime,
-  XTooltip,
-  Toast,
-  getApiErrorMessage,
-  useWebKit,
-};
+export { default as MyStrikeListView } from './views/MyStrikeListView.vue';
+export { default as WebKitApp } from './components/WebKitApp.vue';
+export { default as WebKitLayout } from './components/WebKitLayout.vue';
+export { default as XActionMenu } from './ui/action-menu/XActionMenu.vue';
+export { default as XActionMenuItem } from './ui/action-menu/XActionMenuItem.vue';
+export { default as XAsyncContent } from './ui/async-content/XAsyncContent.vue';
+export { default as XAspectRatio } from './ui/aspect-ratio/XAspectRatio.vue';
+export { default as XSlider } from './ui/slider/XSlider.vue';
+export { default as XSwitch } from './ui/switch/XSwitch.vue';
+export { default as XButton } from './ui/button/XButton.vue';
+export { default as XConfirmDialog } from './ui/dialog/XConfirmDialog.vue';
+export { default as XDrawer } from './ui/drawer/XDrawer.vue';
+export { default as XDropZone } from './ui/drop-zone/XDropZone.vue';
+export { default as XDialog } from './ui/dialog/XDialog.vue';
+export { default as XPagination } from './ui/pagination/XPagination.vue';
+export { default as XSelect } from './ui/select/XSelect.vue';
+export { default as XTime } from './ui/time/XTime.vue';
+export { default as XTooltip } from './ui/tooltip/XTooltip.vue';
+export { useWebKit } from './context';
+export { Toast } from './ui/toast';
+export { getApiErrorMessage } from './ui/toast/apiError';
+
 export type {
   ToastId,
   ToastMessage,
