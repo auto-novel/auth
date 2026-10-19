@@ -9,10 +9,13 @@ import {
   AlertDialogTitle,
 } from 'reka-ui';
 
+import { useTemplateRef } from 'vue';
+
 import XButton from '../button/XButton.vue';
 import { useOverlayLayer } from '../overlayLayer';
 import { mergeClasses } from '../classes';
 import type { XConfirmDialogProps } from './types';
+import { useDialogMotion } from './useDialogMotion';
 
 const props = withDefaults(defineProps<XConfirmDialogProps>(), {
   ui: () => ({}),
@@ -25,6 +28,7 @@ const emit = defineEmits<{
 }>();
 
 const { overlayStyle, contentStyle } = useOverlayLayer(() => props.open);
+useDialogMotion(useTemplateRef('motionContent'), () => props.open);
 
 function confirm() {
   if (!props.loading) emit('confirm');
@@ -39,15 +43,21 @@ defineOptions({ inheritAttrs: false });
   >
     <AlertDialogPortal>
       <AlertDialogOverlay
-        :class="mergeClasses('fixed inset-0 bg-black/45', ui.overlay)"
+        :class="
+          mergeClasses(
+            'x-dialog-fade-motion fixed inset-0 bg-black/45',
+            ui.overlay,
+          )
+        "
         :style="overlayStyle"
       />
       <AlertDialogContent
+        ref="motionContent"
         v-bind="{ ...$attrs, class: undefined }"
         :style="contentStyle"
         :class="
           mergeClasses(
-            'fixed top-1/2 left-1/2 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-floating bg-modal p-5 shadow-floating outline-none sm:p-6',
+            'x-dialog-panel-motion fixed top-1/2 left-1/2 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-floating bg-modal p-5 shadow-floating outline-none sm:p-6',
             ui.content,
             $attrs.class,
           )

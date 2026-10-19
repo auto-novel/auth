@@ -42,7 +42,7 @@ const { contentStyle } = useOverlayLayer(open);
           :collision-padding="8"
           :class="
             mergeClasses(
-              'floating-panel px-3 py-2 text-xs text-ink',
+              'floating-panel floating-panel-motion px-3 py-2 text-xs text-ink',
               ui.content,
               $attrs.class,
             )

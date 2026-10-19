@@ -9,6 +9,7 @@ const { createRenderer, createSSRApp, effectScope, h, nextTick, ref } = Vue;
 
 import { useOverlayLayer, useToastLayer } from '../../src/ui/overlayLayer.ts';
 import { useReturnFocus } from '../../src/ui/returnFocus.ts';
+import { useDialogMotion } from '../../src/ui/dialog/useDialogMotion.ts';
 
 function useDocument(t, value) {
   if (arguments.length < 2) value = {};
@@ -276,6 +277,7 @@ for (const kind of ['Dialog', 'Drawer']) {
         '@vicons/material': { CloseOutlined: passThrough },
         '../overlayLayer': { useOverlayLayer },
         '../returnFocus': { useReturnFocus },
+        './useDialogMotion': { useDialogMotion },
       },
     );
     const children = [];

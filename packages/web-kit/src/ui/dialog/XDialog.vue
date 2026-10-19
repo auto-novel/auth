@@ -9,12 +9,20 @@ import {
   DialogTitle,
   DialogTrigger,
 } from 'reka-ui';
-import { ref, useAttrs, useSlots, watch, type CSSProperties } from 'vue';
+import {
+  ref,
+  useTemplateRef,
+  useAttrs,
+  useSlots,
+  watch,
+  type CSSProperties,
+} from 'vue';
 
 import { useOverlayLayer } from '../overlayLayer';
 import { useReturnFocus } from '../returnFocus';
 import { mergeClasses } from '../classes';
 import type { XDialogProps } from './types';
+import { useDialogMotion } from './useDialogMotion';
 
 defineOptions({ inheritAttrs: false });
 
@@ -63,6 +71,11 @@ function dialogAttrs() {
 const { overlayStyle, contentStyle } = useOverlayLayer(() => props.open);
 const viewportStyle = ref<CSSProperties>({});
 const returnFocus = useReturnFocus(() => props.open);
+useDialogMotion(
+  useTemplateRef('motionContent'),
+  () => props.open,
+  () => !props.fullScreen,
+);
 
 watch(
   [() => props.open, () => props.fullScreen],
@@ -110,18 +123,24 @@ function restoreFocus(event: Event) {
     </DialogTrigger>
     <DialogPortal>
       <DialogOverlay
-        :class="mergeClasses('fixed inset-0 bg-black/45', ui.overlay)"
+        :class="
+          mergeClasses(
+            'x-dialog-fade-motion fixed inset-0 bg-black/45',
+            ui.overlay,
+          )
+        "
         :style="overlayStyle"
       />
       <DialogContent
+        ref="motionContent"
         v-bind="dialogAttrs()"
         aria-modal="true"
         :class="
           mergeClasses(
             'fixed bg-modal text-ink outline-none',
             fullScreen
-              ? 'inset-0'
-              : 'x-dialog-panel top-1/2 left-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col rounded-floating shadow-floating',
+              ? 'x-dialog-fade-motion inset-0'
+              : 'x-dialog-panel x-dialog-panel-motion top-1/2 left-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col rounded-floating shadow-floating',
             ui.content,
             $attrs.class,
           )

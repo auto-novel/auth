@@ -187,7 +187,9 @@
     --floating-enter-offset: 4px;
   }
 
-  .floating-panel-motion[data-state='open'] {
+  .floating-panel-motion[data-state='open'],
+  .floating-panel-motion[data-state='delayed-open'],
+  .floating-panel-motion[data-state='instant-open'] {
     animation: floating-panel-open 180ms cubic-bezier(0.2, 0, 0, 1);
   }
 

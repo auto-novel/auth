@@ -7,6 +7,7 @@ import * as Reka from 'reka-ui';
 import { renderToString } from 'vue/server-renderer';
 import { useOverlayLayer } from '../../src/ui/overlayLayer.ts';
 import { useReturnFocus } from '../../src/ui/returnFocus.ts';
+import { useDialogMotion } from '../../src/ui/dialog/useDialogMotion.ts';
 
 const dependencies = {
   vue: Vue,
@@ -16,6 +17,7 @@ const dependencies = {
   '@vicons/material': { CloseOutlined: () => Vue.h('svg') },
   '../overlayLayer': { useOverlayLayer },
   '../returnFocus': { useReturnFocus },
+  './useDialogMotion': { useDialogMotion },
 };
 const XDialog = compileComponent(
   new URL('../../src/ui/dialog/XDialog.vue', import.meta.url),
@@ -43,6 +45,8 @@ test('title/description 插槽替代文本并关联语义，footer 位于滚动�
   );
   const titleId = html.match(/<h2\b[^>]*id="([^"]+)"/)[1];
   const descriptionId = html.match(/<p\b[^>]*id="([^"]+)"/)[1];
+  assert.match(panel, /x-dialog-panel-motion/);
+  assert.match(html, /class="x-dialog-fade-motion\b/);
   assert.ok(panel.includes(`aria-labelledby="${titleId}"`));
   assert.ok(panel.includes(`aria-describedby="${descriptionId}"`));
   assert.match(
@@ -114,6 +118,7 @@ test('自定义滚动和全屏保持不同布局，尺寸与正文 class 透传'
       footer: () => Vue.h('aside', '提示'),
     },
   );
+  assert.match(full.panel, /x-dialog-fade-motion/);
   assert.match(full.html, /<header class="sr-only">/);
   assert.doesNotMatch(full.html, /x-dialog-panel|x-dialog-body|<footer/);
   assert.match(full.html, /<iframe[\s\S]*<aside>提示<\/aside>/);

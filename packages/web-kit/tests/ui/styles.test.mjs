@@ -6,6 +6,7 @@ import { renderToString } from 'vue/server-renderer';
 import * as classes from '../../src/ui/classes.ts';
 import { buttonVariants } from '../../src/ui/button/variants.ts';
 import { useOverlayLayer } from '../../src/ui/overlayLayer.ts';
+import { useDialogMotion } from '../../src/ui/dialog/useDialogMotion.ts';
 import { compileComponent } from '../helpers/compile-component.mjs';
 
 const passthrough = (_, { slots }) => slots.default?.();
@@ -14,6 +15,7 @@ const dependencies = {
   vue: Vue,
   '../classes': classes,
   '../overlayLayer': { useOverlayLayer },
+  './useDialogMotion': { useDialogMotion },
   '@vicons/material': {
     CheckOutlined: icon,
     ExpandMoreOutlined: icon,
@@ -89,7 +91,7 @@ test('Select maps trigger and portalled regions, with class overriding Vue-shape
   assert.match(trigger, /width:240px/);
   styles(
     node(html, 'x-select-content'),
-    ['p-4', 'text-error', 'floating-panel'],
+    ['p-4', 'text-error', 'floating-panel', 'floating-panel-motion'],
     ['p-1', 'text-ink'],
   );
   styles(node(html, 'x-select-viewport'), ['px-2', 'viewport-override']);
@@ -123,7 +125,13 @@ test('Dropdown puts ui then class on real menu content and preserves root style/
   const content = node(html, 'menu-override');
   styles(
     content,
-    ['floating-panel', 'min-w-64', 'p-6', 'text-error'],
+    [
+      'floating-panel',
+      'floating-panel-motion',
+      'min-w-64',
+      'p-6',
+      'text-error',
+    ],
     ['min-w-40', 'p-1', 'p-3', 'text-ink', 'text-primary'],
   );
   assert.match(content, /role="menu"/);
@@ -134,6 +142,28 @@ test('Dropdown puts ui then class on real menu content and preserves root style/
     html.match(/<button\b[^>]*>/)[0],
     /menu-override|aria-label="Actions"|max-height/,
   );
+});
+
+test('Tooltip attaches shared motion to portalled content', async () => {
+  const Tooltip = component('tooltip/XTooltip', {
+    'reka-ui': {
+      ...Reka,
+      TooltipPortal: passthrough,
+      TooltipContent: (props, { slots }) =>
+        Vue.h(Reka.TooltipContent, { ...props, forceMount: true }, slots),
+    },
+  });
+  const html = await renderToString(
+    Vue.h(
+      Tooltip,
+      {},
+      {
+        trigger: () => Vue.h('button', 'Help'),
+        default: () => 'Details',
+      },
+    ),
+  );
+  styles(node(html, 'floating-panel'), ['floating-panel-motion']);
 });
 
 test('ConfirmDialog maps actions and independent button overrides through real XButton variants', async () => {
@@ -175,6 +205,8 @@ test('ConfirmDialog maps actions and independent button overrides through real X
     ['bg-primary', 'px-10', 'hover:bg-primary-hover', 'text-on-error'],
     ['bg-error', 'px-4', 'hover:bg-error-hover', 'px-8'],
   );
+  styles(node(html, 'x-dialog-panel-motion'), ['x-dialog-panel-motion']);
+  styles(node(html, 'x-dialog-fade-motion'), ['x-dialog-fade-motion']);
   assert.match(html, /role="alertdialog"/);
 });
 
