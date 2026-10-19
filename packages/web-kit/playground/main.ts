@@ -3,6 +3,7 @@ import { createApp } from 'vue';
 import { createRouter, createWebHashHistory } from 'vue-router';
 
 import App from './App.vue';
+import { componentPages } from './componentPages';
 import HomeView from './HomeView.vue';
 import './style.css';
 
@@ -30,60 +31,15 @@ const router = createRouter({
       name: 'components',
       component: () => import('./ComponentsView.vue'),
     },
+    ...componentPages.map(({ to, name, component }) => ({
+      path: to,
+      name,
+      component,
+    })),
+    // Preserve bookmarks to the former combined demo page.
     {
-      path: '/components/toast',
-      name: 'components-toast',
-      component: () => import('./components/ToastView.vue'),
-    },
-    {
-      path: '/components/dialog',
-      name: 'components-dialog',
-      component: () => import('./components/DialogView.vue'),
-    },
-    {
-      path: '/components/drawer',
-      name: 'components-drawer',
-      component: () => import('./components/DrawerView.vue'),
-    },
-    {
-      path: '/components/select',
-      name: 'components-select',
-      component: () => import('./components/SelectView.vue'),
-    },
-    {
-      path: '/components/slider',
-      name: 'components-slider',
-      component: () => import('./components/SliderView.vue'),
-    },
-    {
-      path: '/components/switch',
-      name: 'components-switch',
-      component: () => import('./components/SwitchView.vue'),
-    },
-    {
-      path: '/components/aspect-ratio',
-      name: 'components-aspect-ratio',
-      component: () => import('./components/AspectRatioView.vue'),
-    },
-    {
-      path: '/components/action-menu',
-      name: 'components-action-menu',
-      component: () => import('./components/ActionMenuView.vue'),
-    },
-    {
-      path: '/components/pagination',
-      name: 'components-pagination',
-      component: () => import('./components/PaginationView.vue'),
-    },
-    {
-      path: '/components/drop-zone',
-      name: 'components-drop-zone',
-      component: () => import('./components/DropZoneView.vue'),
-    },
-    {
-      path: '/components/async-content',
-      name: 'components-async-content',
-      component: () => import('./components/AsyncContentView.vue'),
+      path: '/components/layout-primitives',
+      redirect: '/components/scroll-area',
     },
     {
       path: '/profile',

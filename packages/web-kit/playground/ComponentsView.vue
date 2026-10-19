@@ -8,63 +8,8 @@ import {
 } from '@novelia/web-kit';
 import { RouterLink } from 'vue-router';
 
-const componentPages = [
-  {
-    to: '/components/drop-zone',
-    title: '文件拖放 · XDropZone',
-    description: '系统文件拖入时显示全屏遮罩，由调用方处理原始文件。',
-  },
-  {
-    to: '/components/toast',
-    title: '通知 · Toast',
-    description: '通知类型、进出场动画、生命周期与 Promise 状态更新。',
-  },
-  {
-    to: '/components/dialog',
-    title: '对话框 · XDialog',
-    description: '基础用法、全屏布局、关闭控制与焦点管理。',
-  },
-  {
-    to: '/components/drawer',
-    title: '抽屉 · XDrawer',
-    description: '四方向、尺寸控制、受控开关与拖动关闭。',
-  },
-  {
-    to: '/components/select',
-    title: '选择器 · XSelect',
-    description: '值绑定、禁用状态、键盘操作与长列表。',
-  },
-  {
-    to: '/components/slider',
-    title: '滑块 · XSlider',
-    description: '数字绑定、禁用状态、小数步长与 commit 事件。',
-  },
-  {
-    to: '/components/switch',
-    title: '开关 · XSwitch',
-    description: '布尔状态绑定、禁用状态与模型更新事件。',
-  },
-  {
-    to: '/components/aspect-ratio',
-    title: '宽高比 · XAspectRatio',
-    description: '16:9 与默认正方形布局、自适应插槽内容。',
-  },
-  {
-    to: '/components/action-menu',
-    title: '操作菜单与确认框',
-    description: '对齐、菜单项状态与危险操作确认流程。',
-  },
-  {
-    to: '/components/pagination',
-    title: '分页 · XPagination',
-    description: '受控页码、跳页与全局键盘翻页。',
-  },
-  {
-    to: '/components/async-content',
-    title: '异步内容 · XAsyncContent',
-    description: '加载、错误重试、空状态和正常内容。',
-  },
-];
+import { componentPages } from './componentPages';
+
 const sampleTime = new Date('2025-06-05T15:04:30+08:00');
 const relativeBase = new Date('2025-06-05T15:07:30+08:00');
 const variants: XButtonVariant[] = ['primary', 'outline', 'danger', 'ghost'];

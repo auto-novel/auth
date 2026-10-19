@@ -46,6 +46,28 @@ export { default as XDropZone } from './ui/drop-zone/XDropZone.vue';
 export { default as XDialog } from './ui/dialog/XDialog.vue';
 export { default as XPagination } from './ui/pagination/XPagination.vue';
 export { default as XSelect } from './ui/select/XSelect.vue';
+export { default as XScrollArea } from './ui/scroll-area/XScrollArea.vue';
+export { default as XSeparator } from './ui/separator/XSeparator.vue';
+export { default as XTabs } from './ui/tabs/XTabs.vue';
+export { default as XTabsList } from './ui/tabs/XTabsList.vue';
+export { default as XTabsTrigger } from './ui/tabs/XTabsTrigger.vue';
+export { default as XTabsContent } from './ui/tabs/XTabsContent.vue';
+export { default as XDropdownMenu } from './ui/dropdown-menu/XDropdownMenu.vue';
+export { default as XDropdownMenuItem } from './ui/dropdown-menu/XDropdownMenuItem.vue';
+export { default as XDropdownMenuSeparator } from './ui/dropdown-menu/XDropdownMenuSeparator.vue';
+export type { XScrollAreaProps } from './ui/scroll-area/types';
+export type { XSeparatorProps } from './ui/separator/types';
+export type {
+  XTabsProps,
+  XTabsValue,
+  XTabsListProps,
+  XTabsTriggerProps,
+  XTabsContentProps,
+} from './ui/tabs/types';
+export type {
+  XDropdownMenuProps,
+  XDropdownMenuItemProps,
+} from './ui/dropdown-menu/types';
 export { default as XTime } from './ui/time/XTime.vue';
 export { default as XTooltip } from './ui/tooltip/XTooltip.vue';
 export { useWebKit } from './context';

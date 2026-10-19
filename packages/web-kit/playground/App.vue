@@ -15,6 +15,8 @@ import {
 } from '@novelia/web-kit';
 import { RouterLink, useRoute } from 'vue-router';
 
+import { componentPages } from './componentPages';
+
 const route = useRoute();
 
 const navigationOptions: WebKitMenuOption[] = [
@@ -27,56 +29,11 @@ const navigationOptions: WebKitMenuOption[] = [
     icon: WidgetsOutlined,
     children: [
       { key: 'components', label: '基础组件总览 Overview', to: '/components' },
-      {
-        key: 'components-toast',
-        label: '通知 Toast',
-        to: '/components/toast',
-      },
-      {
-        key: 'components-dialog',
-        label: '对话框 Dialog',
-        to: '/components/dialog',
-      },
-      {
-        key: 'components-drawer',
-        label: '抽屉 Drawer',
-        to: '/components/drawer',
-      },
-      {
-        key: 'components-select',
-        label: '选择器 Select',
-        to: '/components/select',
-      },
-      {
-        key: 'components-slider',
-        label: '滑块 Slider',
-        to: '/components/slider',
-      },
-      {
-        key: 'components-switch',
-        label: '开关 Switch',
-        to: '/components/switch',
-      },
-      {
-        key: 'components-aspect-ratio',
-        label: '宽高比 Aspect Ratio',
-        to: '/components/aspect-ratio',
-      },
-      {
-        key: 'components-action-menu',
-        label: '菜单与确认框 Action Menu & Confirm Dialog',
-        to: '/components/action-menu',
-      },
-      {
-        key: 'components-pagination',
-        label: '分页 Pagination',
-        to: '/components/pagination',
-      },
-      {
-        key: 'components-async-content',
-        label: '异步内容 Async Content',
-        to: '/components/async-content',
-      },
+      ...componentPages.map(({ name, label, to }) => ({
+        key: name,
+        label,
+        to,
+      })),
     ],
   },
   {

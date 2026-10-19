@@ -117,10 +117,10 @@ const { contentStyle } = useOverlayLayer(open);
     calc(var(--select-item-height) * 6.5),
     calc(var(--reka-select-content-available-height) - 0.5rem)
   );
-  padding-right: 10px;
   overscroll-behavior-y: contain;
 }
 
+/* Reka positions the scrollbar over the viewport; do not reserve a gutter. */
 .x-select-scrollbar {
   display: flex;
   width: 8px;
