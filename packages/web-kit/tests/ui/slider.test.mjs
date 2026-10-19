@@ -4,6 +4,7 @@ import test from 'node:test';
 import * as Vue from 'vue';
 import { renderToString } from 'vue/server-renderer';
 import { ConfigProvider, useDirection } from 'reka-ui';
+import * as variants from '../../src/ui/slider/variants.ts';
 
 // Only test wrapper logic; Reka owns keyboard, pointer and rendering behavior.
 async function setup(props, providerDir) {
@@ -24,6 +25,7 @@ async function setup(props, providerDir) {
   };
   const dependencies = {
     vue: Vue,
+    './variants': variants,
     'reka-ui': {
       SliderRoot: stub,
       SliderThumb: passThrough,
@@ -57,6 +59,22 @@ async function setup(props, providerDir) {
   );
   return { ...root, events, html };
 }
+
+test('Slider 根节点与部位样式覆盖经过冲突合并', async () => {
+  const { attrs, html } = await setup({
+    class: ['w-64', { 'h-10': true }],
+    ui: { thumb: 'size-6', track: 'h-2' },
+  });
+  const rootClasses = attrs.class.split(/\s+/);
+  assert.ok(rootClasses.includes('w-64'));
+  assert.ok(rootClasses.includes('h-10'));
+  assert.ok(!rootClasses.includes('w-full'));
+  assert.ok(!rootClasses.includes('h-6'));
+  assert.match(html, /\bsize-6\b/);
+  assert.match(html, /\bh-2\b/);
+  assert.doesNotMatch(html, /\bsize-4\b/);
+  assert.doesNotMatch(html, /\bh-1\b/);
+});
 
 test('Slider 对外为数字模型，拖动只更新，提交时先更新再触发 commit', async () => {
   const { props, emit, events } = await setup({ modelValue: 20 });

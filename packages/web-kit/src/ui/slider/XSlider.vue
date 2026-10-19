@@ -6,9 +6,10 @@ import {
   SliderTrack,
   useDirection,
 } from 'reka-ui';
-import { computed, ref, toRef, useAttrs } from 'vue';
+import { computed, normalizeClass, ref, toRef, useAttrs } from 'vue';
 
 import type { XSliderMarks, XSliderProps } from './types';
+import { sliderVariants } from './variants';
 
 defineOptions({ inheritAttrs: false });
 
@@ -151,77 +152,14 @@ const showTooltip = computed(() => {
   return props.tooltip === true && (hovered.value || focused.value);
 });
 
-const sizeClass = computed(
-  () =>
-    ({
-      sm: { horizontal: 'h-0.5', vertical: 'w-0.5', thumb: 'size-3' },
-      md: { horizontal: 'h-1', vertical: 'w-1', thumb: 'size-4' },
-      lg: { horizontal: 'h-1.5', vertical: 'w-1.5', thumb: 'size-5' },
-    })[props.size],
+const classes = computed(() =>
+  sliderVariants({
+    size: props.size,
+    tone: props.tone,
+    orientation: props.orientation,
+    hasMarkLabels: hasMarkLabels.value,
+  }),
 );
-
-const toneClass = computed(
-  () =>
-    ({
-      primary: {
-        range: 'bg-primary',
-        thumb: 'border-primary focus-visible:ring-primary/20',
-      },
-      danger: {
-        range: 'bg-error',
-        thumb: 'border-error focus-visible:ring-error/20',
-      },
-      muted: {
-        range: 'bg-muted',
-        thumb: 'border-muted focus-visible:ring-muted/20',
-      },
-    })[props.tone],
-);
-
-const rootClass = computed(() => [
-  'relative flex touch-none select-none items-center',
-  'data-disabled:cursor-not-allowed data-disabled:opacity-50',
-  isVertical.value ? 'h-32 w-5 justify-center' : 'w-full',
-  !isVertical.value && (hasMarkLabels.value ? 'h-12' : 'h-6'),
-]);
-
-const trackClass = computed(() => [
-  'relative overflow-hidden rounded-full bg-border',
-  isVertical.value ? 'h-full shrink-0' : 'w-full grow',
-  sizeClass.value[props.orientation],
-  props.ui.track,
-]);
-
-const thumbClass = computed(() => [
-  'block rounded-full border-2 bg-surface shadow-sm outline-none transition-shadow focus-visible:ring-4 data-disabled:pointer-events-none motion-reduce:transition-none',
-  sizeClass.value.thumb,
-  toneClass.value.thumb,
-  props.ui.thumb,
-]);
-
-const tooltipClass = computed(() => [
-  'pointer-events-none absolute z-10 rounded-sm bg-ink px-2 py-1 text-xs font-medium whitespace-nowrap text-surface shadow-sm select-none',
-  isVertical.value
-    ? 'top-1/2 right-full mr-2 -translate-y-1/2'
-    : 'bottom-full left-1/2 mb-2 -translate-x-1/2',
-  props.ui.tooltip,
-]);
-
-const markTickClass = computed(() => [
-  'absolute bg-border',
-  isVertical.value
-    ? 'left-1/2 ml-0.5 h-px w-1 -translate-y-1/2'
-    : 'top-1/2 mt-0.5 h-1 w-px -translate-x-1/2',
-  props.ui.mark,
-]);
-
-const markLabelClass = computed(() => [
-  'absolute text-xs whitespace-nowrap text-muted',
-  isVertical.value
-    ? 'left-1/2 ml-2 -translate-y-1/2'
-    : 'top-[30px] -translate-x-1/2',
-  props.ui.mark,
-]);
 
 function thumbAttrs() {
   const { class: _class, style: _style, id: _id, ...rest } = attrs;
@@ -232,7 +170,7 @@ function thumbAttrs() {
 <template>
   <SliderRoot
     :id="rootId"
-    :class="[attrs.class, rootClass]"
+    :class="classes.root({ class: normalizeClass(attrs.class) })"
     :style="attrs.style"
     :model-value="sliderValue"
     :min="min"
@@ -263,15 +201,8 @@ function thumbAttrs() {
       :required="required"
       :disabled="disabled"
     />
-    <SliderTrack :class="trackClass">
-      <SliderRange
-        :class="[
-          'absolute rounded-full',
-          isVertical ? 'w-full' : 'h-full',
-          toneClass.range,
-          ui.range,
-        ]"
-      />
+    <SliderTrack :class="classes.track({ class: ui.track })">
+      <SliderRange :class="classes.range({ class: ui.range })" />
     </SliderTrack>
     <span
       v-if="markItems.length"
@@ -279,10 +210,13 @@ function thumbAttrs() {
       class="pointer-events-none absolute inset-0"
     >
       <template v-for="mark in markItems" :key="mark.value">
-        <span :class="markTickClass" :style="markStyle(mark.value)" />
+        <span
+          :class="classes.markTick({ class: ui.mark })"
+          :style="markStyle(mark.value)"
+        />
         <span
           v-if="mark.label"
-          :class="markLabelClass"
+          :class="classes.markLabel({ class: ui.mark })"
           :style="markStyle(mark.value)"
         >
           {{ mark.label }}
@@ -291,10 +225,14 @@ function thumbAttrs() {
     </span>
     <SliderThumb
       v-bind="thumbAttrs()"
-      :class="thumbClass"
+      :class="classes.thumb({ class: ui.thumb })"
       :aria-valuetext="ariaValueText"
     >
-      <span v-if="showTooltip" aria-hidden="true" :class="tooltipClass">
+      <span
+        v-if="showTooltip"
+        aria-hidden="true"
+        :class="classes.tooltip({ class: ui.tooltip })"
+      >
         {{ displayValue }}
       </span>
     </SliderThumb>
