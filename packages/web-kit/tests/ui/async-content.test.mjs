@@ -1,3 +1,4 @@
+import * as styleClasses from '../../src/ui/classes.ts';
 import { compileComponent } from '../helpers/compile-component.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -9,6 +10,7 @@ async function render(props = {}, slots = {}) {
   let retryCount = 0;
   const dependencies = {
     vue: Vue,
+    '../classes': styleClasses,
     '@vicons/material': {
       Inventory2Outlined: () => Vue.h('svg', { 'data-empty-icon': '' }),
     },
@@ -41,6 +43,34 @@ async function render(props = {}, slots = {}) {
   );
   return { html, clickRetry, retryCount: () => retryCount };
 }
+
+test('ui 覆盖内置状态区域，root class 优先且不改写自定义插槽', async () => {
+  const { html } = await render({
+    loading: true,
+    class: 'grid',
+    ui: {
+      root: 'block',
+      loading: 'py-2 text-primary',
+      spinner: ['size-4', { 'border-4': true }],
+    },
+  });
+  assert.match(html, /^<div class="grid">/);
+  assert.match(html, /py-2 text-primary/);
+  assert.match(html, /size-4/);
+  assert.match(html, /border-4/);
+  assert.doesNotMatch(
+    html,
+    /\bcontents\b|\bblock\b|py-9|size-8|border-2|text-muted/,
+  );
+  const custom = await render(
+    { loading: true, ui: { loading: 'py-2' } },
+    {
+      loading: () => Vue.h('aside', { class: 'custom-loading' }, '自定义'),
+    },
+  );
+  assert.match(custom.html, /<aside class="custom-loading">自定义<\/aside>/);
+  assert.doesNotMatch(custom.html, /py-2/);
+});
 
 test('加载中默认提供可访问的加载指示，优先于错误、空态与内容', async () => {
   const { html, clickRetry } = await render({

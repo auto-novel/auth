@@ -174,7 +174,7 @@ function onChange(value: number) {
       <h2 id="test-slider-size" class="mb-3 font-medium">尺寸与色调</h2>
       <p class="mb-4 text-sm text-muted">
         size 控制轨道与滑块大小，tone 切换主题色；可用 ui 对
-        track、range、thumb、mark、tooltip 追加 class。
+        root、track、range、thumb、markTick、markLabel、tooltip 覆盖 class。
       </p>
       <div class="grid max-w-md gap-5">
         <label class="flex flex-col gap-2 text-xs text-muted">

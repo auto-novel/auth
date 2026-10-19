@@ -11,9 +11,11 @@ import {
 
 import XButton from '../button/XButton.vue';
 import { useOverlayLayer } from '../overlayLayer';
+import { mergeClasses } from '../classes';
 import type { XConfirmDialogProps } from './types';
 
 const props = withDefaults(defineProps<XConfirmDialogProps>(), {
+  ui: () => ({}),
   confirmLabel: '确认',
 });
 
@@ -27,6 +29,7 @@ const { overlayStyle, contentStyle } = useOverlayLayer(() => props.open);
 function confirm() {
   if (!props.loading) emit('confirm');
 }
+defineOptions({ inheritAttrs: false });
 </script>
 
 <template>
@@ -36,24 +39,44 @@ function confirm() {
   >
     <AlertDialogPortal>
       <AlertDialogOverlay
-        class="fixed inset-0 bg-black/45"
+        :class="mergeClasses('fixed inset-0 bg-black/45', ui.overlay)"
         :style="overlayStyle"
       />
       <AlertDialogContent
+        v-bind="{ ...$attrs, class: undefined }"
         :style="contentStyle"
-        class="fixed top-1/2 left-1/2 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-floating bg-modal p-5 shadow-floating outline-none sm:p-6"
+        :class="
+          mergeClasses(
+            'fixed top-1/2 left-1/2 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-floating bg-modal p-5 shadow-floating outline-none sm:p-6',
+            ui.content,
+            $attrs.class,
+          )
+        "
       >
-        <AlertDialogTitle class="text-lg font-medium text-ink">
+        <AlertDialogTitle
+          :class="mergeClasses('text-lg font-medium text-ink', ui.title)"
+        >
           {{ title }}
         </AlertDialogTitle>
-        <AlertDialogDescription class="mt-2 text-sm leading-6 text-muted">
+        <AlertDialogDescription
+          :class="
+            mergeClasses('mt-2 text-sm leading-6 text-muted', ui.description)
+          "
+        >
           {{ description }}
         </AlertDialogDescription>
-        <div class="mt-6 flex justify-end gap-3">
+        <div :class="mergeClasses('mt-6 flex justify-end gap-3', ui.actions)">
           <AlertDialogCancel as-child>
-            <XButton variant="outline" :disabled="loading">取消</XButton>
+            <XButton
+              :class="mergeClasses(ui.cancel)"
+              variant="outline"
+              :disabled="loading"
+            >
+              取消
+            </XButton>
           </AlertDialogCancel>
           <XButton
+            :class="mergeClasses(ui.confirm)"
             :variant="danger ? 'danger' : 'primary'"
             :disabled="loading"
             @click="confirm"

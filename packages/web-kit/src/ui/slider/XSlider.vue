@@ -6,7 +6,9 @@ import {
   SliderTrack,
   useDirection,
 } from 'reka-ui';
-import { computed, normalizeClass, ref, toRef, useAttrs } from 'vue';
+import { computed, ref, toRef, useAttrs } from 'vue';
+
+import { mergeClasses } from '../classes';
 
 import type { XSliderMarks, XSliderProps } from './types';
 import { sliderVariants } from './variants';
@@ -170,7 +172,7 @@ function thumbAttrs() {
 <template>
   <SliderRoot
     :id="rootId"
-    :class="classes.root({ class: normalizeClass(attrs.class) })"
+    :class="mergeClasses(classes.root(), ui.root, attrs.class)"
     :style="attrs.style"
     :model-value="sliderValue"
     :min="min"
@@ -201,8 +203,8 @@ function thumbAttrs() {
       :required="required"
       :disabled="disabled"
     />
-    <SliderTrack :class="classes.track({ class: ui.track })">
-      <SliderRange :class="classes.range({ class: ui.range })" />
+    <SliderTrack :class="mergeClasses(classes.track(), ui.track)">
+      <SliderRange :class="mergeClasses(classes.range(), ui.range)" />
     </SliderTrack>
     <span
       v-if="markItems.length"
@@ -211,12 +213,12 @@ function thumbAttrs() {
     >
       <template v-for="mark in markItems" :key="mark.value">
         <span
-          :class="classes.markTick({ class: ui.mark })"
+          :class="mergeClasses(classes.markTick(), ui.markTick)"
           :style="markStyle(mark.value)"
         />
         <span
           v-if="mark.label"
-          :class="classes.markLabel({ class: ui.mark })"
+          :class="mergeClasses(classes.markLabel(), ui.markLabel)"
           :style="markStyle(mark.value)"
         >
           {{ mark.label }}
@@ -225,13 +227,13 @@ function thumbAttrs() {
     </span>
     <SliderThumb
       v-bind="thumbAttrs()"
-      :class="classes.thumb({ class: ui.thumb })"
+      :class="mergeClasses(classes.thumb(), ui.thumb)"
       :aria-valuetext="ariaValueText"
     >
       <span
         v-if="showTooltip"
         aria-hidden="true"
-        :class="classes.tooltip({ class: ui.tooltip })"
+        :class="mergeClasses(classes.tooltip(), ui.tooltip)"
       >
         {{ displayValue }}
       </span>

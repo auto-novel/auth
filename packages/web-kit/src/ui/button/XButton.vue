@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { normalizeClass } from 'vue';
+import { mergeClasses } from '../classes';
 
 import type { XButtonProps } from './types';
 import { buttonVariants } from './variants';
@@ -20,11 +20,13 @@ const props = withDefaults(defineProps<XButtonProps>(), {
     v-bind="{ ...$attrs, class: undefined }"
     :type="as === 'button' ? type : undefined"
     :class="
-      buttonVariants({
-        variant: props.variant,
-        size: props.size,
-        class: normalizeClass($attrs.class),
-      })
+      mergeClasses(
+        buttonVariants({
+          variant: props.variant,
+          size: props.size,
+        }),
+        $attrs.class,
+      )
     "
   >
     <slot />

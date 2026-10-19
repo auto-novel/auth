@@ -1,3 +1,4 @@
+import * as styleClasses from '../../src/ui/classes.ts';
 import { compileComponent } from '../helpers/compile-component.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -9,6 +10,7 @@ import { useReturnFocus } from '../../src/ui/returnFocus.ts';
 
 const dependencies = {
   vue: Vue,
+  '../classes': styleClasses,
   // Keep Reka's real semantic components; only bypass Portal's SSR omission.
   'reka-ui': { ...Reka, DialogPortal: (_, { slots }) => slots.default?.() },
   '@vicons/material': { CloseOutlined: () => Vue.h('svg') },
@@ -87,7 +89,7 @@ test('自定义滚动和全屏保持不同布局，尺寸与正文 class 透传'
     {
       title: '自定义滚动',
       scrollable: false,
-      bodyClass: 'p-0',
+      ui: { body: 'p-0' },
       class: 'w-xl',
       style: { height: '70dvh' },
     },

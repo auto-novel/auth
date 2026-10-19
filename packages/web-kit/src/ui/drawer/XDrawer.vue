@@ -12,11 +12,13 @@ import { computed } from 'vue';
 
 import { useOverlayLayer } from '../overlayLayer';
 import { useReturnFocus } from '../returnFocus';
+import { mergeClasses } from '../classes';
 import type { XDrawerProps } from './types';
 
 defineOptions({ inheritAttrs: false });
 
 const props = withDefaults(defineProps<XDrawerProps>(), {
+  ui: () => ({}),
   side: 'right',
   size: 280,
 });
@@ -66,7 +68,7 @@ const returnFocus = useReturnFocus(() => props.open);
         leave-to-class="opacity-0"
       >
         <DrawerOverlay
-          class="fixed inset-0 bg-black/40"
+          :class="mergeClasses('fixed inset-0 bg-black/40', ui.overlay)"
           :style="overlayStyle"
         />
       </Transition>
@@ -77,37 +79,64 @@ const returnFocus = useReturnFocus(() => props.open);
         <DrawerContent
           v-bind="{
             ...$attrs,
+            class: undefined,
             ...(description ? {} : { 'aria-describedby': undefined }),
           }"
           :final-focus="returnFocus ?? true"
-          class="x-drawer-panel fixed flex flex-col overflow-hidden bg-modal text-ink shadow-2xl outline-none"
-          :class="{
-            'inset-y-0 left-0 max-w-[calc(100vw-3rem)]': side === 'left',
-            'inset-y-0 right-0 max-w-[calc(100vw-3rem)]': side === 'right',
-            'inset-x-0 top-0 max-h-[calc(100dvh-3rem)]': side === 'top',
-            'inset-x-0 bottom-0 max-h-[calc(100dvh-3rem)]': side === 'bottom',
-          }"
+          :class="
+            mergeClasses(
+              'x-drawer-panel fixed flex flex-col overflow-hidden bg-modal text-ink shadow-2xl outline-none',
+              {
+                'inset-y-0 left-0 max-w-[calc(100vw-3rem)]': side === 'left',
+                'inset-y-0 right-0 max-w-[calc(100vw-3rem)]': side === 'right',
+                'inset-x-0 top-0 max-h-[calc(100dvh-3rem)]': side === 'top',
+                'inset-x-0 bottom-0 max-h-[calc(100dvh-3rem)]':
+                  side === 'bottom',
+              },
+              ui.content,
+              $attrs.class,
+            )
+          "
           :style="[panelStyle, contentStyle]"
         >
           <header
             v-if="showHeader || $slots.header"
-            class="flex shrink-0 items-center justify-between gap-3 border-b border-divider px-6 py-4 leading-none"
+            :class="
+              mergeClasses(
+                'flex shrink-0 items-center justify-between gap-3 border-b border-divider px-6 py-4 leading-none',
+                ui.header,
+              )
+            "
           >
             <slot name="header">
               <DrawerTitle
-                class="flex min-h-9 items-center text-lg leading-none font-medium"
+                :class="
+                  mergeClasses(
+                    'flex min-h-9 items-center text-lg leading-none font-medium',
+                    ui.title,
+                  )
+                "
               >
                 {{ title }}
               </DrawerTitle>
-              <div v-if="$slots.action" class="flex items-center gap-3">
+              <div
+                v-if="$slots.action"
+                :class="mergeClasses('flex items-center gap-3', ui.actions)"
+              >
                 <slot name="action" />
               </div>
             </slot>
           </header>
-          <DrawerTitle v-if="!showHeader || $slots.header" class="sr-only">
+          <DrawerTitle
+            v-if="!showHeader || $slots.header"
+            :class="mergeClasses('sr-only', ui.title)"
+          >
             {{ title }}
           </DrawerTitle>
-          <DrawerDescription v-if="description" class="sr-only">
+          <DrawerDescription
+            v-if="description"
+            :class="mergeClasses('sr-only', ui.description)"
+          >
             {{ description }}
           </DrawerDescription>
           <slot />

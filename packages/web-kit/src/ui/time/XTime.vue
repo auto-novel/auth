@@ -2,6 +2,7 @@
 import { formatISO } from 'date-fns';
 import { computed } from 'vue';
 
+import { mergeClasses } from '../classes';
 import {
   formatRelativeTime,
   formatTimeValue,
@@ -9,6 +10,8 @@ import {
   timeValueToDate,
   type XTimeProps,
 } from './time';
+
+defineOptions({ inheritAttrs: false });
 
 const props = withDefaults(defineProps<XTimeProps>(), {
   preset: 'datetime',
@@ -34,5 +37,13 @@ const title = computed(
 </script>
 
 <template>
-  <time v-if="date" :datetime="machineTime" :title="title">{{ text }}</time>
+  <time
+    v-if="date"
+    :datetime="machineTime"
+    :title="title"
+    v-bind="{ ...$attrs, class: undefined }"
+    :class="mergeClasses($attrs.class)"
+  >
+    {{ text }}
+  </time>
 </template>

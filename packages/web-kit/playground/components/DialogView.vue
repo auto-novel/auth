@@ -120,7 +120,7 @@ const code = `<XDialog v-model:open="open" title="编辑资料" description="填
       <h2 class="mb-2 font-medium">自行安排滚动与浮层挂载点</h2>
       <p class="mb-4 text-sm leading-6 text-muted">
         scrollable=false 时正文容器为 flex min-h-0 flex-1 flex-col，不设置
-        overflow。 bodyClass="p-0" 覆盖默认 p-5 sm:p-6
+        overflow。 ui.body="p-0" 覆盖默认 p-5 sm:p-6
         内边距；工具栏、内部滚动区和滚动区外浮层挂载点由调用方布局。
       </p>
       <XDialog
@@ -128,7 +128,7 @@ const code = `<XDialog v-model:open="open" title="编辑资料" description="填
         title="自定义正文布局"
         description="仅中间列表滚动，工具栏与浮层挂载点在滚动区之外。"
         class="h-[32rem] w-2xl"
-        body-class="p-0"
+        :ui="{ body: 'p-0' }"
         :scrollable="false"
       >
         <template #trigger>
@@ -191,7 +191,7 @@ const code = `<XDialog v-model:open="open" title="编辑资料" description="填
       <h2 class="mb-2 font-medium">全屏 · 无装饰布局</h2>
       <p class="mb-4 text-sm leading-6 text-muted">
         fullScreen=true 保持无装饰、无正文容器：title / description
-        仅供读屏，默认插槽和 footer 直接提供内容。 bodyClass / scrollable
+        仅供读屏，默认插槽和 footer 直接提供内容。 ui.body / scrollable
         不参与全屏布局，内边距、可见标题、滚动及页脚样式均自行安排。
       </p>
       <XDialog
@@ -238,7 +238,7 @@ const code = `<XDialog v-model:open="open" title="编辑资料" description="填
           contentStyle / contentMaxHeight。
         </li>
         <li>
-          bodyClass?: string 控制正文容器 class，默认内边距 p-5 sm:p-6，可用 p-0
+          ui.body 控制正文容器 class，默认内边距 p-5 sm:p-6，可用 p-0
           覆盖；scrollable?: boolean 默认 true，false 时自行设置内部滚动区。
         </li>
         <li>

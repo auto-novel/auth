@@ -1,4 +1,11 @@
+import type { XUi } from '../classes';
+
+export type XDrawerUi = XUi<
+  'content' | 'overlay' | 'header' | 'title' | 'description' | 'actions'
+>;
+
 export interface XDrawerProps {
+  ui?: XDrawerUi;
   open: boolean;
   /** 无障碍标题；开启 showHeader 时同时显示在默认标题栏中。 */
   title: string;

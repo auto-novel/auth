@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import { TabsRoot } from 'reka-ui';
 
+import { mergeClasses } from '../classes';
+
 import type { XTabsProps, XTabsValue } from './types';
+
+defineOptions({ inheritAttrs: false });
 
 withDefaults(defineProps<Omit<XTabsProps, 'modelValue'>>(), {
   orientation: 'horizontal',
@@ -13,11 +17,17 @@ const model = defineModel<XTabsValue>();
 
 <template>
   <TabsRoot
+    v-bind="{ ...$attrs, class: undefined }"
     v-model="model"
     :default-value="defaultValue"
     :orientation="orientation"
     :activation-mode="activationMode"
-    class="flex min-w-0 flex-col gap-4 data-[orientation=vertical]:flex-row"
+    :class="
+      mergeClasses(
+        'flex min-w-0 flex-col gap-4 data-[orientation=vertical]:flex-row',
+        $attrs.class,
+      )
+    "
   >
     <slot />
   </TabsRoot>

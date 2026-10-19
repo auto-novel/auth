@@ -3,7 +3,10 @@ import { Inventory2Outlined } from '@vicons/material';
 import { computed } from 'vue';
 
 import XButton from '../button/XButton.vue';
+import { mergeClasses } from '../classes';
 import type { XAsyncContentProps } from './types';
+
+defineOptions({ inheritAttrs: false });
 
 const props = withDefaults(defineProps<XAsyncContentProps>(), {
   error: '',
@@ -12,6 +15,7 @@ const props = withDefaults(defineProps<XAsyncContentProps>(), {
   retryLabel: '再试一次',
   emptyTitle: '暂无内容',
   size: 'default',
+  ui: () => ({}),
 });
 
 defineSlots<{
@@ -41,14 +45,27 @@ const layout = computed(() =>
 </script>
 
 <template>
-  <div class="contents">
+  <div
+    v-bind="{ ...$attrs, class: undefined }"
+    :class="mergeClasses('contents', ui.root, $attrs.class)"
+  >
     <slot v-if="loading" name="loading">
       <div
-        class="grid place-items-center gap-3 py-9 text-sm text-muted"
+        :class="
+          mergeClasses(
+            'grid place-items-center gap-3 py-9 text-sm text-muted',
+            ui.loading,
+          )
+        "
         role="status"
       >
         <span
-          class="size-8 animate-spin rounded-full border-2 border-current border-t-transparent motion-reduce:animate-none"
+          :class="
+            mergeClasses(
+              'size-8 animate-spin rounded-full border-2 border-current border-t-transparent motion-reduce:animate-none',
+              ui.spinner,
+            )
+          "
           aria-hidden="true"
         />
         <span>正在加载…</span>
@@ -57,24 +74,39 @@ const layout = computed(() =>
 
     <slot v-else-if="error" name="error" :error="error" :retry="onRetry">
       <div
-        class="grid place-items-center text-center"
-        :class="[layout.minHeight, layout.padding]"
+        :class="
+          mergeClasses(
+            'grid place-items-center text-center',
+            layout.minHeight,
+            layout.padding,
+            ui.error,
+          )
+        "
       >
         <div>
           <div
-            class="mx-auto grid size-12 place-items-center rounded-full bg-error-soft text-error-strong"
+            :class="
+              mergeClasses(
+                'mx-auto grid size-12 place-items-center rounded-full bg-error-soft text-error-strong',
+                ui.icon,
+              )
+            "
             aria-hidden="true"
           >
             !
           </div>
 
-          <h2 v-if="errorTitle" :class="layout.heading">
+          <h2 v-if="errorTitle" :class="mergeClasses(layout.heading, ui.title)">
             {{ errorTitle }}
           </h2>
-          <p class="mt-2 text-sm text-muted">
+          <p :class="mergeClasses('mt-2 text-sm text-muted', ui.description)">
             {{ error }}
           </p>
-          <XButton v-if="onRetry" :class="layout.retry" @click="onRetry()">
+          <XButton
+            v-if="onRetry"
+            :class="mergeClasses(layout.retry, ui.retry)"
+            @click="onRetry()"
+          >
             {{ retryLabel }}
           </XButton>
         </div>
@@ -82,21 +114,35 @@ const layout = computed(() =>
     </slot>
     <slot v-else-if="empty" name="empty">
       <div
-        class="grid place-items-center text-center"
-        :class="[layout.minHeight, layout.padding]"
+        :class="
+          mergeClasses(
+            'grid place-items-center text-center',
+            layout.minHeight,
+            layout.padding,
+            ui.empty,
+          )
+        "
       >
         <div>
           <div
-            class="mx-auto grid size-12 place-items-center rounded-full bg-paper text-muted"
+            :class="
+              mergeClasses(
+                'mx-auto grid size-12 place-items-center rounded-full bg-paper text-muted',
+                ui.icon,
+              )
+            "
             aria-hidden="true"
           >
             <Inventory2Outlined class="size-6" />
           </div>
 
-          <h2 :class="layout.heading">
+          <h2 :class="mergeClasses(layout.heading, ui.title)">
             {{ emptyTitle }}
           </h2>
-          <p v-if="emptyDescription" :class="layout.description">
+          <p
+            v-if="emptyDescription"
+            :class="mergeClasses(layout.description, ui.description)"
+          >
             {{ emptyDescription }}
           </p>
         </div>

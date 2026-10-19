@@ -1,5 +1,6 @@
 @import './components/sidebar/sidebar.css';
 @import './ui/dialog/dialog.css';
+@import './ui/select/select.css';
 
 @source './components';
 @source './ui';

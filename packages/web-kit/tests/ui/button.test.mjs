@@ -1,3 +1,4 @@
+import * as styleClasses from '../../src/ui/classes.ts';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import * as Vue from 'vue';
@@ -8,7 +9,7 @@ import * as variants from '../../src/ui/button/variants.ts';
 
 const XButton = compileComponent(
   new URL('../../src/ui/button/XButton.vue', import.meta.url),
-  { vue: Vue, './variants': variants },
+  { vue: Vue, './variants': variants, '../classes': styleClasses },
 );
 
 async function render(props) {

@@ -1,4 +1,6 @@
 export { createWebKit } from './create';
+export { mergeClasses } from './ui/classes';
+export type { XClassValue, XUi } from './ui/classes';
 export { copyToClipboard } from './utils/clipboard';
 export { useWebKitViewport } from './utils/viewport';
 export type { ViewportMode, WebKitViewport } from './utils/viewport';
@@ -55,7 +57,7 @@ export { default as XTabsContent } from './ui/tabs/XTabsContent.vue';
 export { default as XDropdownMenu } from './ui/dropdown-menu/XDropdownMenu.vue';
 export { default as XDropdownMenuItem } from './ui/dropdown-menu/XDropdownMenuItem.vue';
 export { default as XDropdownMenuSeparator } from './ui/dropdown-menu/XDropdownMenuSeparator.vue';
-export type { XScrollAreaProps } from './ui/scroll-area/types';
+export type { XScrollAreaProps, XScrollAreaUi } from './ui/scroll-area/types';
 export type { XSeparatorProps } from './ui/separator/types';
 export type {
   XTabsProps,
@@ -66,6 +68,7 @@ export type {
 } from './ui/tabs/types';
 export type {
   XDropdownMenuProps,
+  XDropdownMenuUi,
   XDropdownMenuItemProps,
 } from './ui/dropdown-menu/types';
 export { default as XTime } from './ui/time/XTime.vue';
@@ -91,11 +94,16 @@ export type {
   XSliderTone,
   XSliderUi,
 } from './ui/slider/types';
-export type { XSwitchProps } from './ui/switch/types';
-export type { XDrawerProps } from './ui/drawer/types';
-export type { XDropZoneProps } from './ui/drop-zone/types';
-export type { XConfirmDialogProps, XDialogProps } from './ui/dialog/types';
-export type { XPaginationProps } from './ui/pagination/types';
+export type { XSwitchProps, XSwitchUi } from './ui/switch/types';
+export type { XDrawerProps, XDrawerUi } from './ui/drawer/types';
+export type { XDropZoneProps, XDropZoneUi } from './ui/drop-zone/types';
+export type {
+  XConfirmDialogProps,
+  XConfirmDialogUi,
+  XDialogProps,
+  XDialogUi,
+} from './ui/dialog/types';
+export type { XPaginationProps, XPaginationUi } from './ui/pagination/types';
 export type { XTimePreset, XTimeProps, XTimeValue } from './ui/time/time';
 export type { Theme, ThemeOverride, ThemePreference, WebTheme } from './theme';
 export type { UserRole, Whoami, WhoamiUser } from './auth/whoami';
@@ -109,12 +117,16 @@ export type {
 export type {
   XActionMenuItemProps,
   XActionMenuProps,
+  XActionMenuUi,
 } from './ui/action-menu/types';
-export type { XAsyncContentProps } from './ui/async-content/types';
+export type {
+  XAsyncContentProps,
+  XAsyncContentUi,
+} from './ui/async-content/types';
 export type {
   XButtonProps,
   XButtonSize,
   XButtonVariant,
 } from './ui/button/types';
-export type { XSelectOption, XSelectProps } from './ui/select/types';
-export type { XTooltipProps } from './ui/tooltip/types';
+export type { XSelectOption, XSelectProps, XSelectUi } from './ui/select/types';
+export type { XTooltipProps, XTooltipUi } from './ui/tooltip/types';

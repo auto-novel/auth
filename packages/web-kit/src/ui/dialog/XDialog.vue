@@ -13,11 +13,13 @@ import { ref, useAttrs, useSlots, watch, type CSSProperties } from 'vue';
 
 import { useOverlayLayer } from '../overlayLayer';
 import { useReturnFocus } from '../returnFocus';
+import { mergeClasses } from '../classes';
 import type { XDialogProps } from './types';
 
 defineOptions({ inheritAttrs: false });
 
 const props = withDefaults(defineProps<XDialogProps>(), {
+  ui: () => ({}),
   fullScreen: false,
   scrollable: true,
   closable: true,
@@ -46,6 +48,7 @@ function hasHeader() {
 function dialogAttrs() {
   return {
     ...attrs,
+    class: undefined,
     ...(!('aria-labelledby' in attrs) &&
     (attrs['aria-label'] || !(props.title || slots.title))
       ? { 'aria-labelledby': undefined }
@@ -106,15 +109,22 @@ function restoreFocus(event: Event) {
       <slot name="trigger" />
     </DialogTrigger>
     <DialogPortal>
-      <DialogOverlay class="fixed inset-0 bg-black/45" :style="overlayStyle" />
+      <DialogOverlay
+        :class="mergeClasses('fixed inset-0 bg-black/45', ui.overlay)"
+        :style="overlayStyle"
+      />
       <DialogContent
         v-bind="dialogAttrs()"
         aria-modal="true"
-        class="fixed bg-modal text-ink outline-none"
         :class="
-          fullScreen
-            ? 'inset-0'
-            : 'x-dialog-panel top-1/2 left-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col rounded-floating shadow-floating'
+          mergeClasses(
+            'fixed bg-modal text-ink outline-none',
+            fullScreen
+              ? 'inset-0'
+              : 'x-dialog-panel top-1/2 left-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col rounded-floating shadow-floating',
+            ui.content,
+            $attrs.class,
+          )
         "
         :style="[viewportStyle, contentStyle]"
         @open-auto-focus="emit('openAutoFocus', $event)"
@@ -124,27 +134,43 @@ function restoreFocus(event: Event) {
       >
         <header
           v-if="hasHeader()"
-          :class="fullScreen ? 'sr-only' : 'shrink-0 px-5 pt-5 sm:px-6 sm:pt-6'"
+          :class="
+            mergeClasses(
+              fullScreen ? 'sr-only' : 'shrink-0 px-5 pt-5 sm:px-6 sm:pt-6',
+              ui.header,
+            )
+          "
         >
           <DialogTitle
             v-if="title || $slots.title"
-            class="text-lg font-medium wrap-break-word"
-            :class="closable && !fullScreen ? 'pr-10' : undefined"
+            :class="
+              mergeClasses(
+                'text-lg font-medium wrap-break-word',
+                closable && !fullScreen ? 'pr-10' : undefined,
+                ui.title,
+              )
+            "
           >
             <slot name="title">{{ title }}</slot>
           </DialogTitle>
           <DialogDescription
             v-if="description || $slots.description"
-            class="text-sm leading-6 text-muted"
             :class="
-              title || $slots.title ? 'mt-2' : closable ? 'pr-10' : undefined
+              mergeClasses(
+                'text-sm leading-6 text-muted',
+                title || $slots.title ? 'mt-2' : closable ? 'pr-10' : undefined,
+                ui.description,
+              )
             "
           >
             <slot name="description">{{ description }}</slot>
           </DialogDescription>
         </header>
         <!-- Reka expects a Title even when an external accessible name is used. -->
-        <DialogTitle v-if="!title && !$slots.title" class="sr-only">
+        <DialogTitle
+          v-if="!title && !$slots.title"
+          :class="mergeClasses('sr-only', ui.title)"
+        >
           {{ $attrs['aria-label'] }}
         </DialogTitle>
         <template v-if="fullScreen">
@@ -154,26 +180,31 @@ function restoreFocus(event: Event) {
         <template v-else>
           <div
             v-if="$slots.default"
-            class="x-dialog-body min-h-0 flex-1"
-            :class="[
-              scrollable
-                ? 'overflow-y-auto overscroll-contain'
-                : 'flex flex-col',
-              !hasHeader() && closable ? 'x-dialog-close-space' : undefined,
-              bodyClass,
-            ]"
+            :class="
+              mergeClasses(
+                'x-dialog-body min-h-0 flex-1',
+                scrollable
+                  ? 'overflow-y-auto overscroll-contain'
+                  : 'flex flex-col',
+                !hasHeader() && closable ? 'x-dialog-close-space' : undefined,
+                ui.body,
+              )
+            "
           >
             <slot />
           </div>
           <footer
             v-if="$slots.footer"
-            class="flex shrink-0 flex-wrap items-center justify-end gap-3 pb-5 pl-5 sm:pb-6 sm:pl-6"
-            :class="[
-              !$slots.default ? 'pt-5 sm:pt-6' : undefined,
-              !hasHeader() && !$slots.default && closable
-                ? 'pr-14'
-                : 'pr-5 sm:pr-6',
-            ]"
+            :class="
+              mergeClasses(
+                'flex shrink-0 flex-wrap items-center justify-end gap-3 pb-5 pl-5 sm:pb-6 sm:pl-6',
+                !$slots.default ? 'pt-5 sm:pt-6' : undefined,
+                !hasHeader() && !$slots.default && closable
+                  ? 'pr-14'
+                  : 'pr-5 sm:pr-6',
+                ui.footer,
+              )
+            "
           >
             <slot name="footer" />
           </footer>
@@ -181,11 +212,19 @@ function restoreFocus(event: Event) {
         <button
           v-if="closable"
           type="button"
-          class="absolute top-3 right-3 z-10 grid size-9 place-items-center rounded-full bg-transparent text-muted transition-colors hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          :class="
+            mergeClasses(
+              'absolute top-3 right-3 z-10 grid size-9 place-items-center rounded-full bg-transparent text-muted transition-colors hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary',
+              ui.close,
+            )
+          "
           :aria-label="closeLabel"
           @click="updateOpen(false)"
         >
-          <CloseOutlined class="size-5" aria-hidden="true" />
+          <CloseOutlined
+            :class="mergeClasses('size-5', ui.icon)"
+            aria-hidden="true"
+          />
         </button>
       </DialogContent>
     </DialogPortal>

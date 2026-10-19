@@ -10,11 +10,13 @@ import { ref } from 'vue';
 
 import { useOverlayLayer } from '../overlayLayer';
 
+import { mergeClasses } from '../classes';
 import type { XTooltipProps } from './types';
 
 defineOptions({ inheritAttrs: false });
 
 withDefaults(defineProps<XTooltipProps>(), {
+  ui: () => ({}),
   side: 'top',
   align: 'center',
   sideOffset: 8,
@@ -33,12 +35,18 @@ const { contentStyle } = useOverlayLayer(open);
       <TooltipPortal>
         <TooltipContent
           :style="contentStyle"
-          v-bind="$attrs"
+          v-bind="{ ...$attrs, class: undefined }"
           :side="side"
           :align="align"
           :side-offset="sideOffset"
           :collision-padding="8"
-          class="floating-panel px-3 py-2 text-xs text-ink"
+          :class="
+            mergeClasses(
+              'floating-panel px-3 py-2 text-xs text-ink',
+              ui.content,
+              $attrs.class,
+            )
+          "
         >
           <slot />
         </TooltipContent>

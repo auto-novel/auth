@@ -8,14 +8,18 @@ import {
 import { computed, ref, watch } from 'vue';
 
 import XButton from '../button/XButton.vue';
+import { mergeClasses, type XUi } from '../classes';
 import { useOverlayLayer } from '../overlayLayer';
 
-const props = defineProps<{
-  open: boolean;
-  page: number;
-  totalPages: number;
-  contentClass?: string;
-}>();
+const props = withDefaults(
+  defineProps<{
+    open: boolean;
+    page: number;
+    totalPages: number;
+    ui?: XUi<'content' | 'label' | 'input' | 'button'>;
+  }>(),
+  { ui: () => ({}) },
+);
 
 const emit = defineEmits<{
   'update:open': [open: boolean];
@@ -55,11 +59,19 @@ function jumpToPage() {
         :style="contentStyle"
         :side-offset="6"
         :collision-padding="8"
-        class="floating-panel flex items-center gap-2 p-3 outline-none"
-        :class="contentClass"
+        :class="
+          mergeClasses(
+            'floating-panel flex items-center gap-2 p-3 outline-none',
+            ui.content,
+          )
+        "
         aria-label="跳转到指定页"
       >
-        <label class="flex items-center gap-2 text-xs text-muted">
+        <label
+          :class="
+            mergeClasses('flex items-center gap-2 text-xs text-muted', ui.label)
+          "
+        >
           跳至
           <input
             v-model="jumpPage"
@@ -70,7 +82,12 @@ function jumpToPage() {
             step="1"
             :disabled="totalPages < 1"
             aria-label="跳转页码"
-            class="h-9 w-16 rounded-sm border border-border bg-transparent px-2 text-sm text-ink outline-none transition focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/15 disabled:cursor-not-allowed disabled:opacity-50"
+            :class="
+              mergeClasses(
+                'h-9 w-16 rounded-sm border border-border bg-transparent px-2 text-sm text-ink outline-none transition focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/15 disabled:cursor-not-allowed disabled:opacity-50',
+                ui.input,
+              )
+            "
             @keydown.enter.prevent="jumpToPage"
           />
           页
@@ -78,6 +95,7 @@ function jumpToPage() {
         <XButton
           variant="outline"
           size="sm"
+          :class="mergeClasses(ui.button)"
           :disabled="!canJump"
           @click="jumpToPage"
         >

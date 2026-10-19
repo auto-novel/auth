@@ -1,3 +1,4 @@
+import * as styleClasses from '../../src/ui/classes.ts';
 import { compileComponent } from '../helpers/compile-component.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -271,6 +272,7 @@ for (const kind of ['Dialog', 'Drawer']) {
       {
         vue: { ...Vue, Transition: passThrough },
         'reka-ui': reka,
+        '../classes': styleClasses,
         '@vicons/material': { CloseOutlined: passThrough },
         '../overlayLayer': { useOverlayLayer },
         '../returnFocus': { useReturnFocus },

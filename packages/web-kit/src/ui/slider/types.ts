@@ -1,3 +1,5 @@
+import type { XUi } from '../classes';
+
 export type XSliderOrientation = 'horizontal' | 'vertical';
 
 export type XSliderSize = 'sm' | 'md' | 'lg';
@@ -8,13 +10,9 @@ export type XSliderTone = 'primary' | 'danger' | 'muted';
 export type XSliderMarks = Record<number, string> | number[];
 
 /** 分区样式覆盖，与内置 class 合并。 */
-export interface XSliderUi {
-  track?: string;
-  range?: string;
-  thumb?: string;
-  mark?: string;
-  tooltip?: string;
-}
+export type XSliderUi = XUi<
+  'root' | 'track' | 'range' | 'thumb' | 'tooltip' | 'markTick' | 'markLabel'
+>;
 
 /**
  * 单值滑块；class/style 与 id 作用于根节点，其余透传属性作用于滑块。

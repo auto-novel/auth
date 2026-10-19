@@ -5,7 +5,7 @@ import { ref } from 'vue';
 import ComponentPage from './ComponentPage.vue';
 
 const scrollType = ref<'auto' | 'always' | 'scroll' | 'hover'>('auto');
-const code = `<XScrollArea class="h-48 w-full max-w-lg" viewport-class="p-4">
+const code = `<XScrollArea class="h-48 w-full max-w-lg" :ui="{ viewport: 'p-4' }">
   <p v-for="row in 20" :key="row">第 {{ row }} 行</p>
 </XScrollArea>
 
@@ -43,7 +43,7 @@ const code = `<XScrollArea class="h-48 w-full max-w-lg" viewport-class="p-4">
           <h3 class="mb-2 text-sm text-muted">纵向 · vertical（默认）</h3>
           <XScrollArea
             class="h-48 w-full max-w-lg rounded-sm border border-border bg-surface"
-            viewport-class="p-4"
+            :ui="{ viewport: 'p-4' }"
           >
             <ul class="space-y-3 text-sm">
               <li v-for="index in 16" :key="index">
@@ -133,9 +133,9 @@ const code = `<XScrollArea class="h-48 w-full max-w-lg" viewport-class="p-4">
           </dd>
         </div>
         <div>
-          <dt class="font-medium">viewportClass / 默认插槽</dt>
+          <dt class="font-medium">ui.viewport / 默认插槽</dt>
           <dd class="text-muted">
-            viewportClass 为内部视口追加样式；内容放入默认插槽。通过外层 class
+            ui.viewport 为内部视口覆盖样式；内容放入默认插槽。通过外层 class
             限定尺寸，横向示例的内容需宽于视口；在 grid / flex 布局中保留
             min-w-0，避免撑开页面。
           </dd>

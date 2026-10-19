@@ -114,7 +114,7 @@ const code = `const open = ref(false);
           :side="side"
           :align="align"
           :modal="false"
-          content-class="max-w-[calc(100vw-1rem)]"
+          :ui="{ content: 'max-w-[calc(100vw-1rem)]' }"
           aria-label="项目操作"
         >
           <template #trigger="{ open: isOpen }">
@@ -176,7 +176,7 @@ const code = `const open = ref(false);
         <li>
           modal 默认为 true；disabled 仅禁用触发器。#trigger 接收
           open，应提供一个可聚焦的按钮作为唯一根节点。 class、aria-* 和
-          content-class 作用于 Portal 中的菜单内容，触发器属性应直接放在按钮上。
+          ui.content 作用于 Portal 中的菜单内容，触发器属性应直接放在按钮上。
         </li>
         <li>
           XDropdownMenuItem：disabled 禁用选中；destructive 仅提供危险操作样式。

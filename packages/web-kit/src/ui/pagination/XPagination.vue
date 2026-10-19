@@ -21,10 +21,13 @@ import { onKeyDown } from '@vueuse/core';
 import { onActivated, onDeactivated, onMounted, ref, watch } from 'vue';
 
 import XButton from '../button/XButton.vue';
+import { mergeClasses } from '../classes';
 import PageJump from './PageJump.vue';
 import type { XPaginationProps } from './types';
 
-const props = defineProps<XPaginationProps>();
+defineOptions({ inheritAttrs: false });
+
+const props = withDefaults(defineProps<XPaginationProps>(), { ui: () => ({}) });
 
 const emit = defineEmits<{
   'update:page': [page: number];
@@ -108,31 +111,45 @@ watch([() => props.page, () => props.totalPages], () => {
 
 <template>
   <PaginationRoot
+    aria-label="分页"
+    v-bind="{ ...$attrs, class: undefined }"
     :page="page"
     :total="totalPages"
     :items-per-page="1"
     :sibling-count="1"
     show-edges
-    class="flex items-center justify-between border-t border-divider px-4 py-3 text-sm sm:px-6"
-    aria-label="分页"
+    :class="
+      mergeClasses(
+        'flex items-center justify-between border-t border-divider px-4 py-3 text-sm sm:px-6',
+        ui.root,
+        $attrs.class,
+      )
+    "
     @update:page="$emit('update:page', $event)"
   >
     <PaginationPrev as-child>
-      <XButton variant="ghost" size="sm">上一页</XButton>
+      <XButton variant="ghost" size="sm" :class="mergeClasses(ui.prev)">
+        上一页
+      </XButton>
     </PaginationPrev>
 
     <PageJump
       :open="openJumpIndex === -1"
       :page="page"
       :total-pages="totalPages"
-      content-class="sm:hidden"
+      :ui="{
+        content: mergeClasses('sm:hidden', ui.jumpContent),
+        label: ui.jumpLabel,
+        input: ui.jumpInput,
+        button: ui.jumpButton,
+      }"
       @update:open="setJumpOpen($event, -1)"
       @change="$emit('update:page', $event)"
     >
       <XButton
         variant="ghost"
         size="sm"
-        class="text-xs text-muted sm:hidden"
+        :class="mergeClasses('text-xs text-muted sm:hidden', ui.summary)"
         :disabled="totalPages < 1"
         :aria-label="`当前第 ${page} 页，共 ${totalPages} 页，跳转到指定页`"
         title="跳转到指定页"
@@ -142,7 +159,7 @@ watch([() => props.page, () => props.totalPages], () => {
     </PageJump>
     <PaginationList
       v-slot="{ items }"
-      class="hidden items-center gap-1 sm:flex"
+      :class="mergeClasses('hidden items-center gap-1 sm:flex', ui.list)"
     >
       <template v-for="(item, index) in items" :key="index">
         <PaginationListItem
@@ -153,7 +170,12 @@ watch([() => props.page, () => props.totalPages], () => {
           <XButton
             variant="ghost"
             size="icon-sm"
-            class="text-xs font-medium data-selected:bg-primary data-selected:text-on-primary data-selected:hover:bg-primary-hover data-selected:hover:text-on-primary"
+            :class="
+              mergeClasses(
+                'text-xs font-medium data-selected:bg-primary data-selected:text-on-primary data-selected:hover:bg-primary-hover data-selected:hover:text-on-primary',
+                ui.item,
+              )
+            "
           >
             {{ item.value }}
           </XButton>
@@ -163,13 +185,19 @@ watch([() => props.page, () => props.totalPages], () => {
           :open="openJumpIndex === index"
           :page="page"
           :total-pages="totalPages"
+          :ui="{
+            content: ui.jumpContent,
+            label: ui.jumpLabel,
+            input: ui.jumpInput,
+            button: ui.jumpButton,
+          }"
           @update:open="setJumpOpen($event, index)"
           @change="$emit('update:page', $event)"
         >
           <XButton
             variant="ghost"
             size="icon-sm"
-            class="text-xs text-muted"
+            :class="mergeClasses('text-xs text-muted', ui.ellipsis)"
             aria-label="跳转到指定页"
             title="跳转到指定页"
           >
@@ -180,7 +208,9 @@ watch([() => props.page, () => props.totalPages], () => {
     </PaginationList>
 
     <PaginationNext as-child>
-      <XButton variant="ghost" size="sm">下一页</XButton>
+      <XButton variant="ghost" size="sm" :class="mergeClasses(ui.next)">
+        下一页
+      </XButton>
     </PaginationNext>
   </PaginationRoot>
 </template>

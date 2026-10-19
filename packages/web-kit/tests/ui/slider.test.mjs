@@ -1,3 +1,4 @@
+import * as styleClasses from '../../src/ui/classes.ts';
 import { compileComponent } from '../helpers/compile-component.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -25,6 +26,7 @@ async function setup(props, providerDir) {
   };
   const dependencies = {
     vue: Vue,
+    '../classes': styleClasses,
     './variants': variants,
     'reka-ui': {
       SliderRoot: stub,

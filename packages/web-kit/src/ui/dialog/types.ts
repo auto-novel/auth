@@ -1,11 +1,24 @@
+import type { XUi } from '../classes';
+
+export type XDialogUi = XUi<
+  | 'content'
+  | 'overlay'
+  | 'header'
+  | 'title'
+  | 'description'
+  | 'body'
+  | 'footer'
+  | 'close'
+  | 'icon'
+>;
+
 export interface XDialogProps {
+  ui?: XDialogUi;
   open: boolean;
   /** 可见标题，也可通过 #title 提供；省略时须提供 aria-label 或 aria-labelledby。 */
   title?: string;
   /** 可见说明，也可通过 #description 提供。 */
   description?: string;
-  /** 正文样式，可覆盖默认内边距；全屏模式不使用正文容器。 */
-  bodyClass?: string;
   /** 默认正文独立滚动；false 时由调用方组织滚动区域，全屏模式忽略此项。 */
   scrollable?: boolean;
   /** 无装饰全屏布局：标题和说明仅供无障碍使用，插槽内容直接填充面板。 */
@@ -15,8 +28,19 @@ export interface XDialogProps {
   closeLabel?: string;
 }
 
+export type XConfirmDialogUi = XUi<
+  | 'content'
+  | 'overlay'
+  | 'title'
+  | 'description'
+  | 'actions'
+  | 'cancel'
+  | 'confirm'
+>;
+
 /** confirm 仅通知操作；调用方在成功后关闭，loading 阻止交互关闭。 */
 export interface XConfirmDialogProps {
+  ui?: XConfirmDialogUi;
   open: boolean;
   title: string;
   description: string;

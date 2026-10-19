@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { XSelect } from '@novelia/web-kit';
+import { XSelect, type XSelectUi } from '@novelia/web-kit';
 import { ref } from 'vue';
 import ComponentPage from './ComponentPage.vue';
 
@@ -14,8 +14,22 @@ const scrollOptions = Array.from({ length: 30 }, (_, index) => ({
   label: `选项 ${index + 1}`,
   value: `option-${index + 1}`,
 }));
-const code =
-  '<XSelect v-model="selected" :options="options" aria-label="选择选项" />';
+const selectUi = {
+  trigger: ['rounded-lg', { 'border-primary': true }],
+  content: 'rounded-lg p-2',
+  viewport: 'max-h-80',
+  item: 'h-11 rounded-md',
+} as const satisfies XSelectUi;
+
+const code = `<XSelect v-model="selected" :options="options" aria-label="选择选项" />
+
+<XSelect
+  v-model="selected"
+  :options="options"
+  :ui="{ trigger: 'rounded-lg', content: 'p-2', item: 'h-11 rounded-md' }"
+  class="rounded-none"
+  aria-label="自定义选择器"
+/>`;
 </script>
 
 <template>
@@ -59,6 +73,21 @@ const code =
       <p class="mt-3 text-xs text-muted">
         当前值：{{ selected }} · 长列表当前值：{{ scrollSelected }}
       </p>
+    </section>
+    <section class="border-t border-divider pt-6">
+      <h2 class="mb-3 font-medium">分区样式覆盖</h2>
+      <p class="mb-4 text-sm leading-6 text-muted">
+        ui.trigger 定制触发器，ui.content、ui.viewport 和 ui.item 定制浮层内部。
+        此例 ui.trigger 设置圆角，class="rounded-none"
+        最后覆盖它；打开菜单可检查选项高度和浮层内边距。
+      </p>
+      <XSelect
+        v-model="scrollSelected"
+        :options="scrollOptions"
+        :ui="selectUi"
+        class="w-64 rounded-none"
+        aria-label="分区样式示例"
+      />
     </section>
     <section class="border-t border-divider pt-6">
       <h2 class="mb-3 font-medium">接口与交互</h2>

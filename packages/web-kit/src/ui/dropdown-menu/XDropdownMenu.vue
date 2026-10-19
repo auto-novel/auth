@@ -7,6 +7,7 @@ import {
 } from 'reka-ui';
 
 import { useOverlayLayer } from '../overlayLayer';
+import { mergeClasses } from '../classes';
 import type { XDropdownMenuProps } from './types';
 
 // Fallthrough attributes (class, aria-label, content events, etc.) belong to
@@ -14,6 +15,7 @@ import type { XDropdownMenuProps } from './types';
 defineOptions({ inheritAttrs: false });
 
 withDefaults(defineProps<Omit<XDropdownMenuProps, 'open'>>(), {
+  ui: () => ({}),
   side: 'bottom',
   align: 'end',
   sideOffset: 6,
@@ -32,14 +34,19 @@ const { contentStyle } = useOverlayLayer(open);
     </DropdownMenuTrigger>
     <DropdownMenuPortal>
       <DropdownMenuContent
-        v-bind="$attrs"
+        v-bind="{ ...$attrs, class: undefined }"
         :style="contentStyle"
         :side="side"
         :align="align"
         :side-offset="sideOffset"
         :collision-padding="8"
-        class="floating-panel min-w-40 p-1 text-ink outline-none"
-        :class="contentClass"
+        :class="
+          mergeClasses(
+            'floating-panel min-w-40 p-1 text-ink outline-none',
+            ui.content,
+            $attrs.class,
+          )
+        "
       >
         <slot :open="open" />
       </DropdownMenuContent>
