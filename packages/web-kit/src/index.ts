@@ -35,8 +35,6 @@ export type {
 export { default as MyStrikeListView } from './views/MyStrikeListView.vue';
 export { default as WebKitApp } from './components/WebKitApp.vue';
 export { default as WebKitLayout } from './components/WebKitLayout.vue';
-export { default as XActionMenu } from './ui/action-menu/XActionMenu.vue';
-export { default as XActionMenuItem } from './ui/action-menu/XActionMenuItem.vue';
 export { default as XAsyncContent } from './ui/async-content/XAsyncContent.vue';
 export { default as XAspectRatio } from './ui/aspect-ratio/XAspectRatio.vue';
 export { default as XSlider } from './ui/slider/XSlider.vue';
@@ -114,11 +112,6 @@ export type {
   WebKitOptions,
   WebKitStrikeOptions,
 } from './types';
-export type {
-  XActionMenuItemProps,
-  XActionMenuProps,
-  XActionMenuUi,
-} from './ui/action-menu/types';
 export type {
   XAsyncContentProps,
   XAsyncContentUi,

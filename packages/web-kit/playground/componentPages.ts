@@ -1,12 +1,12 @@
 // Keep routes, sidebar entries and overview cards in sync.
 const pages = [
   {
-    englishName: 'ActionMenu',
-    slug: 'action-menu',
-    title: '操作菜单与确认框 · XActionMenu',
-    label: '菜单与确认框 Action Menu & Confirm Dialog',
-    description: '对齐、菜单项状态与危险操作确认流程。',
-    component: () => import('./components/ActionMenuView.vue'),
+    englishName: 'ConfirmDialog',
+    slug: 'confirm-dialog',
+    title: '确认框 · XConfirmDialog',
+    label: '确认框 Confirm Dialog',
+    description: '危险操作确认与下拉菜单组合使用。',
+    component: () => import('./components/ConfirmDialogView.vue'),
   },
   {
     englishName: 'AspectRatio',

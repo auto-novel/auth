@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {
-  XActionMenu,
-  XActionMenuItem,
+  XDropdownMenu,
+  XDropdownMenuItem,
   XButton,
   XConfirmDialog,
   XDialog,
@@ -411,11 +411,14 @@ const props = [
                 <XButton variant="outline" @click="layerConfirmOpen = true">
                   打开确认框
                 </XButton>
-                <XActionMenu>
-                  <XActionMenuItem @activate="layerConfirmOpen = true">
+                <XDropdownMenu>
+                  <template #trigger>
+                    <XButton variant="ghost">更多操作</XButton>
+                  </template>
+                  <XDropdownMenuItem @select="layerConfirmOpen = true">
                     从菜单确认
-                  </XActionMenuItem>
-                </XActionMenu>
+                  </XDropdownMenuItem>
+                </XDropdownMenu>
                 <XTooltip>
                   <template #trigger>
                     <XButton variant="ghost">提示</XButton>

@@ -7,9 +7,9 @@ test('playground pages share unique route identities and English alphabetical or
   assert.deepEqual(
     componentPages.map((page) => page.englishName),
     [
-      'ActionMenu',
       'AspectRatio',
       'AsyncContent',
+      'ConfirmDialog',
       'Dialog',
       'Drawer',
       'DropdownMenu',
