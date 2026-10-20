@@ -25,10 +25,9 @@ function makeSession(t) {
   let token;
   return {
     session: createAuthSession({
-      app: 'test',
-      requestLogin: async () => token,
-      requestLogout: async () => '',
-      requestRefresh: async () => token,
+      login: async () => token,
+      logout: async () => '',
+      refresh: async () => token,
     }),
     setRole(role) {
       token = makeToken(role);

@@ -31,15 +31,10 @@ interface StoredSession {
   adminMode: boolean;
 }
 
-interface AuthSessionOptions {
-  app: string;
-  requestLogin(request: {
-    username: string;
-    password: string;
-    app: string;
-  }): Promise<string>;
-  requestLogout(): Promise<string>;
-  requestRefresh(app: string): Promise<string>;
+interface AuthSessionRequests {
+  login(username: string, password: string): Promise<string>;
+  logout(): Promise<string>;
+  refresh(): Promise<string>;
 }
 
 function parseAccessToken(token: string): AccessTokenProfile {
@@ -78,7 +73,7 @@ function parseAccessToken(token: string): AccessTokenProfile {
   };
 }
 
-export function createAuthSession(options: AuthSessionOptions) {
+export function createAuthSession(requests: AuthSessionRequests) {
   const stored = useLocalStorage<StoredSession | undefined>(
     SESSION_STORAGE_KEY,
     {
@@ -211,14 +206,13 @@ export function createAuthSession(options: AuthSessionOptions) {
 
   function refreshAccessToken(): Promise<string | undefined> {
     if (refreshRequest) return refreshRequest;
-    const app = options.app;
 
     // 槽位里放的就是这个 promise：赋值在第一个 await 恢复之前完成，
     // 之后用 refreshRequest !== request 判断自己有没有被登出或外部变更作废。
     let request!: Promise<string | undefined>;
     request = (async () => {
       try {
-        const token = await options.requestRefresh(app);
+        const token = await requests.refresh();
         // 槽位已被清空：这次结果已经过期，不再应用。
         if (refreshRequest !== request) return profile?.token;
         // 保留槽位直到解析成功，避免把解析异常误判为请求已作废。
@@ -279,11 +273,7 @@ export function createAuthSession(options: AuthSessionOptions) {
     whoami,
     accessToken,
     async login(username: string, password: string) {
-      const token = await options.requestLogin({
-        username,
-        password,
-        app: options.app,
-      });
+      const token = await requests.login(username, password);
       if (!token) throw new Error('登录接口未返回有效令牌，请重试');
       setAccessToken(token);
     },
@@ -294,7 +284,7 @@ export function createAuthSession(options: AuthSessionOptions) {
       refreshRequest = undefined;
       initialized = true;
       setAccessToken();
-      return options.requestLogout();
+      return requests.logout();
     },
   };
 }

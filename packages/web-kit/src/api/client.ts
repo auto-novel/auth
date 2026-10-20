@@ -27,10 +27,7 @@ export function createApiClient(
   });
 }
 
-export function createAuthAwareApiClientInner(
-  client: KyInstance,
-  accessToken: AccessTokenProvider,
-) {
+export function withAuth(client: KyInstance, accessToken: AccessTokenProvider) {
   return client.extend({
     retry: {
       limit: 1,
@@ -69,5 +66,5 @@ export function createAuthAwareApiClient(
   provider: AccessTokenProvider,
 ) {
   const client = createApiClient(baseUrl, options);
-  return createAuthAwareApiClientInner(client, provider);
+  return withAuth(client, provider);
 }

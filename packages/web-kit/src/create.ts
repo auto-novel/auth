@@ -1,6 +1,7 @@
 import {
   createApiClient,
   createAuthAwareApiClient,
+  withAuth,
   type ApiClientOptions,
 } from './api/client';
 import { createAuthSession } from './auth/session';
@@ -98,15 +99,18 @@ export function createWebKit(options: WebKitOptions): WebKit {
   });
   const authUrl = new URL(normalizedOptions.auth.url);
   const authClient = createApiClient(new URL('api/v1/', authUrl).toString());
+  const app = normalizedOptions.auth.app;
   const session = createAuthSession({
-    app: normalizedOptions.auth.app,
-    requestLogin: (request) =>
+    login: (username, password) =>
       authClient
-        .post('auth/login', { credentials: 'include', json: request })
+        .post('auth/login', {
+          credentials: 'include',
+          json: { username, password, app },
+        })
         .text(),
-    requestLogout: () =>
+    logout: () =>
       authClient.post('auth/logout', { credentials: 'include' }).text(),
-    requestRefresh: (app) =>
+    refresh: () =>
       authClient
         .post('auth/refresh', {
           credentials: 'include',
@@ -114,7 +118,7 @@ export function createWebKit(options: WebKitOptions): WebKit {
         })
         .text(),
   });
-  const authApi = createAuthApi(authClient, session.accessToken);
+  const authApi = createAuthApi(withAuth(authClient, session.accessToken));
   const attention = createAttention({
     whoami: session.whoami,
     getAttentionStatus: authApi.getAttentionStatus,

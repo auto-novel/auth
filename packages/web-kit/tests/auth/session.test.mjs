@@ -54,10 +54,9 @@ test('admin mode persists only for the same administrator account', async (t) =>
   useStorage(t, storage);
   let nextToken = makeToken('admin');
   const session = createAuthSession({
-    app: 'test',
-    requestLogin: async () => makeToken('member'),
-    requestLogout: async () => '',
-    requestRefresh: async () => nextToken,
+    login: async () => makeToken('member'),
+    logout: async () => '',
+    refresh: async () => nextToken,
   });
   const observed = [];
   const stop = watch(
@@ -82,10 +81,9 @@ test('admin mode persists only for the same administrator account', async (t) =>
     assert.deepEqual(observed, [false, false, true, true]);
 
     const restored = createAuthSession({
-      app: 'test',
-      requestLogin: async () => makeToken('member'),
-      requestLogout: async () => '',
-      requestRefresh: async () => nextToken,
+      login: async () => makeToken('member'),
+      logout: async () => '',
+      refresh: async () => nextToken,
     });
     const restoredValues = [];
     watch(
@@ -125,10 +123,9 @@ test('admin mode follows storage changes from another tab', (t) => {
   const windowEvents = new EventTarget();
   useStorage(t, storage, windowEvents);
   const session = createAuthSession({
-    app: 'test',
-    requestLogin: async () => makeToken('member'),
-    requestLogout: async () => '',
-    requestRefresh: async () => makeToken('admin'),
+    login: async () => makeToken('member'),
+    logout: async () => '',
+    refresh: async () => makeToken('admin'),
   });
   const observed = [];
   const stop = watch(
@@ -170,10 +167,9 @@ test('session users use milliseconds after restoring and refreshing a JWT', asyn
   const storage = makeStorage(token, false);
   useStorage(t, storage);
   const session = createAuthSession({
-    app: 'test',
-    requestLogin: async () => makeToken('member'),
-    requestLogout: async () => '',
-    requestRefresh: async () => makeToken('admin'),
+    login: async () => makeToken('member'),
+    logout: async () => '',
+    refresh: async () => makeToken('admin'),
   });
   let user;
   watch(
@@ -200,10 +196,9 @@ test('account age checks the exact boundary and follows the current session', as
   t.mock.method(Date, 'now', () => now);
   useStorage(t, makeStorage(makeToken('member'), false));
   const session = createAuthSession({
-    app: 'test',
-    requestLogin: async () => makeToken('member'),
-    requestLogout: async () => '',
-    requestRefresh: async () => makeToken('member'),
+    login: async () => makeToken('member'),
+    logout: async () => '',
+    refresh: async () => makeToken('member'),
   });
   const { isAtLeastDaysOld } = session.whoami.value;
 
@@ -230,10 +225,9 @@ test('a throwing observer cannot break token writes', async (t) => {
   const storage = makeStorage(makeToken('member'), false);
   useStorage(t, storage);
   const session = createAuthSession({
-    app: 'test',
-    requestLogin: async () => makeToken('member'),
-    requestLogout: async () => '',
-    requestRefresh: async () => makeToken('admin'),
+    login: async () => makeToken('member'),
+    logout: async () => '',
+    refresh: async () => makeToken('admin'),
   });
   const boom = watch(
     () => session.whoami.value.user,
