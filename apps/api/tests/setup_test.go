@@ -45,10 +45,10 @@ func (noopEmailClient) SendEmail(string, string, string) error { return nil }
 // integration tests never leave the machine, while still mirroring the full
 // canonical response: success, hostname, and action.
 const (
-	turnstileTestHostname = "n.novelia.cc"
-	turnstileGoodToken    = "turnstile-ok"
-	turnstileBadToken     = "turnstile-invalid"
-	turnstileActionSignup = "signup"
+	turnstileTestHostname   = "n.novelia.cc"
+	turnstileGoodToken      = "turnstile-ok"
+	turnstileBadToken       = "turnstile-invalid"
+	turnstileActionRegister = "register"
 )
 
 // turnstileStubServer returns deterministic responses without simulating
@@ -72,7 +72,7 @@ func turnstileStubServer() *httptest.Server {
 			reject("missing-input-response")
 		default:
 			w.Write([]byte(
-				`{"success":true,"hostname":"` + turnstileTestHostname + `","action":"` + turnstileActionSignup + `"}`,
+				`{"success":true,"hostname":"` + turnstileTestHostname + `","action":"` + turnstileActionRegister + `"}`,
 			))
 		}
 	}))

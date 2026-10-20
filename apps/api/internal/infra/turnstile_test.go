@@ -11,7 +11,7 @@ import (
 
 const (
 	testHostname = "n.novelia.cc"
-	testAction   = "signup"
+	testAction   = "register"
 )
 
 // siteverifyStub records the received form and replies with the given body.

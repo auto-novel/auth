@@ -99,8 +99,8 @@ func TestRequestOtpPassesTurnstileParameters(t *testing.T) {
 		otpType string
 		action  string
 	}{
-		{otpType: repository.OtpVerify, action: TurnstileActionSignup},
-		{otpType: repository.OtpResetPassword, action: TurnstileActionPasswordReset},
+		{otpType: repository.OtpVerify, action: "register"},
+		{otpType: repository.OtpResetPassword, action: "reset_password"},
 	}
 
 	for _, test := range tests {

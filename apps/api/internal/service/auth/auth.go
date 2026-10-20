@@ -29,16 +29,16 @@ const (
 // carries one of these, and siteverify must return the same value: the action is
 // what stops a token minted for one flow from being replayed against another.
 const (
-	TurnstileActionSignup        string = "signup"
-	TurnstileActionPasswordReset string = "password_reset"
+	TurnstileActionRegister      string = "register"
+	TurnstileActionResetPassword string = "reset_password"
 )
 
 func turnstileActionForOtpType(otpType string) (string, bool) {
 	switch otpType {
 	case repository.OtpVerify:
-		return TurnstileActionSignup, true
+		return TurnstileActionRegister, true
 	case repository.OtpResetPassword:
-		return TurnstileActionPasswordReset, true
+		return TurnstileActionResetPassword, true
 	default:
 		return "", false
 	}
