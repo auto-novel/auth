@@ -1,44 +1,73 @@
 <script setup lang="ts">
 import 'vue-sonner/style.css';
 import { Toaster } from 'vue-sonner';
-import { loadTurnstileScript } from './data/turnstile';
 
-// Start loading before the user opens a form; the widget retries on failure.
-void loadTurnstileScript().catch(() => {});
+const { app, flow, returnTo, theme } = parseUrl();
+const succeeded = ref(false);
+const dark =
+  theme === 'dark' ||
+  (theme !== 'light' &&
+    window.matchMedia('(prefers-color-scheme: dark)').matches);
+document.documentElement.classList.toggle('dark', dark);
 
-const type = ref('登录');
-
-const query = new URLSearchParams(window.location.search);
-const app = query.get('app') || 'auth';
-const theme = parseTheme();
-
-function parseTheme() {
-  const theme = query.get('theme');
-  if (theme === 'dark' || theme === 'light') {
-    return theme;
-  } else {
-    return window.matchMedia('(prefers-color-scheme: dark)').matches
-      ? 'dark'
-      : 'light';
+function onSuccess() {
+  if (returnTo) {
+    window.location.replace(returnTo.href);
+    return;
   }
+  succeeded.value = true;
 }
 
-const root = window.document.documentElement;
-root.classList.toggle('dark', theme === 'dark');
+function parseUrl() {
+  const url = new URL(window.location.href);
+  const query = url.searchParams;
+  // 按末级路径识别流程，同时支持开发代理等部署前缀。
+  const requestedFlow = url.pathname.replace(/\/+$/, '').split('/').pop();
+  const flow =
+    requestedFlow === 'reset-password' ? 'reset-password' : 'register';
+  if (requestedFlow !== 'register' && requestedFlow !== 'reset-password') {
+    url.pathname = '/register';
+    window.location.replace(url.href);
+  }
+  return {
+    app: query.get('app') || 'auth',
+    flow,
+    returnTo: validateReturnTo(query.get('returnTo'), url.origin),
+    theme: query.get('theme'),
+  };
+}
+
+function validateReturnTo(
+  raw: string | null,
+  currentOrigin: string,
+): URL | null {
+  if (!raw) return null;
+
+  try {
+    const target = new URL(raw);
+    if (target.username || target.password) return null;
+
+    if (target.origin === currentOrigin) {
+      return target.protocol === 'https:' || target.protocol === 'http:'
+        ? target
+        : null;
+    }
+
+    const trusted =
+      target.hostname === 'novelia.cc' ||
+      target.hostname.endsWith('.novelia.cc');
+    return target.protocol === 'https:' && trusted ? target : null;
+  } catch {
+    return null;
+  }
+}
 </script>
 
 <template>
   <Toaster position="top-center" />
-  <!--
-    One layout at every width: a full-page surface with a centered content
-    column. The page is shown either on its own or inside a full-page iframe
-    (web-kit), so the old viewport-based card on wide screens only
-    made the embedded and standalone renderings diverge.
-  -->
-  <!-- Use an explicit scrollport when the keyboard reduces the viewport.
-       Keep the content at its natural height so every field remains reachable. -->
+  <!-- Keep an explicit scrollport so every field remains reachable with a keyboard. -->
   <div
-    class="bg-surface flex h-dvh w-full flex-col overflow-x-hidden overflow-y-auto overscroll-y-contain px-8 pt-[10vh] pb-8"
+    class="bg-surface text-on-surface flex h-dvh w-full flex-col overflow-x-hidden overflow-y-auto overscroll-y-contain px-8 pt-[10vh] pb-8"
   >
     <div class="mx-auto flex w-full max-w-md shrink-0 flex-col gap-4">
       <img
@@ -47,24 +76,27 @@ root.classList.toggle('dark', theme === 'dark');
         alt=""
       />
 
-      <Tabs :tabs="['登录', '注册']" v-model="type" />
-
-      <!--
-        The forms stay mounted and are toggled with `v-show`, so switching tabs
-        does not tear down their Turnstile widget and force a new challenge.
-      -->
-      <FormLogin
-        v-show="type === '登录'"
-        :app="app"
-        @openResetPasswordForm="type = '重置密码'"
-      />
-
-      <FormRegister v-show="type === '注册'" :app="app" />
-
-      <FormResetPassword
-        v-show="type === '重置密码'"
-        @openLoginForm="type = '登录'"
-      />
+      <div
+        v-if="succeeded"
+        role="status"
+        class="flex flex-col gap-2 text-center"
+      >
+        <h1 class="text-xl font-bold">
+          {{ flow === 'register' ? '注册成功' : '密码重置成功' }}
+        </h1>
+        <p>请返回应用登录。</p>
+      </div>
+      <template v-else>
+        <h1 class="text-center text-xl font-bold">
+          {{ flow === 'register' ? '注册' : '重置密码' }}
+        </h1>
+        <FormRegister
+          v-if="flow === 'register'"
+          :app="app"
+          @success="onSuccess"
+        />
+        <FormResetPassword v-else @success="onSuccess" />
+      </template>
     </div>
   </div>
 </template>

@@ -1,5 +1,3 @@
-import { toast } from 'vue-sonner';
-
 export const Validator = {
   validateUsername(username: string) {
     if (!username) return '用户名不能为空';
@@ -31,13 +29,3 @@ export const Validator = {
     return true;
   },
 };
-
-export function onLoginSuccess() {
-  if (window.parent === window) {
-    // 独立打开时留在当前页面，不替调用方决定跳转目标
-    toast.success('登录成功');
-  } else {
-    // 如果是在 iframe 中打开的，发送消息给父窗口
-    window.parent.postMessage({ type: 'login_success' }, '*');
-  }
-}

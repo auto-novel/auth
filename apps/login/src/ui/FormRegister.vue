@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { toast } from 'vue-sonner';
 import { Api } from '../data/api';
-import { Validator, onLoginSuccess } from './util';
+import { Validator } from './util';
 
 interface Props {
   app: string;
 }
 
 const props = defineProps<Props>();
+const emits = defineEmits<{ success: [] }>();
 
 const step = ref<'email' | 'profile'>('email');
 const email = ref('');
@@ -16,26 +17,23 @@ const username = ref('');
 const password = ref('');
 const loading = ref(false);
 
-function register(event: MouseEvent) {
-  event.preventDefault();
-
-  if (Api.register.isPending) return;
+async function register() {
+  if (loading.value) return;
   loading.value = true;
-  Api.register({
-    app: props.app,
-    username: username.value,
-    password: password.value,
-    email: email.value,
-    otp: otp.value,
-  })
-    .then(() => {
-      loading.value = false;
-      onLoginSuccess();
-    })
-    .catch((error) => {
-      loading.value = false;
-      toast.error(`注册失败: ${error}`);
+  try {
+    await Api.register({
+      app: props.app,
+      username: username.value,
+      password: password.value,
+      email: email.value,
+      otp: otp.value,
     });
+    emits('success');
+  } catch (error) {
+    toast.error(`注册失败: ${error}`);
+  } finally {
+    loading.value = false;
+  }
 }
 </script>
 
@@ -63,6 +61,7 @@ function register(event: MouseEvent) {
       v-show="step === 'profile'"
       class="flex w-auto flex-col gap-2"
       novalidate
+      @submit.prevent="register"
     >
       <FormItem :rules="Validator.validateUsername">
         <Input placeholder="用户名" v-model="username" />
@@ -75,12 +74,18 @@ function register(event: MouseEvent) {
       <button
         type="button"
         class="text-primary cursor-pointer text-left text-sm font-bold"
+        :disabled="loading"
         @click="step = 'email'"
       >
         ← 返回上一步
       </button>
 
-      <Button text="注册" :loading="loading" @click="register" />
+      <Button
+        type="submit"
+        text="注册"
+        :loading="loading"
+        :disabled="loading"
+      />
     </form>
   </div>
 </template>

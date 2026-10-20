@@ -57,7 +57,7 @@ export default defineConfig(({ mode }) => {
       }),
       AutoImport({
         dts: 'src/auto-imports.d.ts',
-        imports: ['vue', 'vue-router', 'pinia'],
+        imports: ['vue'],
       }),
       Components({
         dts: 'src/components.d.ts',

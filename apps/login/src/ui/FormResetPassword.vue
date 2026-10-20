@@ -3,11 +3,7 @@ import { toast } from 'vue-sonner';
 import { Api } from '../data/api';
 import { Validator } from './util';
 
-interface Emits {
-  openLoginForm: [];
-}
-
-const emits = defineEmits<Emits>();
+const emits = defineEmits<{ success: [] }>();
 
 const step = ref<'email' | 'password'>('email');
 const email = ref('');
@@ -15,25 +11,21 @@ const otp = ref('');
 const password = ref('');
 const loading = ref(false);
 
-function resetPassword(event: MouseEvent) {
-  event.preventDefault();
-
-  if (Api.resetPassword.isPending) return;
+async function resetPassword() {
+  if (loading.value) return;
   loading.value = true;
-  Api.resetPassword({
-    email: email.value,
-    password: password.value,
-    otp: otp.value,
-  })
-    .then(() => {
-      loading.value = false;
-      toast.success('重置密码成功');
-      emits('openLoginForm');
-    })
-    .catch((error) => {
-      loading.value = false;
-      toast.error(`重置密码失败: ${error}`);
+  try {
+    await Api.resetPassword({
+      email: email.value,
+      password: password.value,
+      otp: otp.value,
     });
+    emits('success');
+  } catch (error) {
+    toast.error(`重置密码失败: ${error}`);
+  } finally {
+    loading.value = false;
+  }
 }
 </script>
 
@@ -61,6 +53,7 @@ function resetPassword(event: MouseEvent) {
       v-show="step === 'password'"
       class="flex w-auto flex-col gap-2"
       novalidate
+      @submit.prevent="resetPassword"
     >
       <FormItem :rules="Validator.validatePassword">
         <Input type="password" placeholder="新密码" v-model="password" />
@@ -69,12 +62,18 @@ function resetPassword(event: MouseEvent) {
       <button
         type="button"
         class="text-primary cursor-pointer text-left text-sm font-bold"
+        :disabled="loading"
         @click="step = 'email'"
       >
         ← 返回上一步
       </button>
 
-      <Button text="重置密码" :loading="loading" @click="resetPassword" />
+      <Button
+        type="submit"
+        text="重置密码"
+        :loading="loading"
+        :disabled="loading"
+      />
     </form>
   </div>
 </template>

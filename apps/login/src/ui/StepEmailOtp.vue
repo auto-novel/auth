@@ -13,12 +13,9 @@ interface Props {
   type: OtpType;
   /** Turnstile action for this surface; validated server-side via siteverify. */
   action: string;
-  submitText?: string;
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  submitText: '下一步',
-});
+const props = defineProps<Props>();
 
 const email = defineModel<string>('email', { required: true });
 const otp = defineModel<string>('otp', { required: true });
@@ -41,9 +38,7 @@ const otpRules = computed(() =>
     : Validator.validateOtpResetPassword,
 );
 
-function next(event: MouseEvent) {
-  event.preventDefault();
-
+function next() {
   const items = [emailItem.value, otpItem.value];
   if (!items.every((item) => item?.validate())) return;
   emits('next');
@@ -51,7 +46,7 @@ function next(event: MouseEvent) {
 </script>
 
 <template>
-  <form class="flex w-auto flex-col gap-2" novalidate>
+  <form class="flex w-auto flex-col gap-2" novalidate @submit.prevent="next">
     <FormItem ref="emailItem" :rules="Validator.validateEmail">
       <Input placeholder="邮箱" v-model="email" />
     </FormItem>
@@ -78,6 +73,6 @@ function next(event: MouseEvent) {
       * 收不到验证邮件的话，记得看垃圾箱
     </p>
 
-    <Button type="submit" :text="props.submitText" @click="next" />
+    <Button type="submit" text="下一步" />
   </form>
 </template>

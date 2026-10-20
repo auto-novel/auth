@@ -27,21 +27,22 @@ const sending = ref(false);
 // widget never produces a token, so the empty check already covers it.
 const pending = computed(() => countdown.value > 0 || !props.token);
 
+let interval: ReturnType<typeof setInterval> | undefined;
+let disposed = false;
+onBeforeUnmount(() => {
+  disposed = true;
+  clearInterval(interval);
+});
+
 function startCountdown() {
   countdown.value = 60;
-  const interval = setInterval(() => {
-    if (countdown.value > 0) {
-      countdown.value -= 1;
-    } else {
-      clearInterval(interval);
-    }
+  interval = setInterval(() => {
+    if (--countdown.value === 0) clearInterval(interval);
   }, 1000);
 }
 
-async function requestOtp(event: MouseEvent) {
-  event.preventDefault();
-
-  if (sending.value || Api.requestOtp.isPending || pending.value) return;
+async function requestOtp() {
+  if (sending.value || pending.value) return;
   sending.value = true;
   try {
     await Api.requestOtp({
@@ -49,14 +50,15 @@ async function requestOtp(event: MouseEvent) {
       type: props.type,
       turnstileToken: props.token,
     });
+    if (disposed) return;
     toast.success('验证码已发送到您的邮箱');
     startCountdown();
   } catch (error) {
-    toast.error(`验证码发送失败: ${error}`);
+    if (!disposed) toast.error(`验证码发送失败: ${error}`);
   } finally {
     sending.value = false;
     // Every completed request may have consumed the token.
-    emits('reset');
+    if (!disposed) emits('reset');
   }
 }
 </script>
