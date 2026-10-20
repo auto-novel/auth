@@ -47,20 +47,22 @@ export { default as XDialog } from './ui/dialog/XDialog.vue';
 export { default as XPagination } from './ui/pagination/XPagination.vue';
 export { default as XSelect } from './ui/select/XSelect.vue';
 export { default as XInput } from './ui/input/XInput.vue';
-export { default as XMarkdownEditor } from './ui/markdown-editor/XMarkdownEditor.vue';
-export { default as XMarkdownEditorToolButton } from './ui/markdown-editor/XMarkdownEditorToolButton.vue';
+export {
+  XMarkdownContent,
+  XMarkdownEditor,
+  XMarkdownEditorToolButton,
+  createMarkdown,
+  renderMarkdown,
+} from './ui/markdown';
 export type {
+  MarkdownParser,
+  XMarkdownContentProps,
   XMarkdownEditorActions,
   XMarkdownEditorProps,
   XMarkdownEditorTool,
   XMarkdownEditorToolButtonProps,
   XMarkdownEditorUi,
-} from './ui/markdown-editor/types';
-export {
-  createMarkdownLink,
-  handleMarkdownLinkPaste,
-  insertMarkdownText,
-} from './ui/markdown-editor/editing';
+} from './ui/markdown';
 export type {
   XInputProps,
   XInputSize,

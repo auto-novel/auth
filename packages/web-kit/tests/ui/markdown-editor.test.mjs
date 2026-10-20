@@ -3,7 +3,7 @@ import test from 'node:test';
 import * as Vue from 'vue';
 
 import * as styleClasses from '../../src/ui/classes.ts';
-import * as editing from '../../src/ui/markdown-editor/editing.ts';
+import * as editing from '../../src/ui/markdown/editing.ts';
 import { compileComponent } from '../helpers/compile-component.mjs';
 import {
   classes,
@@ -59,7 +59,7 @@ const XButton = {
 };
 const XMarkdownEditorToolButton = compileComponent(
   new URL(
-    '../../src/ui/markdown-editor/XMarkdownEditorToolButton.vue',
+    '../../src/ui/markdown/XMarkdownEditorToolButton.vue',
     import.meta.url,
   ),
   {
@@ -75,13 +75,21 @@ const XMarkdownEditorToolButton = compileComponent(
   },
 );
 const XMarkdownEditor = compileComponent(
-  new URL('../../src/ui/markdown-editor/XMarkdownEditor.vue', import.meta.url),
+  new URL('../../src/ui/markdown/XMarkdownEditor.vue', import.meta.url),
   {
     vue: Vue,
     '../classes': styleClasses,
     './XMarkdownEditorToolButton.vue': XMarkdownEditorToolButton,
+    './XMarkdownContent.vue': {
+      props: ['source', 'markdown'],
+      setup: (props) => () =>
+        Vue.h('article', { markdown: props.markdown }, props.source),
+    },
     '@vicons/material': {
       LinkOutlined: () => Vue.h('svg', { 'data-icon': 'link' }),
+      StarBorderOutlined: () => Vue.h('svg', { 'data-icon': 'star' }),
+      UnfoldMoreOutlined: () => Vue.h('svg', { 'data-icon': 'details' }),
+      VisibilityOffOutlined: () => Vue.h('svg', { 'data-icon': 'spoiler' }),
     },
     '../tabs/XTabs.vue': XTabs,
     '../tabs/XTabsList.vue': {
@@ -199,8 +207,8 @@ test('原生属性/监听器传给 textarea，布局和部位样式不串位', a
   assert.deepEqual(toolbar.props.style, { top: '24px' });
 });
 
-test('无 preview 插槽时只显示编辑标签；空 tools 不产生空工具栏', async (t) => {
-  const view = mount(t, { tools: [] });
+test('preview=false 时只显示编辑标签；空 tools 不产生空工具栏', async (t) => {
+  const view = mount(t, { tools: [], preview: false });
   assert.equal(view.textarea.value, '');
   assert.ok(view.tab('编辑'));
   assert.equal(view.tab('预览'), undefined);
@@ -216,7 +224,7 @@ test('无 preview 插槽时只显示编辑标签；空 tools 不产生空工具�
 });
 
 test('预览最小高度跟随 rows，与编辑区基础高度一致且可覆盖', async (t) => {
-  const view = mount(t, {}, { preview: () => Vue.h('article', '预览') });
+  const view = mount(t, { modelValue: '预览' });
   dispatch(view.tab('预览'), 'click');
   await Vue.nextTick();
   const preview = view.find((node) => node.tag === 'article').parent;
@@ -231,13 +239,24 @@ test('预览最小高度跟随 rows，与编辑区基础高度一致且可覆盖
   assert.ok(!classes(preview).includes('min-h-(--markdown-editor-min-height)'));
 });
 
-test('移除 preview 插槽后回到编辑标签', async (t) => {
-  const slots = { preview: ({ source }) => Vue.h('article', source) };
-  const view = mount(t, { modelValue: '原文' }, slots);
+test('默认提供预览，空白内容显示统一提示', async (t) => {
+  const view = mount(t, { modelValue: '  \n' });
+  assert.ok(view.tab('预览'));
+  dispatch(view.tab('预览'), 'click');
+  await Vue.nextTick();
+  assert.equal(view.find((node) => node.tag === 'p').text, '没有可预览的内容');
+  assert.equal(
+    view.find((node) => node.tag === 'article'),
+    undefined,
+  );
+});
+
+test('关闭 preview 后回到编辑标签', async (t) => {
+  const view = mount(t, { modelValue: '原文' });
   dispatch(view.tab('预览'), 'click');
   await Vue.nextTick();
   assert.equal(view.textarea.parent.props.hidden, true);
-  delete slots.preview;
+  view.props.preview = false;
   view.props.modelValue = '更新';
   await settle();
   assert.equal(view.tab('预览'), undefined);
@@ -248,13 +267,12 @@ test('移除 preview 插槽后回到编辑标签', async (t) => {
   assert.equal(view.textarea.parent.props.hidden, false);
 });
 
-test('preview/toolbar 插槽获得源码与操作，切换预览后 focus 恢复编辑', async (t) => {
+test('内置预览同步源码和解析器，toolbar 获得操作，focus 恢复编辑', async (t) => {
   let actions;
   const view = mount(
     t,
     { modelValue: '原文', tools: [] },
     {
-      preview: ({ source }) => Vue.h('article', source),
       toolbar: (value) => {
         actions = value;
         return Vue.h('b', '自定义工具');
@@ -273,6 +291,15 @@ test('preview/toolbar 插槽获得源码与操作，切换预览后 focus 恢复
   view.props.modelValue = '更新';
   await Vue.nextTick();
   assert.equal(view.find((node) => node.tag === 'article').text, '更新');
+  const markdown = Vue.markRaw({ render: (source) => source });
+  view.props.markdown = markdown;
+  await Vue.nextTick();
+  assert.equal(
+    view.find((node) => node.tag === 'article').props.markdown,
+    markdown,
+  );
+  assert.equal(view.textarea.props.markdown, undefined);
+  assert.equal(view.textarea.props.preview, undefined);
   await view.editor.focus();
   assert.equal(tools.props.inert, false);
   assert.equal(tools.props['aria-hidden'], undefined);
@@ -307,6 +334,38 @@ test('工具阻止 mousedown 丢失选区，但由 click 激活以兼容键盘',
   );
 });
 
+test('扩展工具默认关闭，显式配置后遵循顺序、样式和插入语法', async (t) => {
+  const view = mount(t);
+  for (const label of ['粗体', '斜体', '删除线', '行内代码', '链接'])
+    assert.ok(view.tool(label));
+  for (const label of ['剧透', '评分', '折叠内容'])
+    assert.equal(view.tool(label), undefined);
+
+  view.props.tools = ['details', 'spoiler', 'star'];
+  view.props.ui = { tool: 'text-red-500' };
+  await Vue.nextTick();
+  const group = view.find((node) => node.props.role === 'group');
+  assert.deepEqual(
+    group.children
+      .filter((node) => node.tag === 'button')
+      .map((node) => node.props['aria-label']),
+    ['折叠内容', '剧透', '评分'],
+  );
+  for (const [label, source, start, end, expected] of [
+    ['剧透', '前文字后', 1, 3, '前!!文字!!后'],
+    ['评分', '前后', 1, 1, '前\n::: star 5\n后'],
+    ['折叠内容', '前后', 1, 1, '前\n::: details 点击展开\n折叠内容\n:::\n后'],
+  ]) {
+    view.props.modelValue = source;
+    await Vue.nextTick();
+    view.textarea.setSelectionRange(start, end);
+    assert.ok(classes(view.tool(label)).includes('text-red-500'));
+    dispatch(view.tool(label), 'click');
+    await settle();
+    assert.equal(view.props.modelValue, expected);
+  }
+});
+
 test('公开选区包裹和块插入保持模型同步、占位选区与必要换行', async (t) => {
   const view = mount(t, { modelValue: '前后' });
   view.textarea.setSelectionRange(1, 1);
@@ -329,7 +388,11 @@ test('disabled/readonly/组合输入拒绝工具和公开操作；maxlength 拒�
   let actions;
   const view = mount(
     t,
-    { modelValue: '文字', maxlength: 5 },
+    {
+      modelValue: '文字',
+      maxlength: 5,
+      tools: ['bold', 'spoiler', 'star', 'details'],
+    },
     {
       toolbar: (value) => {
         actions = value;
@@ -338,14 +401,16 @@ test('disabled/readonly/组合输入拒绝工具和公开操作；maxlength 拒�
     },
   );
   view.textarea.setSelectionRange(0, 2);
-  const oldClick = view.tool('粗体').props.onClick;
+  const labels = ['粗体', '剧透', '评分', '折叠内容'];
+  const oldClicks = labels.map((label) => view.tool(label).props.onClick);
   for (const state of ['disabled', 'readonly', 'composing']) {
     if (state === 'composing') dispatch(view.textarea, 'compositionstart');
     else view.props[state] = true;
     await Vue.nextTick();
     assert.equal(actions.disabled, true);
-    assert.equal(view.tool('粗体').props.disabled, true);
-    oldClick();
+    for (const label of labels)
+      assert.equal(view.tool(label).props.disabled, true);
+    oldClicks.forEach((click) => click());
     assert.equal(await view.editor.wrapSelection('*', '*'), false);
     assert.equal(await view.editor.insertBlock('# '), false);
     await settle();

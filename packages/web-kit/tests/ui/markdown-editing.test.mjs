@@ -1,35 +1,26 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
-  createMarkdownLink,
   handleMarkdownLinkPaste,
   insertMarkdownText,
-} from '../../src/ui/markdown-editor/editing.ts';
+} from '../../src/ui/markdown/editing.ts';
 
-test('links escape labels and URL parentheses, normalize HTTP(S) URLs', () => {
-  assert.equal(
-    createMarkdownLink(
+test('paste escapes labels and URL parentheses, normalizes HTTP(S) URLs', () => {
+  for (const [label, url, expected] of [
+    [
       String.raw`名称 [附录] \ 路径`,
       '  HTTPS://example.com/a(b)  ',
-    ),
-    String.raw`[名称 \[附录\] \\ 路径](https://example.com/a%28b%29)`,
-  );
-  assert.equal(
-    createMarkdownLink('文字', 'http://example.com'),
-    '[文字](http://example.com/)',
-  );
-  for (const url of [
-    'javascript:alert(1)',
-    'ftp://example.com',
-    'https://',
-    'https://a b',
-    'https://a\nb',
-    'text',
+      String.raw`[名称 \[附录\] \\ 路径](https://example.com/a%28b%29)`,
+    ],
+    ['文字', 'http://example.com', '[文字](http://example.com/)'],
   ]) {
-    assert.equal(createMarkdownLink('文字', url), null);
-  }
-  for (const label of ['', 'a\nb', 'a\rb', '  HTTPS://old.example/a(b)  ']) {
-    assert.equal(createMarkdownLink(label, 'https://example.com'), null);
+    const { element, event } = editor();
+    element.value = label;
+    element.selectionStart = 0;
+    element.selectionEnd = label.length;
+    event.clipboardData.getData = () => url;
+    assert.equal(handleMarkdownLinkPaste(event, element), true);
+    assert.equal(element.value, expected);
   }
 });
 
@@ -150,6 +141,18 @@ test('non-convertible, prevented, unfocused or empty paste stays native', () => 
     ({ element }) => (element.ownerDocument.activeElement = null),
     ({ element }) => (element.selectionEnd = element.selectionStart),
     ({ element }) => (element.value = '前\n字后'),
+    ({ element }) => (element.value = '前\r字后'),
+    ...[
+      'javascript:alert(1)',
+      'ftp://example.com',
+      'https://',
+      'https://a b',
+      'https://a\nb',
+    ].map(
+      (url) =>
+        ({ event }) =>
+          (event.clipboardData.getData = () => url),
+    ),
     ({ event }) => (event.clipboardData = null),
     ({ event }) => (event.clipboardData.getData = () => 'ordinary text'),
     ({ event }) => event.preventDefault(),

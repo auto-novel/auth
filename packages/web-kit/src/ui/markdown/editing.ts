@@ -18,16 +18,6 @@ function buildMarkdownLink(selection: string, url: URL): string | null {
   return `[${label}](${destination})`;
 }
 
-/** Builds a link for a nonempty, single-line label that is not itself a URL. */
-export function createMarkdownLink(
-  selection: string,
-  clipboardText: string,
-): string | null {
-  const url = parseHttpUrl(clipboardText);
-  if (!url || parseHttpUrl(selection)) return null;
-  return buildMarkdownLink(selection, url);
-}
-
 function canInsert(element: HTMLTextAreaElement, text: string): boolean {
   return (
     !element.disabled &&

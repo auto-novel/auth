@@ -4,17 +4,21 @@ import {
   nextTick,
   onBeforeUnmount,
   onMounted,
-  onUpdated,
   ref,
-  useSlots,
   useTemplateRef,
   watch,
   type Component,
   type TextareaHTMLAttributes,
 } from 'vue';
 
-import { LinkOutlined } from '@vicons/material';
+import {
+  LinkOutlined,
+  StarBorderOutlined,
+  UnfoldMoreOutlined,
+  VisibilityOffOutlined,
+} from '@vicons/material';
 
+import XMarkdownContent from './XMarkdownContent.vue';
 import XMarkdownEditorToolButton from './XMarkdownEditorToolButton.vue';
 import { mergeClasses } from '../classes';
 import XTabs from '../tabs/XTabs.vue';
@@ -34,16 +38,15 @@ const props = withDefaults(defineProps<XMarkdownEditorProps>(), {
   placeholder: '使用 Markdown 输入内容…',
   rows: 7,
   autosize: true,
+  preview: true,
   stickyOffset: 0,
   tools: () => ['bold', 'italic', 'strike', 'code', 'link'],
   ui: () => ({}),
 });
 const model = defineModel<string>({ default: '' });
 defineSlots<{
-  preview?: (props: { source: string }) => unknown;
   toolbar?: (props: XMarkdownEditorActions & { disabled: boolean }) => unknown;
 }>();
-const slots = useSlots();
 const activeTab = ref('edit');
 const tabClass =
   'border-r border-border border-b-transparent text-[0.8125rem] font-semibold data-[state=active]:text-ink';
@@ -141,9 +144,12 @@ watch([model, activeTab, () => props.rows, () => props.autosize], resize, {
   flush: 'post',
 });
 watch([() => props.sticky, stickyOffsetPx], observeStuck, { flush: 'post' });
-onUpdated(() => {
-  if (!slots.preview && activeTab.value !== 'edit') activeTab.value = 'edit';
-});
+watch(
+  () => props.preview,
+  (enabled) => {
+    if (!enabled) activeTab.value = 'edit';
+  },
+);
 
 async function focus(options?: FocusOptions) {
   activeTab.value = 'edit';
@@ -193,6 +199,7 @@ interface ToolDefinition {
   placeholder: string;
   text?: string;
   icon?: Component;
+  block?: boolean;
 }
 
 const toolDefinitions: Record<XMarkdownEditorTool, ToolDefinition> = {
@@ -231,7 +238,37 @@ const toolDefinitions: Record<XMarkdownEditorTool, ToolDefinition> = {
     suffix: '](https://)',
     placeholder: '链接文字',
   },
+  spoiler: {
+    label: '剧透',
+    icon: VisibilityOffOutlined,
+    prefix: '!!',
+    suffix: '!!',
+    placeholder: '剧透内容',
+  },
+  star: {
+    label: '评分',
+    icon: StarBorderOutlined,
+    prefix: '::: star 5',
+    suffix: '',
+    placeholder: '',
+    block: true,
+  },
+  details: {
+    label: '折叠内容',
+    icon: UnfoldMoreOutlined,
+    prefix: '::: details 点击展开\n',
+    suffix: '\n:::',
+    placeholder: '折叠内容',
+    block: true,
+  },
 };
+
+function insertTool(tool: XMarkdownEditorTool) {
+  const { prefix, suffix, placeholder, block } = toolDefinitions[tool];
+  return block
+    ? insertBlock(prefix, suffix, placeholder)
+    : wrapSelection(prefix, suffix, placeholder);
+}
 
 function paste(event: ClipboardEvent) {
   if (!blocked.value) handleMarkdownLinkPaste(event, textarea.value);
@@ -292,7 +329,7 @@ defineExpose({
             编辑
           </XTabsTrigger>
           <XTabsTrigger
-            v-if="$slots.preview"
+            v-if="preview"
             value="preview"
             :class="mergeClasses(tabClass, ui.tab)"
           >
@@ -328,13 +365,7 @@ defineExpose({
                 ui.tool,
               )
             "
-            @click="
-              wrapSelection(
-                toolDefinitions[tool].prefix,
-                toolDefinitions[tool].suffix,
-                toolDefinitions[tool].placeholder,
-              )
-            "
+            @click="insertTool(tool)"
           >
             <component
               :is="toolDefinitions[tool].icon"
@@ -388,14 +419,19 @@ defineExpose({
       </XTabsContent>
       <!-- 与 textarea 的 rows × leading-6 + 上下 py-3 保持一致。 -->
       <XTabsContent
-        v-if="$slots.preview"
+        v-if="preview"
         value="preview"
         :style="{ '--markdown-editor-min-height': `${rows * 1.5 + 1.5}rem` }"
         :class="
           mergeClasses('min-h-(--markdown-editor-min-height) p-4', ui.preview)
         "
       >
-        <slot name="preview" :source="model" />
+        <XMarkdownContent
+          v-if="model.trim()"
+          :source="model"
+          :markdown="markdown"
+        />
+        <p v-else class="text-sm text-muted">没有可预览的内容</p>
       </XTabsContent>
     </XTabs>
   </div>
