@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { toast } from 'vue-sonner';
+import FormItem from '../components/FormItem.vue';
 import { Api } from '../data/api';
 import { Validator } from './util';
 
@@ -10,9 +11,11 @@ const email = ref('');
 const otp = ref('');
 const password = ref('');
 const loading = ref(false);
+const passwordItem = ref<InstanceType<typeof FormItem> | null>(null);
 
 async function resetPassword() {
   if (loading.value) return;
+  if (!passwordItem.value?.validate()) return;
   loading.value = true;
   try {
     await Api.resetPassword({
@@ -55,7 +58,7 @@ async function resetPassword() {
       novalidate
       @submit.prevent="resetPassword"
     >
-      <FormItem :rules="Validator.validatePassword">
+      <FormItem ref="passwordItem" :rules="Validator.validatePassword">
         <Input type="password" placeholder="新密码" v-model="password" />
       </FormItem>
 

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { toast } from 'vue-sonner';
+import FormItem from '../components/FormItem.vue';
 import { Api } from '../data/api';
 import { Validator } from './util';
 
@@ -16,9 +17,15 @@ const otp = ref('');
 const username = ref('');
 const password = ref('');
 const loading = ref(false);
+const usernameItem = ref<InstanceType<typeof FormItem> | null>(null);
+const passwordItem = ref<InstanceType<typeof FormItem> | null>(null);
 
 async function register() {
   if (loading.value) return;
+  const valid = [usernameItem.value, passwordItem.value].map((item) =>
+    item?.validate(),
+  );
+  if (!valid.every(Boolean)) return;
   loading.value = true;
   try {
     await Api.register({
@@ -63,11 +70,11 @@ async function register() {
       novalidate
       @submit.prevent="register"
     >
-      <FormItem :rules="Validator.validateUsername">
+      <FormItem ref="usernameItem" :rules="Validator.validateUsername">
         <Input placeholder="用户名" v-model="username" />
       </FormItem>
 
-      <FormItem :rules="Validator.validatePassword">
+      <FormItem ref="passwordItem" :rules="Validator.validatePassword">
         <Input type="password" placeholder="密码" v-model="password" />
       </FormItem>
 
