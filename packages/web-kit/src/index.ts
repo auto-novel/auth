@@ -46,6 +46,13 @@ export { default as XDropZone } from './ui/drop-zone/XDropZone.vue';
 export { default as XDialog } from './ui/dialog/XDialog.vue';
 export { default as XPagination } from './ui/pagination/XPagination.vue';
 export { default as XSelect } from './ui/select/XSelect.vue';
+export { default as XInput } from './ui/input/XInput.vue';
+export type {
+  XInputProps,
+  XInputSize,
+  XInputType,
+  XInputUi,
+} from './ui/input/types';
 export { default as XScrollArea } from './ui/scroll-area/XScrollArea.vue';
 export { default as XSeparator } from './ui/separator/XSeparator.vue';
 export { default as XTabs } from './ui/tabs/XTabs.vue';

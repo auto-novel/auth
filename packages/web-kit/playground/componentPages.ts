@@ -57,6 +57,14 @@ const pages = [
     component: () => import('./components/DropZoneView.vue'),
   },
   {
+    englishName: 'Input',
+    slug: 'input',
+    title: '输入框 · XInput',
+    label: '输入框 Input',
+    description: '字符串绑定、尺寸、清空、前后缀与表单属性透传。',
+    component: () => import('./components/InputView.vue'),
+  },
+  {
     englishName: 'Pagination',
     slug: 'pagination',
     title: '分页 · XPagination',
