@@ -46,7 +46,7 @@ defineSlots<{
 const slots = useSlots();
 const activeTab = ref('edit');
 const tabClass =
-  'border-r border-border text-[0.8125rem] font-semibold data-[state=active]:border-border data-[state=active]:border-b-ink data-[state=active]:text-ink';
+  'border-r border-border border-b-transparent text-[0.8125rem] font-semibold data-[state=active]:text-ink';
 const textarea = useTemplateRef<HTMLTextAreaElement>('textarea');
 const root = useTemplateRef<HTMLElement>('root');
 const sentinel = useTemplateRef<HTMLElement>('sentinel');
@@ -281,7 +281,12 @@ defineExpose({
       >
         <XTabsList
           aria-label="Markdown 编辑模式"
-          :class="mergeClasses('gap-0 border-0', ui.tabs)"
+          :class="
+            mergeClasses(
+              'gap-0 border-0 [&>[data-slot=tabs-indicator]]:bg-ink',
+              ui.tabs,
+            )
+          "
         >
           <XTabsTrigger value="edit" :class="mergeClasses(tabClass, ui.tab)">
             编辑
