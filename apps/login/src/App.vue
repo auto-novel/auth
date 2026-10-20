@@ -24,7 +24,7 @@ function parseUrl() {
   // 按末级路径识别流程，同时支持开发代理等部署前缀。
   const requestedFlow = url.pathname.replace(/\/+$/, '').split('/').pop();
   const flow =
-    requestedFlow === 'reset-password' ? 'reset-password' : 'register';
+    requestedFlow === 'reset-password' ? 'reset_password' : 'register';
   if (requestedFlow !== 'register' && requestedFlow !== 'reset-password') {
     url.pathname = '/register';
     window.location.replace(url.href);

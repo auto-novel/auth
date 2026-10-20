@@ -48,7 +48,7 @@ async function resetPassword() {
       v-model:email="email"
       v-model:otp="otp"
       type="reset_password"
-      action="password_reset"
+      action="reset_password"
       @next="step = 'password'"
     />
 

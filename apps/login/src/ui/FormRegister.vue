@@ -60,7 +60,7 @@ async function register() {
       v-model:email="email"
       v-model:otp="otp"
       type="verify"
-      action="signup"
+      action="register"
       @next="step = 'profile'"
     />
 
