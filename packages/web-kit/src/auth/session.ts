@@ -1,5 +1,5 @@
 import { isHTTPError } from 'ky';
-import { computed, readonly, shallowRef, watch } from 'vue';
+import { computed, readonly, watch } from 'vue';
 
 import { useLocalStorage } from '../utils/storage';
 import type { AccessTokenProvider } from '../api/client';
@@ -96,33 +96,30 @@ export function createAuthSession(requests: AuthSessionRequests) {
       fallback: () => undefined,
     },
   );
-  const restored = stored.value;
-  let profile = restored ? parseAccessToken(restored.token) : undefined;
-  let adminMode = restored?.adminMode ?? false;
-  let initialized = profile !== undefined;
+  const profile = computed(() => {
+    const token = stored.value?.token;
+    return token ? parseAccessToken(token) : undefined;
+  });
+  let initialized = profile.value !== undefined;
   let refreshRequest: Promise<string | undefined> | undefined;
 
-  // 用户快照是 whoami 的内部状态；token 与 adminMode 仍是两个纯变量。
-  // 每次赋新对象，watch 按 Object.is 判等，原地改字段不会触发订阅者。
-  const user = shallowRef<WhoamiUser>();
-  function syncUser() {
-    const snapshot = profile
-      ? {
-          id: profile.id,
-          username: profile.username,
-          role: profile.role,
-          createdAt: profile.createdAt,
-          adminMode,
-        }
-      : undefined;
+  // 本页和跨标签页变更都使在途刷新作废；用户信息直接从 stored 派生。
+  watch(
+    stored,
+    () => {
+      refreshRequest = undefined;
+      initialized = true;
+    },
+    { flush: 'sync' },
+  );
+
+  function writeSession(value: StoredSession | undefined) {
     try {
-      user.value = snapshot;
+      stored.value = value;
     } catch {
-      // 观察者的异常不能改变 token 操作的结果：值已经写入，只是开发者
-      // 模式下 Vue 会把 watcher 回调里的错误重新抛出来，必须在这里挡住。
+      // 值和持久化已经更新；开发模式下同步观察者的异常不能让认证操作失败。
     }
   }
-  syncUser();
 
   const roleLevels: Readonly<Record<UserRole, number>> = {
     admin: 4,
@@ -135,7 +132,7 @@ export function createAuthSession(requests: AuthSessionRequests) {
   // 谓词闭包读取会话 ref，解构出去后也不会拿到过期快照。
   const predicates = {
     hasRoleAtLeast: (requiredRole: UserRole) => {
-      const role = user.value?.role;
+      const role = profile.value?.role;
       return (
         isKnownRole(role) &&
         isKnownRole(requiredRole) &&
@@ -143,7 +140,7 @@ export function createAuthSession(requests: AuthSessionRequests) {
       );
     },
     isAtLeastDaysOld: (days: number) => {
-      const snapshot = user.value;
+      const snapshot = profile.value;
       const now = Date.now();
       return (
         snapshot !== undefined &&
@@ -156,52 +153,47 @@ export function createAuthSession(requests: AuthSessionRequests) {
     },
   };
   const whoami = computed<Whoami>(() => {
-    const snapshot = user.value;
+    const snapshot = profile.value;
     const role = snapshot?.role;
     const isAdmin = role === 'admin';
     return {
-      user: snapshot ? readonly({ ...snapshot }) : undefined,
+      user: snapshot
+        ? readonly({
+            id: snapshot.id,
+            username: snapshot.username,
+            role: snapshot.role,
+            createdAt: snapshot.createdAt,
+            adminMode: stored.value?.adminMode === true,
+          })
+        : undefined,
       isSignedIn: snapshot !== undefined,
       isAdmin,
-      asAdmin: isAdmin && snapshot?.adminMode === true,
+      asAdmin: isAdmin && stored.value?.adminMode === true,
       roleLabel: role ? (roleLabels[role] ?? role) : '未知角色',
       ...predicates,
     };
   });
 
-  // 会话状态只从存储值派生：本页写入和其他标签页的同步走同一条路径。
-  // 值一变，在途刷新就不再代表当前状态，交出槽位让它作废。
-  watch(
-    stored,
-    (value) => {
-      refreshRequest = undefined;
-      initialized = true;
-      profile = value ? parseAccessToken(value.token) : undefined;
-      adminMode = value?.adminMode ?? false;
-      syncUser();
-    },
-    { flush: 'sync' },
-  );
-
   function toggleAdminMode(): boolean {
-    const nextMode = !adminMode && profile?.role === 'admin';
-    if (adminMode === nextMode || !profile) return adminMode;
-    stored.value = { token: profile.token, adminMode: nextMode };
-    return adminMode;
+    if (profile.value?.role !== 'admin') return false;
+    const nextMode = !stored.value?.adminMode;
+    writeSession({ token: profile.value.token, adminMode: nextMode });
+    return stored.value?.adminMode === true;
   }
 
   function setAccessToken(token?: string) {
-    const previousUserId = profile?.id;
     const nextProfile = token ? parseAccessToken(token) : undefined;
-    stored.value = nextProfile
-      ? {
-          token: nextProfile.token,
-          adminMode:
-            nextProfile.role === 'admin' &&
-            nextProfile.id === previousUserId &&
-            adminMode,
-        }
-      : undefined;
+    writeSession(
+      nextProfile
+        ? {
+            token: nextProfile.token,
+            adminMode:
+              nextProfile.role === 'admin' &&
+              nextProfile.id === profile.value?.id &&
+              stored.value?.adminMode === true,
+          }
+        : undefined,
+    );
   }
 
   function refreshAccessToken(): Promise<string | undefined> {
@@ -214,14 +206,14 @@ export function createAuthSession(requests: AuthSessionRequests) {
       try {
         const token = await requests.refresh();
         // 槽位已被清空：这次结果已经过期，不再应用。
-        if (refreshRequest !== request) return profile?.token;
+        if (refreshRequest !== request) return profile.value?.token;
         // 保留槽位直到解析成功，避免把解析异常误判为请求已作废。
         // 写入成功后，stored 的同步 watcher 会清空槽位。
         setAccessToken(token);
         initialized = true;
         return token;
       } catch (error) {
-        if (refreshRequest !== request) return profile?.token;
+        if (refreshRequest !== request) return profile.value?.token;
         refreshRequest = undefined;
         if (isHTTPError(error) && error.response.status === 401) {
           setAccessToken();
@@ -246,12 +238,12 @@ export function createAuthSession(requests: AuthSessionRequests) {
         // check can retry while preserving any locally available profile.
       }
     }
-    return profile !== undefined;
+    return profile.value !== undefined;
   }
 
   const accessToken = {
     get() {
-      return profile?.token;
+      return profile.value?.token;
     },
     async ready() {
       await checkSignedIn();
@@ -262,8 +254,8 @@ export function createAuthSession(requests: AuthSessionRequests) {
   void checkSignedIn().catch(() => undefined);
   globalThis.setInterval(() => {
     if (
-      profile &&
-      Date.now() - profile.issuedAt * 1000 >= ACCESS_TOKEN_REFRESH_AGE
+      profile.value &&
+      Date.now() - profile.value.issuedAt * 1000 >= ACCESS_TOKEN_REFRESH_AGE
     ) {
       void refreshAccessToken().catch(() => undefined);
     }
