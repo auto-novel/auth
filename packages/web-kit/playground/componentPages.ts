@@ -65,6 +65,14 @@ const pages = [
     component: () => import('./components/InputView.vue'),
   },
   {
+    englishName: 'MarkdownEditor',
+    slug: 'markdown-editor',
+    title: 'Markdown 编辑器 · XMarkdownEditor',
+    label: 'Markdown 编辑器',
+    description: '选区格式、链接粘贴、自适应高度与预览和工具栏插槽。',
+    component: () => import('./components/MarkdownEditorView.vue'),
+  },
+  {
     englishName: 'Pagination',
     slug: 'pagination',
     title: '分页 · XPagination',

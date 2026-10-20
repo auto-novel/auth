@@ -4,6 +4,11 @@ import * as Vue from 'vue';
 
 import * as styleClasses from '../../src/ui/classes.ts';
 import { compileComponent } from '../helpers/compile-component.mjs';
+import {
+  classes,
+  createTestRenderer,
+  dispatch,
+} from '../helpers/test-renderer.mjs';
 
 const XInput = compileComponent(
   new URL('../../src/ui/input/XInput.vue', import.meta.url),
@@ -14,74 +19,11 @@ const XInput = compileComponent(
   },
 );
 
-// 只提供节点和事件能力；保留 Vue 原生 v-model 指令及其 IME 监听。
 function mount(t, initial = {}, slots = {}) {
-  class Document {}
-  const document = new Document();
-  for (const [key, value] of Object.entries({
-    Document,
-    ShadowRoot: class {},
-  })) {
-    const previous = Object.getOwnPropertyDescriptor(globalThis, key);
-    Object.defineProperty(globalThis, key, { configurable: true, value });
-    t.after(() => {
-      if (previous) Object.defineProperty(globalThis, key, previous);
-      else delete globalThis[key];
-    });
-  }
-  class Node extends EventTarget {
-    constructor(tag) {
-      super();
-      this.tag = tag;
-      this.children = [];
-      this.props = {};
-      this.value = '';
-    }
-    getRootNode() {
-      return document;
-    }
-    focus() {
-      document.activeElement = this;
-    }
-  }
-  function remove(node) {
-    if (node.parent) {
-      node.parent.children.splice(node.parent.children.indexOf(node), 1);
-      node.parent = null;
-    }
-  }
-  const renderer = Vue.createRenderer({
-    createElement: (tag) => new Node(tag),
-    createText: () => new Node('#text'),
-    createComment: () => new Node('#comment'),
-    setText: (node, text) => (node.text = text),
-    setElementText: (node, text) => (node.text = text),
-    parentNode: (node) => node.parent,
-    nextSibling: (node) =>
-      node.parent?.children[node.parent.children.indexOf(node) + 1] ?? null,
-    remove,
-    insert(node, parent, anchor) {
-      remove(node);
-      const index = anchor ? parent.children.indexOf(anchor) : -1;
-      parent.children.splice(
-        index < 0 ? parent.children.length : index,
-        0,
-        node,
-      );
-      node.parent = parent;
-    },
-    patchProp(node, key, previous, value) {
-      node.props[key] = value;
-      if (/^on[A-Z]/.test(key) && !key.startsWith('onUpdate:')) {
-        const type = key.slice(2).toLowerCase();
-        if (previous) node.removeEventListener(type, previous);
-        if (value) node.addEventListener(type, value);
-      }
-    },
-  });
+  const { document, createApp, mount: mountApp } = createTestRenderer(t);
   const events = [];
   const props = Vue.reactive({ ...initial });
-  const app = renderer.createApp({
+  const app = createApp({
     render: () =>
       Vue.h(
         XInput,
@@ -96,10 +38,7 @@ function mount(t, initial = {}, slots = {}) {
         slots,
       ),
   });
-  const container = new Node('container');
-  app.mount(container);
-  t.after(() => app.unmount());
-  const root = container.children[0];
+  const { root } = mountApp(app);
   return {
     root,
     input: root.children.find((node) => node.tag === 'input'),
@@ -109,13 +48,6 @@ function mount(t, initial = {}, slots = {}) {
     document,
   };
 }
-
-const classes = (node) => node.props.class.split(/\s+/);
-const dispatch = (node, type) => {
-  const event = new Event(type, { cancelable: true });
-  node.dispatchEvent(event);
-  return event;
-};
 
 test('Input 将原生属性及事件交给 input，class/style 和各部位样式不串位', (t) => {
   const received = [];

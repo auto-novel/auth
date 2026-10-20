@@ -15,6 +15,7 @@ test('playground pages share unique route identities and English alphabetical or
       'DropdownMenu',
       'DropZone',
       'Input',
+      'MarkdownEditor',
       'Pagination',
       'ScrollArea',
       'Select',
