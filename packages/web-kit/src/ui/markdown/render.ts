@@ -54,7 +54,7 @@ export function createMarkdown(): MarkdownItInstance {
     name: 'details',
     openRenderer: (tokens: Token[], index: number): string => {
       const summary = markdown.utils.escapeHtml(
-        containerParams(tokens[index], 'details') || '点击展开',
+        containerParams(tokens[index]!, 'details') || '点击展开',
       );
       return `<details><summary>${summary}</summary>\n`;
     },
@@ -63,7 +63,7 @@ export function createMarkdown(): MarkdownItInstance {
   markdown.use(container, {
     name: 'star',
     openRenderer: (tokens: Token[], index: number): string =>
-      renderStarRating(containerParams(tokens[index], 'star')),
+      renderStarRating(containerParams(tokens[index]!, 'star')),
     closeRenderer: () => '',
   });
 
@@ -78,10 +78,12 @@ export function createMarkdown(): MarkdownItInstance {
     env,
     renderer,
   ) => {
-    const href = tokens[index].attrGet('href');
+    // 渲染回调的索引由 MarkdownIt 提供，必然对应当前 token。
+    const token = tokens[index]!;
+    const href = token.attrGet('href');
     if (typeof href === 'string' && !href.startsWith('#')) {
-      tokens[index].attrSet('target', '_blank');
-      tokens[index].attrSet('rel', 'noopener noreferrer');
+      token.attrSet('target', '_blank');
+      token.attrSet('rel', 'noopener noreferrer');
     }
     return defaultLinkOpen(tokens, index, renderOptions, env, renderer);
   };
