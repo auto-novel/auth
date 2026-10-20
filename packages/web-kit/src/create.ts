@@ -5,7 +5,6 @@ import {
 } from './api/client';
 import { createAuthSession } from './auth/session';
 import { createAuthApi } from './api/requests';
-import { createLoginBridge } from './auth/login';
 import { type App, type DeepReadonly } from 'vue';
 import type { RouteLocationRaw } from 'vue-router';
 
@@ -101,6 +100,10 @@ export function createWebKit(options: WebKitOptions): WebKit {
   const authClient = createApiClient(new URL('api/v1/', authUrl).toString());
   const session = createAuthSession({
     app: normalizedOptions.auth.app,
+    requestLogin: (request) =>
+      authClient
+        .post('auth/login', { credentials: 'include', json: request })
+        .text(),
     requestLogout: () =>
       authClient.post('auth/logout', { credentials: 'include' }).text(),
     requestRefresh: (app) =>
@@ -112,14 +115,6 @@ export function createWebKit(options: WebKitOptions): WebKit {
         .text(),
   });
   const authApi = createAuthApi(authClient, session.accessToken);
-  const accountActions = Object.freeze({
-    ...createLoginBridge(
-      authUrl,
-      normalizedOptions.auth.app,
-      session.accessToken.refresh,
-    ),
-    toggleAdminMode: session.toggleAdminMode,
-  });
   const attention = createAttention({
     whoami: session.whoami,
     getAttentionStatus: authApi.getAttentionStatus,
@@ -152,7 +147,7 @@ export function createWebKit(options: WebKitOptions): WebKit {
         Object.freeze({
           options: normalizedOptions,
           attention,
-          accountActions,
+          session,
           loadMyStrikes: authApi.getMyStrikes,
         }),
       );

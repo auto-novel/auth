@@ -1,88 +1,113 @@
 <script setup lang="ts">
-import {
-  computed,
-  nextTick,
-  onBeforeUnmount,
-  onMounted,
-  ref,
-  useTemplateRef,
-  watch,
-} from 'vue';
+import { computed, ref, watch } from 'vue';
 
 import { useWebKit, useWebKitInternals } from '../../context';
+import XButton from '../../ui/button/XButton.vue';
 import XDialog from '../../ui/dialog/XDialog.vue';
+import XInput from '../../ui/input/XInput.vue';
+import { getApiErrorMessage } from '../../ui/toast/apiError';
 
 const open = defineModel<boolean>('open', { required: true });
 const { theme } = useWebKit();
-const { accountActions } = useWebKitInternals();
-const loginFrame = useTemplateRef('loginFrame');
+const { session, options } = useWebKitInternals();
+const username = ref('');
+const password = ref('');
 const error = ref<string>();
-const completing = ref(false);
-const frameSrc = computed(() =>
-  accountActions.createLoginUrl(theme.theme.value),
+const submitting = ref(false);
+const returnTo = ref('');
+const registerUrl = computed(() => createAccountFlowUrl('register'));
+const resetPasswordUrl = computed(() => createAccountFlowUrl('reset-password'));
+
+function createAccountFlowUrl(flow: 'register' | 'reset-password') {
+  const url = new URL(options.auth.url);
+  url.pathname = `${url.pathname.replace(/\/+$/, '')}/${flow}`;
+  url.searchParams.set('app', options.auth.app);
+  url.searchParams.set('theme', theme.theme.value);
+  url.searchParams.set('returnTo', returnTo.value);
+  return url.toString();
+}
+watch(
+  open,
+  (isOpen) => {
+    error.value = undefined;
+    password.value = '';
+    // 宿主可能已切换路由；每次打开都从当前地址构造返回目标。
+    if (isOpen && typeof window !== 'undefined') {
+      returnTo.value = window.location.href;
+    }
+  },
+  { immediate: true },
 );
 
-watch(open, () => {
+async function login() {
+  if (submitting.value) return;
   error.value = undefined;
-});
-
-async function handleMessage(event: MessageEvent) {
-  if (!open.value || completing.value) return;
-  const completion = accountActions.handleLoginMessage(
-    event,
-    loginFrame.value?.contentWindow,
-  );
-  if (!completion) return;
-
-  completing.value = true;
-  error.value = undefined;
+  submitting.value = true;
   try {
-    await completion;
+    await session.login(username.value, password.value);
     open.value = false;
-  } catch {
-    error.value = '登录状态同步失败，请重试';
+  } catch (reason) {
+    error.value = getApiErrorMessage(reason, '登录失败');
   } finally {
-    completing.value = false;
+    password.value = '';
+    submitting.value = false;
   }
-}
-
-onMounted(() => {
-  window.addEventListener('message', handleMessage);
-});
-
-onBeforeUnmount(() => {
-  window.removeEventListener('message', handleMessage);
-});
-
-async function focusLoginFrame(event: Event) {
-  event.preventDefault();
-  await nextTick();
-  loginFrame.value?.focus();
 }
 </script>
 
 <template>
   <XDialog
     v-model:open="open"
-    title="登录或注册"
+    title="登录"
     close-label="关闭登录窗口"
-    full-screen
-    :closable="!completing"
-    @open-auto-focus="focusLoginFrame"
+    :closable="!submitting"
+    class="w-[min(420px,calc(100%-2rem))]"
   >
-    <iframe
-      ref="loginFrame"
-      class="block h-full w-full border-0"
-      :src="frameSrc"
-      title="登录或注册"
-    />
-
-    <p
-      v-if="error"
-      class="absolute bottom-4 left-1/2 w-[min(420px,calc(100%-2rem))] -translate-x-1/2 rounded-md border border-error-border bg-error-surface px-4 py-3 text-sm text-error-strong shadow"
-      role="alert"
-    >
-      {{ error }}
-    </p>
+    <form class="flex flex-col gap-4" @submit.prevent="login">
+      <label class="flex flex-col gap-2 text-sm">
+        用户名或邮箱
+        <XInput
+          v-model="username"
+          name="username"
+          autocomplete="username"
+          placeholder="用户名 / 邮箱"
+          required
+          :disabled="submitting"
+        />
+      </label>
+      <label class="flex flex-col gap-2 text-sm">
+        密码
+        <XInput
+          v-model="password"
+          name="password"
+          type="password"
+          autocomplete="current-password"
+          required
+          :disabled="submitting"
+        />
+      </label>
+      <p v-if="error" class="text-sm text-error-strong" role="alert">
+        {{ error }}
+      </p>
+      <XButton type="submit" :disabled="submitting" :aria-busy="submitting">
+        {{ submitting ? '登录中…' : '登录' }}
+      </XButton>
+      <div class="flex justify-between gap-4 text-sm text-primary">
+        <a
+          :href="registerUrl"
+          :aria-disabled="submitting"
+          @click="submitting && $event.preventDefault()"
+        >
+          注册账号
+        </a>
+        <a
+          :href="resetPasswordUrl"
+          :aria-disabled="submitting"
+          @click="submitting && $event.preventDefault()"
+        >
+          忘记密码？
+        </a>
+      </div>
+    </form>
   </XDialog>
 </template>

@@ -26,7 +26,7 @@ import LoginDialog from './LoginDialog.vue';
 defineProps<{ options: WebKitMenuOption[] }>();
 
 const { logout: signOut, whoami } = useWebKit();
-const { attention, options: kitOptions, accountActions } = useWebKitInternals();
+const { attention, options: kitOptions, session } = useWebKitInternals();
 const menuOpen = ref(false);
 const loginOpen = ref(false);
 const strikesEnabled = computed(() => kitOptions.strikes.enabled);
@@ -57,7 +57,7 @@ async function logout() {
 }
 
 function toggleAdminMode() {
-  if (whoami.value.isAdmin) accountActions.toggleAdminMode();
+  if (whoami.value.isAdmin) session.toggleAdminMode();
 }
 </script>
 

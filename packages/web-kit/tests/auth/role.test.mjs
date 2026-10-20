@@ -26,6 +26,7 @@ function makeSession(t) {
   return {
     session: createAuthSession({
       app: 'test',
+      requestLogin: async () => token,
       requestLogout: async () => '',
       requestRefresh: async () => token,
     }),

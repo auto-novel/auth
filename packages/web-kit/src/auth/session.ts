@@ -33,6 +33,11 @@ interface StoredSession {
 
 interface AuthSessionOptions {
   app: string;
+  requestLogin(request: {
+    username: string;
+    password: string;
+    app: string;
+  }): Promise<string>;
   requestLogout(): Promise<string>;
   requestRefresh(app: string): Promise<string>;
 }
@@ -273,6 +278,15 @@ export function createAuthSession(options: AuthSessionOptions) {
   return {
     whoami,
     accessToken,
+    async login(username: string, password: string) {
+      const token = await options.requestLogin({
+        username,
+        password,
+        app: options.app,
+      });
+      if (!token) throw new Error('登录接口未返回有效令牌，请重试');
+      setAccessToken(token);
+    },
     checkSignedIn,
     toggleAdminMode,
     async logout() {

@@ -1,5 +1,8 @@
 import type { KyInstance } from 'ky';
-import { createAuthAwareApiClientInner, type AccessTokenProvider } from './client';
+import {
+  createAuthAwareApiClientInner,
+  type AccessTokenProvider,
+} from './client';
 
 export interface BanUserRequest {
   username: string;

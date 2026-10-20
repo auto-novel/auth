@@ -55,6 +55,7 @@ test('admin mode persists only for the same administrator account', async (t) =>
   let nextToken = makeToken('admin');
   const session = createAuthSession({
     app: 'test',
+    requestLogin: async () => makeToken('member'),
     requestLogout: async () => '',
     requestRefresh: async () => nextToken,
   });
@@ -82,6 +83,7 @@ test('admin mode persists only for the same administrator account', async (t) =>
 
     const restored = createAuthSession({
       app: 'test',
+      requestLogin: async () => makeToken('member'),
       requestLogout: async () => '',
       requestRefresh: async () => nextToken,
     });
@@ -124,6 +126,7 @@ test('admin mode follows storage changes from another tab', (t) => {
   useStorage(t, storage, windowEvents);
   const session = createAuthSession({
     app: 'test',
+    requestLogin: async () => makeToken('member'),
     requestLogout: async () => '',
     requestRefresh: async () => makeToken('admin'),
   });
@@ -168,6 +171,7 @@ test('session users use milliseconds after restoring and refreshing a JWT', asyn
   useStorage(t, storage);
   const session = createAuthSession({
     app: 'test',
+    requestLogin: async () => makeToken('member'),
     requestLogout: async () => '',
     requestRefresh: async () => makeToken('admin'),
   });
@@ -197,6 +201,7 @@ test('account age checks the exact boundary and follows the current session', as
   useStorage(t, makeStorage(makeToken('member'), false));
   const session = createAuthSession({
     app: 'test',
+    requestLogin: async () => makeToken('member'),
     requestLogout: async () => '',
     requestRefresh: async () => makeToken('member'),
   });
@@ -226,6 +231,7 @@ test('a throwing observer cannot break token writes', async (t) => {
   useStorage(t, storage);
   const session = createAuthSession({
     app: 'test',
+    requestLogin: async () => makeToken('member'),
     requestLogout: async () => '',
     requestRefresh: async () => makeToken('admin'),
   });

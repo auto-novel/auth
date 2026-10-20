@@ -7,7 +7,7 @@ import type {
   WebKitStrikeOptions,
 } from './types';
 import type { AttentionContext } from './attentionContext';
-import type { createLoginBridge } from './auth/login';
+import type { createAuthSession } from './auth/session';
 
 export const webKitKey: InjectionKey<WebKitContext> = Symbol('web-kit');
 
@@ -19,11 +19,6 @@ export function useWebKit(): WebKitContext {
   return kit;
 }
 
-/** 登录 iframe 的能力，加上管理模式开关。 */
-type AccountActions = ReturnType<typeof createLoginBridge> & {
-  toggleAdminMode(): boolean;
-};
-
 type LoadMyStrikes = (params: MyStrikeListParams) => Promise<MyStrikePage>;
 
 /** 内置组件依赖，不从包入口导出。 */
@@ -34,7 +29,7 @@ interface WebKitInternals {
     }
   >;
   readonly attention: AttentionContext;
-  readonly accountActions: AccountActions;
+  readonly session: ReturnType<typeof createAuthSession>;
   readonly loadMyStrikes: LoadMyStrikes;
 }
 
