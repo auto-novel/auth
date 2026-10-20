@@ -59,6 +59,16 @@ defineExpose({
     "
   >
     <span
+      v-if="$slots.leading || leadingIcon"
+      :class="
+        mergeClasses('inline-flex shrink-0 items-center text-muted', ui.leading)
+      "
+    >
+      <slot name="leading">
+        <component :is="leadingIcon" class="size-5" aria-hidden="true" />
+      </slot>
+    </span>
+    <span
       v-if="$slots.prefix"
       :class="
         mergeClasses('inline-flex shrink-0 items-center text-muted', ui.prefix)
@@ -107,6 +117,16 @@ defineExpose({
       "
     >
       <slot name="suffix" />
+    </span>
+    <span
+      v-if="$slots.tail || tailIcon"
+      :class="
+        mergeClasses('inline-flex shrink-0 items-center text-muted', ui.tail)
+      "
+    >
+      <slot name="tail">
+        <component :is="tailIcon" class="size-5" aria-hidden="true" />
+      </slot>
     </span>
   </div>
 </template>

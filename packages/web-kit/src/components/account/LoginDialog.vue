@@ -1,4 +1,10 @@
 <script setup lang="ts">
+import {
+  LockOutlined,
+  PersonOutlineOutlined,
+  VisibilityOffOutlined,
+  VisibilityOutlined,
+} from '@vicons/material';
 import { computed, ref, watch } from 'vue';
 
 import { useWebKit, useWebKitInternals } from '../../context';
@@ -12,6 +18,7 @@ const { theme } = useWebKit();
 const { session, options } = useWebKitInternals();
 const username = ref('');
 const password = ref('');
+const passwordVisible = ref(false);
 const error = ref<string>();
 const submitting = ref(false);
 const returnTo = ref('');
@@ -31,6 +38,7 @@ watch(
   (isOpen) => {
     error.value = undefined;
     password.value = '';
+    passwordVisible.value = false;
     // 宿主可能已切换路由；每次打开都从当前地址构造返回目标。
     if (isOpen && typeof window !== 'undefined') {
       returnTo.value = window.location.href;
@@ -50,6 +58,7 @@ async function login() {
     error.value = getApiErrorMessage(reason, '登录失败');
   } finally {
     password.value = '';
+    passwordVisible.value = false;
     submitting.value = false;
   }
 }
@@ -67,6 +76,7 @@ async function login() {
       <XInput
         v-model="username"
         name="username"
+        :leading-icon="PersonOutlineOutlined"
         aria-label="用户名或邮箱"
         autocomplete="username"
         placeholder="用户名 / 邮箱"
@@ -76,13 +86,32 @@ async function login() {
       <XInput
         v-model="password"
         name="password"
-        type="password"
+        :type="passwordVisible ? 'text' : 'password'"
+        :leading-icon="LockOutlined"
         aria-label="密码"
         autocomplete="current-password"
         placeholder="密码"
         required
         :disabled="submitting"
-      />
+      >
+        <template #tail>
+          <button
+            type="button"
+            :aria-label="passwordVisible ? '隐藏密码' : '显示密码'"
+            :aria-pressed="passwordVisible"
+            :disabled="submitting"
+            class="inline-flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-sm text-muted hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed"
+            @mousedown.prevent
+            @click="passwordVisible = !passwordVisible"
+          >
+            <component
+              :is="passwordVisible ? VisibilityOutlined : VisibilityOffOutlined"
+              class="size-5"
+              aria-hidden="true"
+            />
+          </button>
+        </template>
+      </XInput>
       <p v-if="error" class="text-sm text-error-strong" role="alert">
         {{ error }}
       </p>
