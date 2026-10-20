@@ -266,13 +266,13 @@ defineExpose({
       class="pointer-events-none absolute inset-x-0 top-0 h-px"
       aria-hidden="true"
     />
-    <XTabs v-model="activeTab" class="gap-0">
+    <XTabs v-model="activeTab" class="gap-0 rounded-[inherit]">
       <div
         :data-stuck="stuck || undefined"
         :style="toolbarStyle"
         :class="
           mergeClasses(
-            'flex flex-wrap items-stretch rounded-t-sm border-b border-border bg-body',
+            'flex flex-wrap items-stretch rounded-t-[inherit] border-b border-border bg-body',
             sticky && 'sticky z-20',
             stuck && 'shadow-[0_4px_10px_-6px_rgb(0_0_0_/_0.3)]',
             ui.toolbar,
@@ -283,7 +283,7 @@ defineExpose({
           aria-label="Markdown 编辑模式"
           :class="
             mergeClasses(
-              'gap-0 border-0 [&>[data-slot=tabs-indicator]]:bg-ink',
+              'gap-0 border-0 data-[orientation=horizontal]:border-b-0 [&>[data-slot=tabs-indicator]]:bg-ink',
               ui.tabs,
             )
           "
@@ -386,10 +386,14 @@ defineExpose({
           @paste="paste"
         />
       </XTabsContent>
+      <!-- 与 textarea 的 rows × leading-6 + 上下 py-3 保持一致。 -->
       <XTabsContent
         v-if="$slots.preview"
         value="preview"
-        :class="mergeClasses('min-h-32 p-4', ui.preview)"
+        :style="{ '--markdown-editor-min-height': `${rows * 1.5 + 1.5}rem` }"
+        :class="
+          mergeClasses('min-h-(--markdown-editor-min-height) p-4', ui.preview)
+        "
       >
         <slot name="preview" :source="model" />
       </XTabsContent>

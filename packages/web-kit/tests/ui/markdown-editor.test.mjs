@@ -215,6 +215,22 @@ test('无 preview 插槽时只显示编辑标签；空 tools 不产生空工具�
   assert.equal(view.textarea.parent.props.hidden, false);
 });
 
+test('预览最小高度跟随 rows，与编辑区基础高度一致且可覆盖', async (t) => {
+  const view = mount(t, {}, { preview: () => Vue.h('article', '预览') });
+  dispatch(view.tab('预览'), 'click');
+  await Vue.nextTick();
+  const preview = view.find((node) => node.tag === 'article').parent;
+  assert.equal(preview.props.style['--markdown-editor-min-height'], '12rem');
+  assert.ok(classes(preview).includes('min-h-(--markdown-editor-min-height)'));
+  view.props.rows = 3;
+  await Vue.nextTick();
+  assert.equal(preview.props.style['--markdown-editor-min-height'], '6rem');
+  view.props.ui = { preview: 'min-h-48' };
+  await Vue.nextTick();
+  assert.ok(classes(preview).includes('min-h-48'));
+  assert.ok(!classes(preview).includes('min-h-(--markdown-editor-min-height)'));
+});
+
 test('移除 preview 插槽后回到编辑标签', async (t) => {
   const slots = { preview: ({ source }) => Vue.h('article', source) };
   const view = mount(t, { modelValue: '原文' }, slots);
