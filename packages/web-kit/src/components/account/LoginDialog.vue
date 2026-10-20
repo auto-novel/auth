@@ -64,28 +64,25 @@ async function login() {
     class="w-[min(420px,calc(100%-2rem))]"
   >
     <form class="flex flex-col gap-4" @submit.prevent="login">
-      <label class="flex flex-col gap-2 text-sm">
-        用户名或邮箱
-        <XInput
-          v-model="username"
-          name="username"
-          autocomplete="username"
-          placeholder="用户名 / 邮箱"
-          required
-          :disabled="submitting"
-        />
-      </label>
-      <label class="flex flex-col gap-2 text-sm">
-        密码
-        <XInput
-          v-model="password"
-          name="password"
-          type="password"
-          autocomplete="current-password"
-          required
-          :disabled="submitting"
-        />
-      </label>
+      <XInput
+        v-model="username"
+        name="username"
+        aria-label="用户名或邮箱"
+        autocomplete="username"
+        placeholder="用户名 / 邮箱"
+        required
+        :disabled="submitting"
+      />
+      <XInput
+        v-model="password"
+        name="password"
+        type="password"
+        aria-label="密码"
+        autocomplete="current-password"
+        placeholder="密码"
+        required
+        :disabled="submitting"
+      />
       <p v-if="error" class="text-sm text-error-strong" role="alert">
         {{ error }}
       </p>
