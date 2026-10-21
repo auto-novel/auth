@@ -96,7 +96,7 @@ watch(
       </button>
     </XDrawer>
 
-    <div v-if="!isMobile" class="sidebar-shell">
+    <div v-if="!isMobile" class="sticky top-0 z-40 h-dvh flex-none self-start">
       <WebKitSidebar
         :options="navigationOptions"
         :expanded="expanded"
@@ -108,7 +108,7 @@ watch(
       <button
         v-if="viewportMode === 'desktop'"
         type="button"
-        class="sidebar-collapse"
+        class="absolute top-[80dvh] -right-3 grid size-6 cursor-pointer place-items-center rounded-full border border-border bg-surface text-muted shadow-[0_2px_4px_rgb(0_0_0_/_6%)] transition-[color,border-color] duration-150 ease-[ease] hover:border-primary hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
         :aria-label="sidebarCollapsed ? '展开侧边栏' : '收起侧边栏'"
         :title="sidebarCollapsed ? '展开侧边栏' : '收起侧边栏'"
         :aria-expanded="!sidebarCollapsed"
@@ -129,7 +129,7 @@ watch(
         <button
           v-if="isMobile"
           type="button"
-          class="layout-toggle"
+          class="grid size-[2.125rem] flex-none place-items-center rounded-full text-ink transition-[color,background-color] duration-150 ease-[ease] hover:bg-hover hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           aria-label="打开导航菜单"
           title="打开导航菜单"
           aria-haspopup="dialog"
@@ -156,66 +156,3 @@ watch(
     </div>
   </div>
 </template>
-
-<style scoped>
-.sidebar-shell {
-  position: sticky;
-  top: 0;
-  z-index: 40;
-  height: 100dvh;
-  flex: none;
-  align-self: flex-start;
-}
-
-.sidebar-collapse {
-  position: absolute;
-  right: -12px;
-  top: 80dvh;
-  display: grid;
-  width: 24px;
-  height: 24px;
-  place-items: center;
-  border: 1px solid var(--color-border);
-  border-radius: 50%;
-  background: var(--color-surface);
-  color: var(--color-muted);
-  box-shadow: 0 2px 4px rgb(0 0 0 / 6%);
-  cursor: pointer;
-  transition:
-    color 150ms ease,
-    border-color 150ms ease;
-}
-
-.sidebar-collapse:hover {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
-}
-
-.sidebar-collapse:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
-}
-
-.layout-toggle {
-  display: grid;
-  width: 2.125rem;
-  height: 2.125rem;
-  flex: none;
-  place-items: center;
-  border-radius: 9999px;
-  color: var(--color-ink);
-  transition:
-    color 150ms ease,
-    background-color 150ms ease;
-}
-
-.layout-toggle:hover {
-  background: var(--color-hover);
-  color: var(--color-ink);
-}
-
-.layout-toggle:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
-}
-</style>

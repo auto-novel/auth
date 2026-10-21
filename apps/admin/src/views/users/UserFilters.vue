@@ -34,11 +34,11 @@ function changeCreatedRange(value: [number, number] | null) {
 </script>
 
 <template>
-  <div class="filters">
+  <div class="grid w-full grid-cols-1 gap-4">
     <FilterRow label="搜索">
       <n-input
         v-model:value="query"
-        class="query-input"
+        class="w-[min(400px,100%)]!"
         clearable
         placeholder="搜索用户名或邮箱"
         @change="$emit('search')"
@@ -65,16 +65,3 @@ function changeCreatedRange(value: [number, number] | null) {
     </FilterRow>
   </div>
 </template>
-
-<style scoped>
-.filters {
-  display: grid;
-  width: 100%;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 16px;
-}
-
-.query-input {
-  width: min(400px, 100%);
-}
-</style>

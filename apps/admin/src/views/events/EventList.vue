@@ -54,8 +54,11 @@ function changePageSize(value: string | number | null) {
 </script>
 
 <template>
-  <div class="event-list">
-    <div v-if="!loading || events.length" class="list-summary">
+  <div class="flex flex-col gap-3">
+    <div
+      v-if="!loading || events.length"
+      class="flex min-h-7 items-center justify-between gap-3"
+    >
       <n-text depth="3">
         <template v-if="total">
           显示 {{ rangeStart }}–{{ rangeEnd }}，共 {{ total }} 条事件
@@ -73,8 +76,11 @@ function changePageSize(value: string | number | null) {
     </div>
 
     <n-card class="list-card" content-style="padding: 0;">
-      <div v-if="loading && !events.length" class="skeleton-list">
-        <div v-for="index in 6" :key="index" class="skeleton-row">
+      <div
+        v-if="loading && !events.length"
+        class="px-4 [@media(max-width:767px)]:px-2.5"
+      >
+        <div v-for="index in 6" :key="index" class="skeleton-row py-3">
           <n-skeleton text :repeat="2" />
         </div>
       </div>
@@ -98,7 +104,7 @@ function changePageSize(value: string | number | null) {
       </n-spin>
     </n-card>
 
-    <div v-if="total > pageSize" class="pagination">
+    <div v-if="total > pageSize" class="flex overflow-x-auto">
       <n-pagination
         :page="page"
         :page-count="pageCount"
@@ -113,20 +119,6 @@ function changePageSize(value: string | number | null) {
 </template>
 
 <style scoped>
-.event-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.list-summary {
-  min-height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
 .page-size-select {
   width: 112px;
   flex: none;
@@ -135,14 +127,6 @@ function changePageSize(value: string | number | null) {
 .list-card {
   border-right: 0;
   border-left: 0;
-}
-
-.skeleton-list {
-  padding: 0 16px;
-}
-
-.skeleton-row {
-  padding: 12px 0;
 }
 
 .skeleton-row + .skeleton-row {
@@ -157,18 +141,9 @@ function changePageSize(value: string | number | null) {
   padding: 64px 16px;
 }
 
-.pagination {
-  display: flex;
-  overflow-x: auto;
-}
-
 @media (max-width: 767px) {
   :deep(.n-list-item) {
     padding: 8px 10px;
-  }
-
-  .skeleton-list {
-    padding-inline: 10px;
   }
 }
 </style>

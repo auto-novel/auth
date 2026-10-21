@@ -47,9 +47,13 @@ const features = computed(() => [
       </RouterLink>
     </template>
 
-    <div class="status-list">
-      <div v-for="feature in features" :key="feature.label" class="status-row">
-        <div class="status-copy">
+    <div class="grid grid-cols-2 [@media(max-width:599px)]:grid-cols-1">
+      <div
+        v-for="feature in features"
+        :key="feature.label"
+        class="status-row flex min-w-0 items-center justify-between gap-4 px-5 py-3 [@media(max-width:599px)]:px-0"
+      >
+        <div class="flex min-w-0 flex-col gap-1">
           <n-text strong>{{ feature.label }}</n-text>
           <n-text depth="3">{{ feature.description }}</n-text>
         </div>
@@ -64,7 +68,7 @@ const features = computed(() => [
     </div>
 
     <template #footer>
-      <n-text depth="3" class="updated-at">最近更新：{{ updatedAt }}</n-text>
+      <n-text depth="3" class="text-[12px]!">最近更新：{{ updatedAt }}</n-text>
     </template>
   </n-card>
 </template>
@@ -80,38 +84,11 @@ const features = computed(() => [
 .status-card :deep(.n-card__footer) {
   padding-top: 12px;
 }
-.status-list {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-.status-row {
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 12px 20px;
-}
 .status-row + .status-row {
   border-left: 1px solid var(--n-border-color);
 }
-.status-copy {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.updated-at {
-  font-size: 12px;
-}
 
 @media (max-width: 599px) {
-  .status-list {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .status-row {
-    padding-inline: 0;
-  }
   .status-row + .status-row {
     border-top: 1px solid var(--n-border-color);
     border-left: 0;

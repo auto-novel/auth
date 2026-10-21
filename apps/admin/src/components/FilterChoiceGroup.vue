@@ -31,8 +31,8 @@ function selectWithKeyboard(event: KeyboardEvent, value: string) {
     <n-text
       v-for="option in options"
       :key="option.value"
-      class="filter-choice"
-      :class="{ 'filter-choice--selected': props.value === option.value }"
+      class="cursor-pointer select-none focus-visible:rounded-[2px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
+      :class="{ 'font-medium': props.value === option.value }"
       :type="props.value === option.value ? 'primary' : 'default'"
       role="radio"
       :aria-checked="props.value === option.value"
@@ -44,20 +44,3 @@ function selectWithKeyboard(event: KeyboardEvent, value: string) {
     </n-text>
   </n-flex>
 </template>
-
-<style scoped>
-.filter-choice {
-  cursor: pointer;
-  user-select: none;
-}
-
-.filter-choice:focus-visible {
-  border-radius: 2px;
-  outline: 2px solid currentColor;
-  outline-offset: 2px;
-}
-
-.filter-choice--selected {
-  font-weight: 500;
-}
-</style>

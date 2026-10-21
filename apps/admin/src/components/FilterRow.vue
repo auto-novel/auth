@@ -7,36 +7,14 @@ defineProps<{
 </script>
 
 <template>
-  <div class="filter-row">
-    <n-text class="filter-label" depth="3">{{ label }}</n-text>
-    <div class="filter-content">
+  <div
+    class="grid w-full grid-cols-[64px_minmax(0,1fr)] items-baseline gap-4 [@media(max-width:480px)]:grid-cols-[52px_minmax(0,1fr)] [@media(max-width:480px)]:gap-2.5"
+  >
+    <n-text class="text-[12px]! whitespace-nowrap" depth="3">
+      {{ label }}
+    </n-text>
+    <div class="min-w-0">
       <slot />
     </div>
   </div>
 </template>
-
-<style scoped>
-.filter-row {
-  display: grid;
-  width: 100%;
-  grid-template-columns: 64px minmax(0, 1fr);
-  gap: 16px;
-  align-items: baseline;
-}
-
-.filter-label {
-  font-size: 12px;
-  white-space: nowrap;
-}
-
-.filter-content {
-  min-width: 0;
-}
-
-@media (max-width: 480px) {
-  .filter-row {
-    grid-template-columns: 52px minmax(0, 1fr);
-    gap: 10px;
-  }
-}
-</style>

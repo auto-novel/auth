@@ -35,14 +35,21 @@ const metrics = computed(() => [
 
 <template>
   <n-card class="summary-card" title="用户概况">
-    <div class="summary-grid">
-      <div v-for="metric in metrics" :key="metric.label" class="summary-item">
-        <span :class="['summary-icon', metric.className]">
+    <div class="grid grid-cols-3 [@media(max-width:599px)]:grid-cols-1">
+      <div
+        v-for="metric in metrics"
+        :key="metric.label"
+        class="summary-item flex min-w-0 items-center gap-3.5 px-5 py-3 [@media(max-width:599px)]:px-0"
+      >
+        <span
+          class="inline-flex h-[38px] w-[38px] flex-none items-center justify-center rounded-[10px] text-[20px]"
+          :class="['summary-icon', metric.className]"
+        >
           <n-icon :component="metric.icon" />
         </span>
-        <div>
+        <div class="flex min-w-0 flex-col gap-1">
           <n-text depth="3">{{ metric.label }}</n-text>
-          <n-text class="summary-value">
+          <n-text class="text-2xl! leading-[1.15]! font-[650]! tabular-nums">
             {{ metric.value.toLocaleString() }}
           </n-text>
         </div>
@@ -56,35 +63,8 @@ const metrics = computed(() => [
   padding-top: 8px;
   padding-bottom: 8px;
 }
-.summary-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-.summary-item {
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 12px 20px;
-}
 .summary-item + .summary-item {
   border-left: 1px solid var(--n-border-color);
-}
-.summary-item > div {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.summary-icon {
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: none;
-  font-size: 20px;
 }
 .summary-icon.total {
   color: var(--login);
@@ -98,20 +78,8 @@ const metrics = computed(() => [
   color: var(--color-error);
   background: var(--color-error-soft);
 }
-.summary-value {
-  font-size: 24px;
-  line-height: 1.15;
-  font-weight: 650;
-  font-variant-numeric: tabular-nums;
-}
 
 @media (max-width: 599px) {
-  .summary-grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .summary-item {
-    padding-inline: 0;
-  }
   .summary-item + .summary-item {
     border-top: 1px solid var(--n-border-color);
     border-left: 0;

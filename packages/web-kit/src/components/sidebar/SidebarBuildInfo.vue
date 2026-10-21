@@ -15,9 +15,9 @@ const shortCommit = computed(() => props.commitSha.slice(0, 12) || 'unknown');
 
 <template>
   <div class="grid min-w-0 gap-1">
-    <div class="sidebar-build-info-item min-w-0">
+    <div class="flex min-w-0 items-baseline gap-[5px] leading-4">
       <AccessTimeOutlined
-        class="sidebar-build-info-icon size-4 flex-none"
+        class="sidebar-build-info-icon size-4 flex-none self-center"
         aria-hidden="true"
       />
       <span class="flex-none">构建于</span>
@@ -27,49 +27,34 @@ const shortCommit = computed(() => props.commitSha.slice(0, 12) || 'unknown');
         preset="datetime-numeric"
       />
     </div>
-    <div class="sidebar-build-info-item min-w-0">
+    <div class="flex min-w-0 items-baseline gap-[5px] leading-4">
       <CommitOutlined
-        class="sidebar-build-info-icon size-4 flex-none"
+        class="sidebar-build-info-icon size-4 flex-none self-center"
         aria-hidden="true"
       />
       <span class="flex-none">Commit</span>
       <a
         v-if="commitUrl"
-        class="commit-link truncate text-primary hover:text-primary-hover"
+        class="truncate text-primary hover:text-primary-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary"
         :href="commitUrl"
         :title="commitSha"
         target="_blank"
         rel="noopener noreferrer"
       >
-        <code class="commit-value">{{ shortCommit }}</code>
+        <code class="block text-[11px] leading-[inherit]">
+          {{ shortCommit }}
+        </code>
       </a>
-      <code v-else class="commit-value">{{ shortCommit }}</code>
+      <code v-else class="block text-[11px] leading-[inherit]">
+        {{ shortCommit }}
+      </code>
     </div>
   </div>
 </template>
 
 <style scoped>
-.sidebar-build-info-item {
-  display: flex;
-  align-items: baseline;
-  gap: 5px;
-  line-height: 16px;
-}
-
 .sidebar-build-info-icon {
-  align-self: center;
   /* 按文字的视觉中心对齐，而非包含下行留白的行框中心。 */
   transform: translateY(1px);
-}
-
-.commit-value {
-  display: block;
-  font-size: 11px;
-  line-height: inherit;
-}
-
-.commit-link:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: -2px;
 }
 </style>

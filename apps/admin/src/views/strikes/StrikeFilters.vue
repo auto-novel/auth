@@ -25,11 +25,11 @@ function changeCreatedRange(value: [number, number] | null) {
 </script>
 
 <template>
-  <div class="filters">
+  <div class="grid w-full grid-cols-1 gap-4">
     <FilterRow label="操作者">
       <n-input
         v-model:value="operatorUsername"
-        class="filter-input"
+        class="w-[min(400px,100%)]!"
         clearable
         placeholder="操作者用户名"
         @change="$emit('search')"
@@ -43,7 +43,7 @@ function changeCreatedRange(value: [number, number] | null) {
     <FilterRow label="目标用户">
       <n-input
         v-model:value="username"
-        class="filter-input"
+        class="w-[min(400px,100%)]!"
         clearable
         placeholder="目标用户名"
         @change="$emit('search')"
@@ -61,33 +61,14 @@ function changeCreatedRange(value: [number, number] | null) {
       />
     </FilterRow>
 
-    <div class="filter-actions">
-      <n-button type="warning" @click="$emit('create')">新增警告</n-button>
+    <div class="flex justify-end gap-3">
+      <n-button
+        class="[@media(max-width:767px)]:flex-1"
+        type="warning"
+        @click="$emit('create')"
+      >
+        新增警告
+      </n-button>
     </div>
   </div>
 </template>
-
-<style scoped>
-.filters {
-  display: grid;
-  width: 100%;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 16px;
-}
-
-.filter-input {
-  width: min(400px, 100%);
-}
-
-.filter-actions {
-  display: flex;
-  gap: 12px;
-  justify-content: flex-end;
-}
-
-@media (max-width: 767px) {
-  .filter-actions :deep(.n-button) {
-    flex: 1;
-  }
-}
-</style>
