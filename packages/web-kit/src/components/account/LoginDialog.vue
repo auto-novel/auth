@@ -72,7 +72,7 @@ async function login() {
     :closable="!submitting"
     class="w-[min(420px,calc(100%-2rem))]"
   >
-    <form class="flex flex-col gap-4" @submit.prevent="login">
+    <form class="login-form flex flex-col gap-4" @submit.prevent="login">
       <XInput
         v-model="username"
         name="username"
@@ -137,3 +137,11 @@ async function login() {
     </form>
   </XDialog>
 </template>
+
+<style scoped>
+/* 仅处理登录表单的自动填充背景，不影响共享 Input。 */
+.login-form :deep(input:autofill) {
+  background-clip: text;
+  -webkit-background-clip: text;
+}
+</style>
