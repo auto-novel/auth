@@ -67,6 +67,18 @@ function mount(t, initial = {}) {
   return { props, events, controls, document, nodes };
 }
 
+test('聚焦不自动展开，保留点击展开及 Reka 的开关请求', async (t) => {
+  const { controls, nodes } = mount(t);
+  assert.equal(nodes('section')[0].props['open-on-focus'], false);
+  assert.equal(nodes('section')[0].props['open-on-click'], '');
+  dispatch(nodes('input')[0], 'focus');
+  await Vue.nextTick();
+  assert.equal(controls.root.props.open, false);
+  controls.root.emit('update:open', true);
+  await Vue.nextTick();
+  assert.equal(controls.root.props.open, true);
+});
+
 test('默认过滤 label/value 并忽略空候选；支持不过滤和自定义过滤', async (t) => {
   const option = { value: 'vue', label: '渐进式框架', disabled: true };
   const { props, nodes } = mount(t, {

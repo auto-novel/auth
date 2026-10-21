@@ -88,8 +88,7 @@ function selectOption(event: Event, option: XAutoCompleteOption) {
   event.preventDefault();
   if (!editable.value || option.disabled) return;
   model.value = option.value;
-  // 鼠标点选会把焦点留在候选上，先交回输入框。必须在关闭之前：open-on-focus
-  // 会让关闭后的 focus() 重新打开弹层。
+  // 鼠标点选会把焦点留在候选上，提交后交回输入框。
   focus();
   open.value = false;
   emit('select', option);
@@ -119,7 +118,7 @@ defineExpose({
     :reset-search-term-on-blur="false"
     :reset-search-term-on-select="false"
     ignore-filter
-    open-on-focus
+    :open-on-focus="false"
     open-on-click
     @update:open="setOpen"
   >
