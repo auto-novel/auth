@@ -173,7 +173,6 @@ function toggleAdminMode() {
   display: flex;
   min-height: 2.25rem;
   align-items: center;
-  gap: 0.25rem;
   border-radius: 0.1875rem;
   padding-inline: 0.75rem;
   color: var(--color-ink);
