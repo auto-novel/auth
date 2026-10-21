@@ -47,6 +47,12 @@ export { default as XDialog } from './ui/dialog/XDialog.vue';
 export { default as XPagination } from './ui/pagination/XPagination.vue';
 export { default as XSelect } from './ui/select/XSelect.vue';
 export { default as XInput } from './ui/input/XInput.vue';
+export { default as XAutoComplete } from './ui/auto-complete/XAutoComplete.vue';
+export type {
+  XAutoCompleteOption,
+  XAutoCompleteProps,
+  XAutoCompleteUi,
+} from './ui/auto-complete/types';
 export {
   XMarkdownContent,
   XMarkdownEditor,

@@ -1,4 +1,5 @@
 @import './components/sidebar/sidebar.css';
+@import './ui/auto-complete/auto-complete.css';
 @import './ui/dialog/dialog.css';
 @import './ui/select/select.css';
 

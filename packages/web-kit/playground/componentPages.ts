@@ -1,6 +1,14 @@
 // Keep routes, sidebar entries and overview cards in sync.
 const pages = [
   {
+    englishName: 'AutoComplete',
+    slug: 'auto-complete',
+    title: '自动补全 · XAutoComplete',
+    label: '自动补全 Auto Complete',
+    description: '自由输入、候选过滤、键盘选择与动态候选。',
+    component: () => import('./components/AutoCompleteView.vue'),
+  },
+  {
     englishName: 'ConfirmDialog',
     slug: 'confirm-dialog',
     title: '确认框 · XConfirmDialog',

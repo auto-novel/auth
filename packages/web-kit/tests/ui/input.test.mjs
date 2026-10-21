@@ -3,6 +3,7 @@ import test from 'node:test';
 import * as Vue from 'vue';
 
 import * as styleClasses from '../../src/ui/classes.ts';
+import * as field from '../../src/ui/field.ts';
 import { compileComponent } from '../helpers/compile-component.mjs';
 import {
   classes,
@@ -15,6 +16,7 @@ const XInput = compileComponent(
   {
     vue: Vue,
     '../classes': styleClasses,
+    '../field': field,
     '@vicons/material': { CloseOutlined: () => Vue.h('svg') },
   },
 );
