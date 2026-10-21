@@ -12,7 +12,7 @@ on:
       - package.json
       - pnpm-lock.yaml
       - pnpm-workspace.yaml
-      - apps/login/**
+      - apps/web/**
       - apps/admin/**
       - packages/web-kit/**
 

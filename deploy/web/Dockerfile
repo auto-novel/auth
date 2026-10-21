@@ -6,23 +6,23 @@ WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN corepack install
 COPY apps/admin/package.json ./apps/admin/package.json
-COPY apps/login/package.json ./apps/login/package.json
+COPY apps/web/package.json ./apps/web/package.json
 COPY packages/web-kit/package.json ./packages/web-kit/package.json
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
-    pnpm --filter 'auth-login...' --filter 'auth-admin...' install --prod --frozen-lockfile
+    pnpm --filter 'auth-web...' --filter 'auth-admin...' install --prod --frozen-lockfile
 
 FROM deps AS builder
 WORKDIR /app
 ARG VITE_COMMIT_SHA
 ARG VITE_BUILD_TIME
-COPY apps/login/. ./apps/login/
+COPY apps/web/. ./apps/web/
 COPY apps/admin/. ./apps/admin/
 COPY packages/web-kit/. ./packages/web-kit/
 RUN VITE_COMMIT_SHA="${VITE_COMMIT_SHA}" \
     VITE_BUILD_TIME="${VITE_BUILD_TIME}" \
-    pnpm --filter auth-login --filter auth-admin build
+    pnpm --filter auth-web --filter auth-admin build
 
 FROM caddy:2.7.4
-COPY --from=builder /app/apps/login/dist /dist
+COPY --from=builder /app/apps/web/dist /dist
 COPY --from=builder /app/apps/admin/dist /admin
 COPY deploy/web/Caddyfile /etc/caddy/Caddyfile

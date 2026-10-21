@@ -9,7 +9,7 @@
   },
   "scripts": {
     "dev": "pnpm dev:web",
-    "dev:web": "pnpm --filter auth-login dev",
+    "dev:web": "pnpm --filter auth-web dev",
     "dev:admin": "pnpm --filter auth-admin dev",
     "dev:web-kit": "pnpm --filter @novelia/web-kit dev",
     "build": "pnpm --stream -r run build",

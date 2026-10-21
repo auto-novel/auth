@@ -11,7 +11,7 @@ on:
       - package.json
       - pnpm-lock.yaml
       - pnpm-workspace.yaml
-      - apps/login/**
+      - apps/web/**
       - apps/admin/**
       - packages/web-kit/**
 
@@ -45,8 +45,8 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Type-check and build
-        run: pnpm --stream --filter 'auth-login...' --filter 'auth-admin...' run build
+        run: pnpm --stream --filter 'auth-web...' --filter 'auth-admin...' run build
 
       - name: Test
         run: |
-          pnpm --stream --filter 'auth-login...' --filter 'auth-admin...' --if-present run test
+          pnpm --stream --filter 'auth-web...' --filter 'auth-admin...' --if-present run test

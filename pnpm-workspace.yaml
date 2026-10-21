@@ -1,6 +1,6 @@
 packages:
   - apps/admin
-  - apps/login
+  - apps/web
   - packages/*
 
 allowBuilds:

@@ -54,7 +54,7 @@ importers:
         specifier: ^25.9.5
         version: 25.9.5
 
-  apps/login:
+  apps/web:
     dependencies:
       '@csstools/postcss-cascade-layers':
         specifier: ^5.0.2
