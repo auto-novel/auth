@@ -16,7 +16,10 @@ const shortCommit = computed(() => props.commitSha.slice(0, 12) || 'unknown');
 <template>
   <div class="grid min-w-0 gap-1">
     <div class="sidebar-build-info-item min-w-0">
-      <AccessTimeOutlined class="size-[15px] flex-none" aria-hidden="true" />
+      <AccessTimeOutlined
+        class="sidebar-build-info-icon size-4 flex-none"
+        aria-hidden="true"
+      />
       <span class="flex-none">构建于</span>
       <XTime
         class="truncate text-ink"
@@ -25,7 +28,10 @@ const shortCommit = computed(() => props.commitSha.slice(0, 12) || 'unknown');
       />
     </div>
     <div class="sidebar-build-info-item min-w-0">
-      <CommitOutlined class="size-4 flex-none" aria-hidden="true" />
+      <CommitOutlined
+        class="sidebar-build-info-icon size-4 flex-none"
+        aria-hidden="true"
+      />
       <span class="flex-none">Commit</span>
       <a
         v-if="commitUrl"
@@ -45,9 +51,15 @@ const shortCommit = computed(() => props.commitSha.slice(0, 12) || 'unknown');
 <style scoped>
 .sidebar-build-info-item {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: 5px;
   line-height: 16px;
+}
+
+.sidebar-build-info-icon {
+  align-self: center;
+  /* 按文字的视觉中心对齐，而非包含下行留白的行框中心。 */
+  transform: translateY(1px);
 }
 
 .commit-value {
