@@ -144,8 +144,8 @@ defineExpose({ reset });
 </script>
 
 <template>
-  <div class="relative min-h-[65px] w-full" :aria-busy="loading">
-    <div ref="container"></div>
+  <div class="relative min-h-16.25 w-full" :aria-busy="loading">
+    <div ref="container" class="leading-0"></div>
     <p
       v-if="loading"
       role="status"
