@@ -9,6 +9,14 @@ const pages = [
     component: () => import('./components/AutoCompleteView.vue'),
   },
   {
+    englishName: 'Button',
+    slug: 'button',
+    title: '按钮 · XButton',
+    label: '按钮 Button',
+    description: '语义色、外观组合、紧凑尺寸与禁用和加载状态。',
+    component: () => import('./components/ButtonView.vue'),
+  },
+  {
     englishName: 'ConfirmDialog',
     slug: 'confirm-dialog',
     title: '确认框 · XConfirmDialog',

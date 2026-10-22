@@ -1,20 +1,11 @@
 <script setup lang="ts">
-import {
-  Toast,
-  XButton,
-  XTime,
-  XTooltip,
-  type XButtonColor,
-  type XButtonVariant,
-} from '@novelia/web-kit';
+import { XButton, XTime, XTooltip } from '@novelia/web-kit';
 import { RouterLink } from 'vue-router';
 
 import { componentPages } from './componentPages';
 
 const sampleTime = new Date('2025-06-05T15:04:30+08:00');
 const relativeBase = new Date('2025-06-05T15:07:30+08:00');
-const colors: XButtonColor[] = ['primary', 'neutral', 'danger', 'warning'];
-const variants: XButtonVariant[] = ['solid', 'soft', 'outline', 'ghost'];
 </script>
 
 <template>
@@ -38,35 +29,6 @@ const variants: XButtonVariant[] = ['solid', 'soft', 'outline', 'ghost'];
           <h3 class="mb-2 font-medium">{{ item.title }} →</h3>
           <p class="text-sm leading-6 text-muted">{{ item.description }}</p>
         </RouterLink>
-      </div>
-    </section>
-
-    <section aria-labelledby="test-buttons">
-      <h2 id="test-buttons" class="mb-2 font-medium">按钮 · XButton</h2>
-      <p class="mb-4 text-sm text-muted">
-        悬停查看 hover 色，使用 Tab 检查 focus-visible；每种语义色展示
-        solid、soft、outline、ghost，以及紧凑、禁用和加载状态，加载时保留文字并禁止点击。
-      </p>
-      <div class="grid gap-3 sm:grid-cols-2">
-        <div
-          v-for="color in colors"
-          :key="color"
-          class="flex flex-wrap items-center gap-3 rounded-sm border border-border p-3"
-        >
-          <code class="w-24 text-xs text-muted">{{ color }}</code>
-          <XButton
-            v-for="variant in variants"
-            :key="variant"
-            :color="color"
-            :variant="variant"
-            @click="Toast.success(`点击了 ${color} ${variant} 按钮`)"
-          >
-            {{ variant }}
-          </XButton>
-          <XButton :color="color" variant="soft" size="tiny">紧凑按钮</XButton>
-          <XButton :color="color" disabled>禁用</XButton>
-          <XButton :color="color" loading>加载中</XButton>
-        </div>
       </div>
     </section>
 

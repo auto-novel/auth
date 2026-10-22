@@ -10,6 +10,7 @@ test('playground pages share unique route identities and English alphabetical or
       'AspectRatio',
       'AsyncContent',
       'AutoComplete',
+      'Button',
       'ConfirmDialog',
       'Dialog',
       'Drawer',
