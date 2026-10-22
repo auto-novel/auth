@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { XButton, XPagination, XSelect } from '@novelia/web-kit';
-import { NCard, NEmpty, NSkeleton, NSpin } from 'naive-ui';
+import { NCard, NEmpty, NSpin } from 'naive-ui';
 import { computed } from 'vue';
 
 import type { Event } from '@/api';
@@ -67,9 +67,17 @@ function changePageSize(value: string) {
       <div
         v-if="loading && !events.length"
         class="px-4 [@media(max-width:767px)]:px-2.5"
+        role="status"
       >
-        <div v-for="index in 6" :key="index" class="skeleton-row py-3">
-          <n-skeleton text :repeat="2" />
+        <span class="sr-only">正在加载事件列表…</span>
+        <div
+          v-for="index in 6"
+          :key="index"
+          class="skeleton-row flex flex-col gap-2 py-3"
+          aria-hidden="true"
+        >
+          <div class="skeleton h-3.5 w-full" />
+          <div class="skeleton h-3.5 w-3/5" />
         </div>
       </div>
       <n-spin v-else :show="loading">
