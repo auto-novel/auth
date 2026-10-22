@@ -1,13 +1,14 @@
 import { tv } from 'tailwind-variants';
 
 export const buttonVariants = tv({
-  base: 'inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-50',
+  base: 'inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-50 aria-disabled:cursor-not-allowed aria-disabled:opacity-50',
   variants: {
     variant: {
       primary: 'bg-primary text-on-primary hover:bg-primary-hover',
       outline:
         'border border-border text-muted hover:border-primary hover:text-primary',
       danger: 'bg-error text-on-error hover:bg-error-hover',
+      warning: 'bg-warning text-on-warning hover:bg-warning-hover',
       ghost: 'text-muted hover:bg-paper hover:text-primary',
     },
     size: {

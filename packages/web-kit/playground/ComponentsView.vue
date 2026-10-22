@@ -12,7 +12,13 @@ import { componentPages } from './componentPages';
 
 const sampleTime = new Date('2025-06-05T15:04:30+08:00');
 const relativeBase = new Date('2025-06-05T15:07:30+08:00');
-const variants: XButtonVariant[] = ['primary', 'outline', 'danger', 'ghost'];
+const variants: XButtonVariant[] = [
+  'primary',
+  'outline',
+  'danger',
+  'warning',
+  'ghost',
+];
 </script>
 
 <template>
@@ -42,7 +48,8 @@ const variants: XButtonVariant[] = ['primary', 'outline', 'danger', 'ghost'];
     <section aria-labelledby="test-buttons">
       <h2 id="test-buttons" class="mb-2 font-medium">按钮 · XButton</h2>
       <p class="mb-4 text-sm text-muted">
-        悬停查看 hover 色，使用 Tab 检查 focus-visible；右侧为禁用状态。
+        悬停查看 hover 色，使用 Tab 检查
+        focus-visible；每种变体展示正常、禁用和加载状态，加载时保留文字并禁止点击。
       </p>
       <div class="grid gap-3 sm:grid-cols-2">
         <div
@@ -58,6 +65,7 @@ const variants: XButtonVariant[] = ['primary', 'outline', 'danger', 'ghost'];
             示例按钮
           </XButton>
           <XButton :variant="variant" disabled>禁用</XButton>
+          <XButton :variant="variant" loading>加载中</XButton>
         </div>
       </div>
     </section>

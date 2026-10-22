@@ -26,6 +26,8 @@
   --color-error-border: rgb(208 48 80 / 30%);
   --color-on-error: #ffffff;
   --color-warning: #b45309;
+  --color-warning-hover: #92400e;
+  --color-on-warning: #ffffff;
   --color-warning-soft: rgb(180 83 9 / 10%);
   --radius-floating: 3px;
   --shadow-floating:
@@ -73,6 +75,8 @@
     --color-error-border: rgb(232 128 128 / 30%);
     --color-on-error: #0b0b0d;
     --color-warning: #f2c97d;
+    --color-warning-hover: #e6b867;
+    --color-on-warning: #0b0b0d;
     --color-warning-soft: rgb(242 201 125 / 15%);
     --shadow-floating:
       0 3px 6px -4px rgb(0 0 0 / 24%), 0 6px 12px rgb(0 0 0 / 16%),
