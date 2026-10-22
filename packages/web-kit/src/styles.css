@@ -10,6 +10,8 @@
 @theme {
   --color-paper: #f7f7f8;
   --color-surface: #ffffff;
+  /* 嵌入式静态内容背景，与交互悬停底色区分。 */
+  --color-embedded: #fafafc;
   --color-body: #ffffff;
   --color-popover: #ffffff;
   --color-modal: #ffffff;
@@ -113,7 +115,7 @@
   );
   --color-on-info: #ffffff;
 
-  --color-warning: #b45309;
+  --color-warning: #f0a020;
   --color-warning-hover: color-mix(
     in srgb,
     var(--color-warning) 90%,
@@ -240,6 +242,7 @@
     color-scheme: dark;
     --color-paper: #101014;
     --color-surface: #18181c;
+    --color-embedded: rgb(255 255 255 / 6%);
     --color-body: #101014;
     --color-popover: #48484e;
     --color-modal: #2c2c32;
