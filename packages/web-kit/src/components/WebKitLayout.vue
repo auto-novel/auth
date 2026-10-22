@@ -141,7 +141,7 @@ watch(
         </button>
         <div class="ml-auto flex min-w-0 flex-none items-center gap-1">
           <div
-            v-if="isMobile && $slots['header-actions']"
+            v-if="$slots['header-actions']"
             class="flex flex-none items-center gap-2"
           >
             <slot name="header-actions" />

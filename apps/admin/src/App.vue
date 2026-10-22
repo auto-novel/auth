@@ -7,6 +7,7 @@ import {
   SettingsOutlined,
 } from '@vicons/material';
 import {
+  AdminSiteSwitcher,
   WebKitApp,
   WebKitLayout,
   type WebKitMenuOption,
@@ -63,6 +64,9 @@ const menuOptions: WebKitMenuOption[] = [
         :account-options="[]"
         :selected-navigation-key="String(route.name ?? '')"
       >
+        <template #header-actions>
+          <AdminSiteSwitcher current="auth" />
+        </template>
         <div class="page-container py-4 md:py-6">
           <RouterView v-if="whoami.isAdmin" />
           <NResult
