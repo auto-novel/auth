@@ -67,7 +67,7 @@ const open = ref(false);
     :size="360"
   >
     <template #trigger>
-      <XButton variant="outline">编辑资料</XButton>
+      <XButton color="neutral" variant="outline">编辑资料</XButton>
     </template>
     <div class="min-h-0 flex-1 overflow-y-auto p-6">
       <h2 class="mb-4 text-lg font-medium">编辑资料</h2>
@@ -99,18 +99,18 @@ const open = ref(false);
 
 const headerCode = `<XDrawer v-model:open="open" title="编辑资料" show-header :size="360">
   <template #trigger>
-    <XButton variant="outline">编辑资料</XButton>
+    <XButton color="neutral" variant="outline">编辑资料</XButton>
   </template>
   <!-- 不传 action 时，仅显示 title。 -->
   <template #action>
-    <XButton variant="ghost" size="sm" @click="open = false">关闭</XButton>
+    <XButton color="neutral" variant="ghost" size="sm" @click="open = false">关闭</XButton>
   </template>
   <div class="min-h-0 flex-1 overflow-y-auto p-6">表单内容</div>
 </XDrawer>`;
 
 const customHeaderCode = `<XDrawer v-model:open="open" title="筛选条件" :size="360">
   <template #trigger>
-    <XButton variant="outline">筛选条件</XButton>
+    <XButton color="neutral" variant="outline">筛选条件</XButton>
   </template>
   <!-- header 替换整个标题栏内容，不会再渲染默认 title 或 action。 -->
   <template #header>
@@ -118,7 +118,7 @@ const customHeaderCode = `<XDrawer v-model:open="open" title="筛选条件" :siz
       <h2 class="text-lg font-medium">筛选条件</h2>
       <p class="text-xs text-muted">仅查看符合条件的结果</p>
     </div>
-    <XButton variant="ghost" size="sm" @click="open = false">关闭</XButton>
+    <XButton color="neutral" variant="ghost" size="sm" @click="open = false">关闭</XButton>
   </template>
   <div class="min-h-0 flex-1 overflow-y-auto p-6">筛选内容</div>
 </XDrawer>`;
@@ -219,7 +219,9 @@ const props = [
           :size="side === 'left' || side === 'right' ? panelWidth : panelHeight"
         >
           <template #trigger>
-            <XButton variant="outline">打开抽屉 · {{ side }}</XButton>
+            <XButton color="neutral" variant="outline">
+              打开抽屉 · {{ side }}
+            </XButton>
           </template>
           <div class="min-h-0 flex-1 overflow-y-auto p-6">
             <h3 class="text-lg font-medium">四方向抽屉示例</h3>
@@ -257,7 +259,7 @@ const props = [
         true；关闭仍由受控状态驱动，可检查焦点恢复到此按钮。
       </p>
       <div class="flex flex-wrap items-center gap-3">
-        <XButton variant="outline" @click="externalOpen = true">
+        <XButton color="neutral" variant="outline" @click="externalOpen = true">
           从外部打开
         </XButton>
         <span class="text-xs text-muted">externalOpen：{{ externalOpen }}</span>
@@ -304,7 +306,7 @@ const props = [
           :size="360"
         >
           <template #trigger>
-            <XButton variant="outline">默认标题栏</XButton>
+            <XButton color="neutral" variant="outline">默认标题栏</XButton>
           </template>
           <div class="min-h-0 flex-1 overflow-y-auto p-6">
             <p class="mb-4 text-sm text-muted">
@@ -320,10 +322,15 @@ const props = [
           :size="360"
         >
           <template #trigger>
-            <XButton variant="outline">标题栏操作区</XButton>
+            <XButton color="neutral" variant="outline">标题栏操作区</XButton>
           </template>
           <template #action>
-            <XButton variant="ghost" size="sm" @click="actionOpen = false">
+            <XButton
+              color="neutral"
+              variant="ghost"
+              size="sm"
+              @click="actionOpen = false"
+            >
               关闭
             </XButton>
           </template>
@@ -339,7 +346,7 @@ const props = [
         </XDrawer>
         <XDrawer v-model:open="customHeaderOpen" title="筛选条件" :size="360">
           <template #trigger>
-            <XButton variant="outline">自定义标题栏</XButton>
+            <XButton color="neutral" variant="outline">自定义标题栏</XButton>
           </template>
           <template #header>
             <div>
@@ -347,6 +354,7 @@ const props = [
               <p class="text-xs text-muted">仅查看符合条件的结果</p>
             </div>
             <XButton
+              color="neutral"
               variant="ghost"
               size="sm"
               @click="customHeaderOpen = false"
@@ -389,7 +397,7 @@ const props = [
         :size="360"
       >
         <template #trigger>
-          <XButton variant="outline">检查嵌套弹层</XButton>
+          <XButton color="neutral" variant="outline">检查嵌套弹层</XButton>
         </template>
         <div class="space-y-4 p-6">
           <XSelect
@@ -408,12 +416,16 @@ const props = [
                 aria-label="Dialog 内选项"
               />
               <div class="flex flex-wrap items-center gap-3">
-                <XButton variant="outline" @click="layerConfirmOpen = true">
+                <XButton
+                  color="neutral"
+                  variant="outline"
+                  @click="layerConfirmOpen = true"
+                >
                   打开确认框
                 </XButton>
                 <XDropdownMenu>
                   <template #trigger>
-                    <XButton variant="ghost">更多操作</XButton>
+                    <XButton color="neutral" variant="ghost">更多操作</XButton>
                   </template>
                   <XDropdownMenuItem @select="layerConfirmOpen = true">
                     从菜单确认
@@ -421,7 +433,7 @@ const props = [
                 </XDropdownMenu>
                 <XTooltip>
                   <template #trigger>
-                    <XButton variant="ghost">提示</XButton>
+                    <XButton color="neutral" variant="ghost">提示</XButton>
                   </template>
                   提示应显示在 Dialog 上方
                 </XTooltip>
@@ -432,25 +444,39 @@ const props = [
                   :size="320"
                 >
                   <template #trigger>
-                    <XButton variant="outline">再开抽屉</XButton>
+                    <XButton color="neutral" variant="outline">
+                      再开抽屉
+                    </XButton>
                   </template>
                   <div class="space-y-4 p-6">
                     <p class="text-sm text-muted">反向嵌套也应位于最上方。</p>
                     <XButton @click="layerConfirmOpen = true">
                       打开确认框
                     </XButton>
-                    <XButton variant="outline" @click="innerDrawerOpen = false">
+                    <XButton
+                      color="neutral"
+                      variant="outline"
+                      @click="innerDrawerOpen = false"
+                    >
                       关闭本层抽屉
                     </XButton>
                   </div>
                 </XDrawer>
               </div>
-              <XButton variant="outline" @click="layerDialogOpen = false">
+              <XButton
+                color="neutral"
+                variant="outline"
+                @click="layerDialogOpen = false"
+              >
                 关闭 Dialog
               </XButton>
             </div>
           </XDialog>
-          <XButton variant="outline" @click="layerDrawerOpen = false">
+          <XButton
+            color="neutral"
+            variant="outline"
+            @click="layerDrawerOpen = false"
+          >
             关闭第一层抽屉
           </XButton>
         </div>

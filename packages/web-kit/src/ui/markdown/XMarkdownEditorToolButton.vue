@@ -14,6 +14,7 @@ defineProps<XMarkdownEditorToolButtonProps>();
       <XButton
         v-bind="{ ...$attrs, class: undefined }"
         type="button"
+        color="neutral"
         variant="ghost"
         size="icon-sm"
         :disabled="disabled"

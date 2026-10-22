@@ -179,18 +179,20 @@ const result = await Toast.promise(saveSettings(), {
           成功
         </XButton>
         <XButton
-          variant="danger"
+          color="danger"
           @click="track(Toast.error('操作失败，请稍后重试'))"
         >
           错误
         </XButton>
         <XButton
+          color="neutral"
           variant="outline"
           @click="track(Toast.info('有新的内容可供查看'))"
         >
           信息
         </XButton>
         <XButton
+          color="neutral"
           variant="outline"
           @click="track(Toast.warning('继续操作前请检查配置'))"
         >
@@ -209,6 +211,7 @@ const result = await Toast.promise(saveSettings(), {
       </p>
       <div class="flex flex-wrap gap-3">
         <XButton
+          color="neutral"
           variant="outline"
           @click="
             track(Toast.info('这条通知将在 1 秒后关闭', { duration: 1000 }))
@@ -217,6 +220,7 @@ const result = await Toast.promise(saveSettings(), {
           短时 · 1 秒
         </XButton>
         <XButton
+          color="neutral"
           variant="outline"
           @click="
             track(
@@ -229,6 +233,7 @@ const result = await Toast.promise(saveSettings(), {
           长时 · 8 秒
         </XButton>
         <XButton
+          color="neutral"
           variant="outline"
           @click="
             track(Toast.success('导入完成\n成功：24 条\n跳过：2 条重复记录'))
@@ -237,6 +242,7 @@ const result = await Toast.promise(saveSettings(), {
           多行内容
         </XButton>
         <XButton
+          color="neutral"
           variant="outline"
           @click="
             track(
@@ -250,8 +256,10 @@ const result = await Toast.promise(saveSettings(), {
         >
           长文本
         </XButton>
-        <XButton variant="outline" @click="showStack">连续显示三条</XButton>
-        <XButton variant="ghost" @click="Toast.dismissAll()">
+        <XButton color="neutral" variant="outline" @click="showStack">
+          连续显示三条
+        </XButton>
+        <XButton color="neutral" variant="ghost" @click="Toast.dismissAll()">
           关闭全部通知
         </XButton>
       </div>
@@ -269,10 +277,11 @@ const result = await Toast.promise(saveSettings(), {
         ID；更新后改为成功状态并重新计时。日志区分关闭和动画结束后的移除。
       </p>
       <div class="mb-3 flex flex-wrap gap-3">
-        <XButton variant="outline" @click="showEditable">
+        <XButton color="neutral" variant="outline" @click="showEditable">
           {{ editableId ? '同 ID 更新' : '创建常驻通知' }}
         </XButton>
         <XButton
+          color="neutral"
           variant="outline"
           :disabled="!editableId"
           @click="updateEditable"
@@ -280,13 +289,19 @@ const result = await Toast.promise(saveSettings(), {
           更新为成功 · 3 秒
         </XButton>
         <XButton
+          color="neutral"
           variant="outline"
           :disabled="!editableId"
           @click="editableId && Toast.dismiss(editableId)"
         >
           关闭此条
         </XButton>
-        <XButton variant="ghost" :disabled="!logs.length" @click="logs = []">
+        <XButton
+          color="neutral"
+          variant="ghost"
+          :disabled="!logs.length"
+          @click="logs = []"
+        >
           清空日志
         </XButton>
       </div>
@@ -325,6 +340,7 @@ const result = await Toast.promise(saveSettings(), {
           开始模拟请求
         </XButton>
         <XButton
+          color="neutral"
           variant="outline"
           :disabled="!pending"
           @click="finishOperation?.(false)"
@@ -332,7 +348,7 @@ const result = await Toast.promise(saveSettings(), {
           模拟成功
         </XButton>
         <XButton
-          variant="danger"
+          color="danger"
           :disabled="!pending"
           @click="finishOperation?.(true)"
         >

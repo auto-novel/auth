@@ -12,14 +12,16 @@ test('Button defaults preserve theme colors and independent text utilities', () 
   const result = classes(buttonVariants());
   for (const name of [
     'rounded-sm',
-    'bg-primary',
-    'text-on-primary',
-    'hover:bg-primary-hover',
+    '[--button-color:var(--color-primary)]',
+    '[--button-on:var(--color-on-primary)]',
+    'bg-[var(--button-color)]',
+    'text-[color:var(--button-on)]',
+    'hover:bg-[var(--button-hover)]',
     'min-h-10',
     'text-sm',
     'font-medium',
     'focus-visible:outline-2',
-    'focus-visible:outline-primary',
+    'focus-visible:outline-[color:var(--button-color)]',
   ]) {
     assert.ok(result.has(name), name);
   }
@@ -28,7 +30,7 @@ test('Button defaults preserve theme colors and independent text utilities', () 
 test('Button caller classes override variants without dropping theme utilities', () => {
   const result = classes(
     buttonVariants({
-      variant: 'danger',
+      color: 'danger',
       size: 'sm',
       class: 'px-8 bg-paper hover:bg-primary text-lg',
     }),
@@ -38,12 +40,67 @@ test('Button caller classes override variants without dropping theme utilities',
     'bg-paper',
     'hover:bg-primary',
     'text-lg',
-    'text-on-error',
+    'text-[color:var(--button-on)]',
+    '[--button-on:var(--color-on-error)]',
   ]) {
     assert.ok(result.has(name), name);
   }
-  for (const name of ['px-3', 'bg-error', 'hover:bg-error-hover', 'text-sm']) {
+  for (const name of [
+    'px-3',
+    'bg-[var(--button-color)]',
+    'hover:bg-[var(--button-hover)]',
+    'text-sm',
+  ]) {
     assert.ok(!result.has(name), name);
+  }
+});
+
+test('Button colors compose independently with every appearance', () => {
+  for (const [color, token] of [
+    ['primary', 'primary'],
+    ['danger', 'error'],
+    ['warning', 'warning'],
+  ]) {
+    for (const variant of ['solid', 'soft', 'outline', 'ghost']) {
+      const result = classes(buttonVariants({ color, variant }));
+      assert.ok(result.has(`[--button-color:var(--color-${token})]`));
+      assert.ok(result.has(`[--button-on:var(--color-on-${token})]`));
+      assert.ok(
+        result.has('focus-visible:outline-[color:var(--button-color)]'),
+      );
+      assert.ok(
+        result.has(
+          `text-[color:var(--button-${variant === 'solid' ? 'on' : 'color'})]`,
+        ),
+      );
+      assert.equal(result.has('border'), variant === 'outline');
+      assert.equal(
+        result.has('border-[color:var(--button-color)]/50'),
+        variant === 'outline',
+      );
+      assert.equal(result.has('bg-[var(--button-color)]'), variant === 'solid');
+      assert.equal(
+        result.has('bg-[var(--button-color)]/16'),
+        variant === 'soft',
+      );
+      if (color !== 'primary')
+        assert.ok(!result.has('[--button-color:var(--color-primary)]'));
+    }
+  }
+  for (const variant of ['solid', 'soft', 'outline', 'ghost']) {
+    const result = classes(buttonVariants({ color: 'neutral', variant }));
+    assert.ok(result.has('[--button-color:var(--color-ink)]'));
+    assert.equal(result.has('border'), variant === 'outline');
+    assert.equal(result.has('border-border'), variant === 'outline');
+    assert.equal(result.has('bg-[var(--button-color)]'), variant === 'solid');
+    assert.equal(result.has('bg-button-neutral'), variant === 'soft');
+    assert.equal(
+      result.has('text-muted'),
+      variant === 'outline' || variant === 'ghost',
+    );
+    assert.ok(!result.has('bg-[var(--button-color)]/16'));
+    assert.ok(!result.has('hover:bg-[var(--button-color)]/10'));
+    assert.ok(!result.has('border-[color:var(--button-color)]/50'));
   }
 });
 

@@ -12,12 +12,12 @@ const lockedOpen = ref(false);
 const code = `<XDialog v-model:open="open" title="编辑资料" description="填写名称后保存。"
   class="w-xl">
   <template #trigger>
-    <XButton variant="outline">编辑资料</XButton>
+    <XButton color="neutral" variant="outline">编辑资料</XButton>
   </template>
   <!-- 标题和描述已默认可见，正文无需重复添加。 -->
   <label class="flex flex-col gap-2">名称<input /></label>
   <template #footer>
-    <XButton variant="outline" @click="open = false">取消</XButton>
+    <XButton color="neutral" variant="outline" @click="open = false">取消</XButton>
     <XButton @click="open = false">保存</XButton>
   </template>
 </XDialog>`;
@@ -43,7 +43,7 @@ const code = `<XDialog v-model:open="open" title="编辑资料" description="填
         class="w-xl"
       >
         <template #trigger>
-          <XButton variant="outline">编辑资料</XButton>
+          <XButton color="neutral" variant="outline">编辑资料</XButton>
         </template>
         <form id="dialog-profile-form" @submit.prevent="open = false">
           <label class="flex flex-col gap-2 text-sm">
@@ -56,7 +56,9 @@ const code = `<XDialog v-model:open="open" title="编辑资料" description="填
           </label>
         </form>
         <template #footer>
-          <XButton variant="outline" @click="open = false">取消</XButton>
+          <XButton color="neutral" variant="outline" @click="open = false">
+            取消
+          </XButton>
           <XButton type="submit" form="dialog-profile-form">保存</XButton>
         </template>
       </XDialog>
@@ -75,7 +77,7 @@ const code = `<XDialog v-model:open="open" title="编辑资料" description="填
         class="h-[32rem] w-2xl"
       >
         <template #trigger>
-          <XButton variant="outline">查看长正文</XButton>
+          <XButton color="neutral" variant="outline">查看长正文</XButton>
         </template>
         <div class="space-y-4 text-sm leading-6 text-muted">
           <p v-for="item in 16" :key="item">
@@ -98,7 +100,7 @@ const code = `<XDialog v-model:open="open" title="编辑资料" description="填
       </p>
       <XDialog v-model:open="slotsOpen">
         <template #trigger>
-          <XButton variant="outline">自定义标题与描述</XButton>
+          <XButton color="neutral" variant="outline">自定义标题与描述</XButton>
         </template>
         <template #title>
           发布预览
@@ -132,7 +134,7 @@ const code = `<XDialog v-model:open="open" title="编辑资料" description="填
         :scrollable="false"
       >
         <template #trigger>
-          <XButton variant="outline">查看自定义滚动</XButton>
+          <XButton color="neutral" variant="outline">查看自定义滚动</XButton>
         </template>
         <div
           class="flex shrink-0 items-center justify-between border-b border-divider px-5 py-3"
@@ -140,6 +142,7 @@ const code = `<XDialog v-model:open="open" title="编辑资料" description="填
           <span class="text-sm font-medium">固定工具栏</span>
           <XButton
             size="sm"
+            color="neutral"
             variant="outline"
             @click="customScrollOpen = false"
           >
@@ -176,7 +179,7 @@ const code = `<XDialog v-model:open="open" title="编辑资料" description="填
         :closable="false"
       >
         <template #trigger>
-          <XButton variant="outline">打开无标题确认</XButton>
+          <XButton color="neutral" variant="outline">打开无标题确认</XButton>
         </template>
         <p class="text-sm leading-6 text-muted">
           尝试点击遮罩或按 Escape，对话框会保持打开。请使用下方按钮结束操作。
@@ -202,7 +205,7 @@ const code = `<XDialog v-model:open="open" title="编辑资料" description="填
         full-screen
       >
         <template #trigger>
-          <XButton variant="outline">打开全屏工作区</XButton>
+          <XButton color="neutral" variant="outline">打开全屏工作区</XButton>
         </template>
         <header class="shrink-0 border-b border-divider px-6 py-4 pr-16">
           <h2 class="font-medium">全屏工作区</h2>

@@ -93,6 +93,7 @@ function jumpToPage() {
           页
         </label>
         <XButton
+          color="neutral"
           variant="outline"
           size="sm"
           :class="mergeClasses(ui.button)"

@@ -136,15 +136,18 @@ watch([theme.theme, theme.override], readThemeValues, { flush: 'post' });
           <XButton
             v-for="option in preferenceOptions"
             :key="option.value"
+            :color="
+              theme.preference.value === option.value ? 'primary' : 'neutral'
+            "
             :variant="
-              theme.preference.value === option.value ? 'primary' : 'outline'
+              theme.preference.value === option.value ? 'solid' : 'outline'
             "
             @click="theme.setPreference(option.value)"
           >
             {{ option.label }}
           </XButton>
         </div>
-        <XButton variant="outline" @click="theme.toggleTheme">
+        <XButton color="neutral" variant="outline" @click="theme.toggleTheme">
           当前：{{ theme.isDark.value ? '深色' : '浅色' }} · 切换主题
         </XButton>
       </div>

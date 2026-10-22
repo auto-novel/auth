@@ -146,6 +146,7 @@ export type {
   XAsyncContentUi,
 } from './ui/async-content/types';
 export type {
+  XButtonColor,
   XButtonProps,
   XButtonSize,
   XButtonVariant,

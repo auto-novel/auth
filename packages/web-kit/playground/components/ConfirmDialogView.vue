@@ -17,7 +17,7 @@ function confirm() {
 const menuAlignments = ['start', 'end'] as const;
 const code = `<XDropdownMenu align="end">
   <template #trigger>
-    <XButton variant="ghost">更多操作</XButton>
+    <XButton color="neutral" variant="ghost">更多操作</XButton>
   </template>
   <XDropdownMenuItem @select="edit">编辑</XDropdownMenuItem>
   <XDropdownMenuItem destructive @select="confirmOpen = true">删除</XDropdownMenuItem>
@@ -51,7 +51,7 @@ const code = `<XDropdownMenu align="end">
           <span class="text-sm text-muted">{{ align }} 对齐</span>
           <XDropdownMenu :align="align">
             <template #trigger>
-              <XButton variant="ghost">更多操作</XButton>
+              <XButton color="neutral" variant="ghost">更多操作</XButton>
             </template>
             <XDropdownMenuItem @select="Toast.success('已选择编辑')">
               编辑
@@ -70,7 +70,7 @@ const code = `<XDropdownMenu align="end">
       <p class="mb-4 text-sm text-muted">
         检查打开、取消和确认流程，此示例不会删除实际数据。
       </p>
-      <XButton variant="danger" @click="confirmOpen = true">打开确认框</XButton>
+      <XButton color="danger" @click="confirmOpen = true">打开确认框</XButton>
       <XConfirmDialog
         v-model:open="confirmOpen"
         title="删除示例"

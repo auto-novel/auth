@@ -25,6 +25,9 @@
   --color-error-surface: #faeaee;
   --color-error-border: rgb(208 48 80 / 30%);
   --color-on-error: #ffffff;
+  --color-button-neutral: rgb(46 51 56 / 5%);
+  --color-button-neutral-hover: rgb(46 51 56 / 9%);
+  --color-button-neutral-pressed: rgb(46 51 56 / 13%);
   --color-warning: #b45309;
   --color-warning-hover: #92400e;
   --color-on-warning: #ffffff;
@@ -74,6 +77,9 @@
     --color-error-surface: #37282b;
     --color-error-border: rgb(232 128 128 / 30%);
     --color-on-error: #0b0b0d;
+    --color-button-neutral: rgb(255 255 255 / 8%);
+    --color-button-neutral-hover: rgb(255 255 255 / 12%);
+    --color-button-neutral-pressed: rgb(255 255 255 / 16%);
     --color-warning: #f2c97d;
     --color-warning-hover: #e6b867;
     --color-on-warning: #0b0b0d;

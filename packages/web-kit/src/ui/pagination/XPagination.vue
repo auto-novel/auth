@@ -128,7 +128,12 @@ watch([() => props.page, () => props.totalPages], () => {
     @update:page="$emit('update:page', $event)"
   >
     <PaginationPrev as-child>
-      <XButton variant="ghost" size="sm" :class="mergeClasses(ui.prev)">
+      <XButton
+        color="neutral"
+        variant="ghost"
+        size="sm"
+        :class="mergeClasses(ui.prev)"
+      >
         上一页
       </XButton>
     </PaginationPrev>
@@ -147,6 +152,7 @@ watch([() => props.page, () => props.totalPages], () => {
       @change="$emit('update:page', $event)"
     >
       <XButton
+        color="neutral"
         variant="ghost"
         size="sm"
         :class="mergeClasses('text-xs text-muted sm:hidden', ui.summary)"
@@ -168,6 +174,7 @@ watch([() => props.page, () => props.totalPages], () => {
           as-child
         >
           <XButton
+            color="neutral"
             variant="ghost"
             size="icon-sm"
             :class="
@@ -195,6 +202,7 @@ watch([() => props.page, () => props.totalPages], () => {
           @change="$emit('update:page', $event)"
         >
           <XButton
+            color="neutral"
             variant="ghost"
             size="icon-sm"
             :class="mergeClasses('text-xs text-muted', ui.ellipsis)"
@@ -208,7 +216,12 @@ watch([() => props.page, () => props.totalPages], () => {
     </PaginationList>
 
     <PaginationNext as-child>
-      <XButton variant="ghost" size="sm" :class="mergeClasses(ui.next)">
+      <XButton
+        color="neutral"
+        variant="ghost"
+        size="sm"
+        :class="mergeClasses(ui.next)"
+      >
         下一页
       </XButton>
     </PaginationNext>

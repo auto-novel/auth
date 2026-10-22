@@ -61,7 +61,7 @@ const code = `const open = ref(false);
   :modal="false"
 >
   <template #trigger="{ open: isOpen }">
-    <XButton variant="outline">
+    <XButton color="neutral" variant="outline">
       {{ isOpen ? '收起操作' : '打开操作' }}
     </XButton>
   </template>
@@ -107,8 +107,12 @@ const code = `const open = ref(false);
         </label>
       </div>
       <div class="flex flex-wrap items-center gap-3">
-        <XButton variant="outline" @click="open = true">外部打开</XButton>
-        <XButton variant="outline" @click="open = false">外部关闭</XButton>
+        <XButton color="neutral" variant="outline" @click="open = true">
+          外部打开
+        </XButton>
+        <XButton color="neutral" variant="outline" @click="open = false">
+          外部关闭
+        </XButton>
         <XDropdownMenu
           v-model:open="open"
           :side="side"
@@ -118,7 +122,7 @@ const code = `const open = ref(false);
           aria-label="项目操作"
         >
           <template #trigger="{ open: isOpen }">
-            <XButton variant="outline">
+            <XButton color="neutral" variant="outline">
               {{ isOpen ? '收起操作' : '打开操作' }}
               <span aria-hidden="true">▾</span>
             </XButton>
@@ -159,7 +163,9 @@ const code = `const open = ref(false);
       </p>
       <XDropdownMenu disabled>
         <template #trigger>
-          <XButton variant="outline" disabled>操作不可用</XButton>
+          <XButton color="neutral" variant="outline" disabled>
+            操作不可用
+          </XButton>
         </template>
         <XDropdownMenuItem>不可触发的菜单项</XDropdownMenuItem>
       </XDropdownMenu>

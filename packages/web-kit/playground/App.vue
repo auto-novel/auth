@@ -97,6 +97,7 @@ const accountOptions: WebKitMenuOption[] = [
         <XButton
           :as="RouterLink"
           to="/theme"
+          color="neutral"
           variant="ghost"
           size="icon"
           aria-label="主题测试"

@@ -30,13 +30,33 @@ test('Button normalizes caller classes and merges them once while forwarding att
   const classes = html.match(/class="([^"]*)"/)[1].split(/\s+/);
   assert.equal(classes.filter((name) => name === 'px-8').length, 1);
   assert.ok(classes.includes('text-lg'));
-  assert.ok(classes.includes('text-on-primary'));
+  assert.ok(classes.includes('text-[color:var(--button-on)]'));
+  assert.ok(classes.includes('[--button-on:var(--color-on-primary)]'));
   assert.ok(!classes.includes('px-3'));
   assert.ok(!classes.includes('text-sm'));
   assert.match(html, /type="button"/);
   assert.match(html, /disabled/);
   assert.match(html, /aria-label="保存"/);
   assert.match(html.replace(/<!--.*?-->/g, ''), />操作<\/button>/);
+});
+
+test('Button forwards color and soft appearance without leaking them to DOM attributes', async () => {
+  const html = await render({
+    color: 'warning',
+    variant: 'soft',
+    size: 'tiny',
+  });
+  const classes = html.match(/class="([^"]*)"/)[1].split(/\s+/);
+  for (const name of [
+    '[--button-color:var(--color-warning)]',
+    'text-[color:var(--button-color)]',
+    'bg-[var(--button-color)]/16',
+    'h-[22px]',
+  ]) {
+    assert.ok(classes.includes(name), name);
+  }
+  assert.ok(!classes.includes('bg-primary'));
+  assert.doesNotMatch(html, /\s(?:color|variant|size)=/);
 });
 
 test('Button polymorphic rendering forwards link attributes without a button type', async () => {

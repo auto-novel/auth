@@ -11,7 +11,8 @@ defineOptions({ inheritAttrs: false });
 const props = withDefaults(defineProps<XButtonProps>(), {
   as: 'button',
   type: 'button',
-  variant: 'primary',
+  color: 'primary',
+  variant: 'solid',
   size: 'md',
 });
 
@@ -37,6 +38,7 @@ function guardClick(event: MouseEvent) {
     :class="
       mergeClasses(
         buttonVariants({
+          color: props.color,
           variant: props.variant,
           size: props.size,
         }),

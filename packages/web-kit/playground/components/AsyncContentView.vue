@@ -104,7 +104,7 @@ const code = `<XAsyncContent
             <p class="mb-4 text-sm text-muted">
               点击失败状态下的“再试一次”，会模拟恢复为正常内容。
             </p>
-            <XButton variant="outline" @click="state = 'error'">
+            <XButton color="neutral" variant="outline" @click="state = 'error'">
               模拟失败
             </XButton>
           </div>

@@ -202,8 +202,19 @@ test('ConfirmDialog maps actions and independent button overrides through real X
   );
   styles(
     node(html, 'confirm-override'),
-    ['bg-primary', 'px-10', 'hover:bg-primary-hover', 'text-on-error'],
-    ['bg-error', 'px-4', 'hover:bg-error-hover', 'px-8'],
+    [
+      'bg-primary',
+      'px-10',
+      'hover:bg-primary-hover',
+      'text-[color:var(--button-on)]',
+      '[--button-on:var(--color-on-error)]',
+    ],
+    [
+      'bg-[var(--button-color)]',
+      'px-4',
+      'hover:bg-[var(--button-hover)]',
+      'px-8',
+    ],
   );
   styles(node(html, 'x-dialog-panel-motion'), ['x-dialog-panel-motion']);
   styles(node(html, 'x-dialog-fade-motion'), ['x-dialog-fade-motion']);

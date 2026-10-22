@@ -79,6 +79,7 @@ defineOptions({ inheritAttrs: false });
           <AlertDialogCancel as-child>
             <XButton
               :class="mergeClasses(ui.cancel)"
+              color="neutral"
               variant="outline"
               :disabled="loading"
             >
@@ -87,7 +88,7 @@ defineOptions({ inheritAttrs: false });
           </AlertDialogCancel>
           <XButton
             :class="mergeClasses(ui.confirm)"
-            :variant="danger ? 'danger' : 'primary'"
+            :color="danger ? 'danger' : 'primary'"
             :disabled="loading"
             @click="confirm"
           >

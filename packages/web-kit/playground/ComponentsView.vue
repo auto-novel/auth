@@ -4,6 +4,7 @@ import {
   XButton,
   XTime,
   XTooltip,
+  type XButtonColor,
   type XButtonVariant,
 } from '@novelia/web-kit';
 import { RouterLink } from 'vue-router';
@@ -12,13 +13,8 @@ import { componentPages } from './componentPages';
 
 const sampleTime = new Date('2025-06-05T15:04:30+08:00');
 const relativeBase = new Date('2025-06-05T15:07:30+08:00');
-const variants: XButtonVariant[] = [
-  'primary',
-  'outline',
-  'danger',
-  'warning',
-  'ghost',
-];
+const colors: XButtonColor[] = ['primary', 'neutral', 'danger', 'warning'];
+const variants: XButtonVariant[] = ['solid', 'soft', 'outline', 'ghost'];
 </script>
 
 <template>
@@ -48,24 +44,28 @@ const variants: XButtonVariant[] = [
     <section aria-labelledby="test-buttons">
       <h2 id="test-buttons" class="mb-2 font-medium">按钮 · XButton</h2>
       <p class="mb-4 text-sm text-muted">
-        悬停查看 hover 色，使用 Tab 检查
-        focus-visible；每种变体展示正常、禁用和加载状态，加载时保留文字并禁止点击。
+        悬停查看 hover 色，使用 Tab 检查 focus-visible；每种语义色展示
+        solid、soft、outline、ghost，以及紧凑、禁用和加载状态，加载时保留文字并禁止点击。
       </p>
       <div class="grid gap-3 sm:grid-cols-2">
         <div
-          v-for="variant in variants"
-          :key="variant"
+          v-for="color in colors"
+          :key="color"
           class="flex flex-wrap items-center gap-3 rounded-sm border border-border p-3"
         >
-          <code class="w-24 text-xs text-muted">{{ variant }}</code>
+          <code class="w-24 text-xs text-muted">{{ color }}</code>
           <XButton
+            v-for="variant in variants"
+            :key="variant"
+            :color="color"
             :variant="variant"
-            @click="Toast.success(`点击了 ${variant} 按钮`)"
+            @click="Toast.success(`点击了 ${color} ${variant} 按钮`)"
           >
-            示例按钮
+            {{ variant }}
           </XButton>
-          <XButton :variant="variant" disabled>禁用</XButton>
-          <XButton :variant="variant" loading>加载中</XButton>
+          <XButton :color="color" variant="soft" size="tiny">紧凑按钮</XButton>
+          <XButton :color="color" disabled>禁用</XButton>
+          <XButton :color="color" loading>加载中</XButton>
         </div>
       </div>
     </section>
@@ -80,7 +80,7 @@ const variants: XButtonVariant[] = [
       </p>
       <XTooltip>
         <template #trigger>
-          <XButton variant="outline">查看提示</XButton>
+          <XButton color="neutral" variant="outline">查看提示</XButton>
         </template>
         提示浮层与菜单使用相同的圆角和阴影。
       </XTooltip>

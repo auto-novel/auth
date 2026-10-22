@@ -37,7 +37,12 @@ const markdown = createMarkdown().disable(['image']);
         HTTP(S) 地址可转换成链接。
       </p>
       <div class="flex flex-wrap items-center gap-4">
-        <XButton variant="outline" size="sm" @click="editor?.focus()">
+        <XButton
+          color="neutral"
+          variant="outline"
+          size="sm"
+          @click="editor?.focus()"
+        >
           聚焦编辑器
         </XButton>
         <label class="flex items-center gap-2 text-sm">

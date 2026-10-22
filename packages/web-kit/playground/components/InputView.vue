@@ -46,7 +46,12 @@ const code = `<XInput
         <p class="text-xs text-muted" aria-live="polite">
           当前值：{{ value || '（空）' }} · 清空次数：{{ clearCount }}
         </p>
-        <XButton variant="outline" size="sm" @click="input?.focus()">
+        <XButton
+          color="neutral"
+          variant="outline"
+          size="sm"
+          @click="input?.focus()"
+        >
           聚焦输入框
         </XButton>
         <label for="input-password" class="block text-sm">密码</label>
