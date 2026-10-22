@@ -49,8 +49,9 @@ test('Button forwards color and soft appearance without leaking them to DOM attr
   const classes = html.match(/class="([^"]*)"/)[1].split(/\s+/);
   for (const name of [
     '[--button-color:var(--color-warning)]',
-    'text-[color:var(--button-color)]',
-    'bg-[var(--button-color)]/16',
+    'text-[color:var(--button-text)]',
+    'bg-[var(--button-soft)]',
+    '[--button-soft:var(--color-warning-soft)]',
     'h-[22px]',
   ]) {
     assert.ok(classes.includes(name), name);

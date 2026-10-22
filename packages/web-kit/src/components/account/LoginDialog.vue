@@ -112,7 +112,7 @@ async function login() {
           </button>
         </template>
       </XInput>
-      <p v-if="error" class="text-sm text-error-strong" role="alert">
+      <p v-if="error" class="text-sm text-error-text" role="alert">
         {{ error }}
       </p>
       <XButton type="submit" :disabled="submitting" :aria-busy="submitting">

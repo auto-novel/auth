@@ -55,53 +55,59 @@ test('Button caller classes override variants without dropping theme utilities',
   }
 });
 
-test('Button colors compose independently with every appearance', () => {
+test('Button colors map semantic roles independently of appearance', () => {
   for (const [color, token] of [
     ['primary', 'primary'],
+    ['neutral', 'neutral'],
     ['danger', 'error'],
     ['warning', 'warning'],
   ]) {
-    for (const variant of ['solid', 'soft', 'outline', 'ghost']) {
-      const result = classes(buttonVariants({ color, variant }));
-      assert.ok(result.has(`[--button-color:var(--color-${token})]`));
-      assert.ok(result.has(`[--button-on:var(--color-on-${token})]`));
-      assert.ok(
-        result.has('focus-visible:outline-[color:var(--button-color)]'),
-      );
-      assert.ok(
-        result.has(
-          `text-[color:var(--button-${variant === 'solid' ? 'on' : 'color'})]`,
-        ),
-      );
-      assert.equal(result.has('border'), variant === 'outline');
-      assert.equal(
-        result.has('border-[color:var(--button-color)]/50'),
-        variant === 'outline',
-      );
-      assert.equal(result.has('bg-[var(--button-color)]'), variant === 'solid');
-      assert.equal(
-        result.has('bg-[var(--button-color)]/16'),
-        variant === 'soft',
-      );
-      if (color !== 'primary')
-        assert.ok(!result.has('[--button-color:var(--color-primary)]'));
+    const result = classes(buttonVariants({ color }));
+    for (const role of [
+      'color',
+      'on',
+      'hover',
+      'pressed',
+      'text',
+      'soft',
+      'soft-hover',
+      'soft-pressed',
+    ]) {
+      const themeToken =
+        role === 'color'
+          ? token
+          : role === 'on'
+            ? `on-${token}`
+            : `${token}-${role}`;
+      assert.ok(result.has(`[--button-${role}:var(--color-${themeToken})]`));
     }
   }
+});
+
+test('Button appearances consume theme states and preserve neutral overrides', () => {
   for (const variant of ['solid', 'soft', 'outline', 'ghost']) {
-    const result = classes(buttonVariants({ color: 'neutral', variant }));
-    assert.ok(result.has('[--button-color:var(--color-ink)]'));
-    assert.equal(result.has('border'), variant === 'outline');
-    assert.equal(result.has('border-border'), variant === 'outline');
-    assert.equal(result.has('bg-[var(--button-color)]'), variant === 'solid');
-    assert.equal(result.has('bg-button-neutral'), variant === 'soft');
-    assert.equal(
-      result.has('text-muted'),
-      variant === 'outline' || variant === 'ghost',
+    const result = classes(buttonVariants({ variant }));
+    const solid = variant === 'solid';
+    assert.ok(
+      result.has(`hover:bg-[var(--button-${solid ? 'hover' : 'soft-hover'})]`),
     );
-    assert.ok(!result.has('bg-[var(--button-color)]/16'));
-    assert.ok(!result.has('hover:bg-[var(--button-color)]/10'));
-    assert.ok(!result.has('border-[color:var(--button-color)]/50'));
+    assert.ok(
+      result.has(
+        `active:bg-[var(--button-${solid ? 'pressed' : 'soft-pressed'})]`,
+      ),
+    );
+    assert.equal(result.has('bg-[var(--button-soft)]'), variant === 'soft');
+    assert.equal(result.has('border'), variant === 'outline');
+    assert.ok(
+      result.has(`text-[color:var(--button-${solid ? 'on' : 'text'})]`),
+    );
   }
+  const neutral = classes(
+    buttonVariants({ color: 'neutral', variant: 'outline' }),
+  );
+  assert.ok(neutral.has('border-border'));
+  assert.ok(neutral.has('text-muted'));
+  assert.ok(!neutral.has('border-[color:var(--button-color)]/50'));
 });
 
 test('Slider orientation and size jointly determine track dimensions', () => {

@@ -135,7 +135,7 @@ function toggleAdminMode() {
                   <span class="min-w-0 flex-1">处罚记录</span>
                   <span
                     v-if="hasUnreadStrikes"
-                    class="rounded-full bg-error-soft px-1.5 py-0.5 text-[10px] leading-none font-medium text-error-strong"
+                    class="rounded-full bg-error-soft px-1.5 py-0.5 text-[10px] leading-none font-medium text-error-text"
                     aria-hidden="true"
                   >
                     新

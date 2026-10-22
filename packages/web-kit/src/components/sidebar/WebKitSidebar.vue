@@ -40,7 +40,7 @@ const showMascot = ref(false);
   >
     <div
       v-if="mobileHeader"
-      class="relative h-[100px] flex-none bg-[#41a782]"
+      class="relative h-[100px] flex-none bg-primary"
       aria-hidden="true"
     >
       <img

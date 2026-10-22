@@ -20,7 +20,7 @@ defineOptions({ inheritAttrs: false });
     :class="
       mergeClasses(
         'menu-item select-none data-disabled:pointer-events-none data-disabled:opacity-50',
-        { 'text-error-strong': destructive },
+        { 'text-error-text': destructive },
         $attrs.class,
       )
     "

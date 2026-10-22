@@ -38,7 +38,6 @@ const colorGroups = [
     colors: [
       { token: 'paper', class: 'bg-paper' },
       { token: 'surface', class: 'bg-surface' },
-      { token: 'embedded', class: 'bg-embedded' },
       { token: 'body', class: 'bg-body' },
       { token: 'popover', class: 'bg-popover' },
       { token: 'modal', class: 'bg-modal' },
@@ -50,38 +49,98 @@ const colorGroups = [
     ],
   },
   {
-    title: '主色与成功',
+    title: '主色',
     colors: [
       { token: 'primary', class: 'bg-primary' },
       { token: 'primary-hover', class: 'bg-primary-hover' },
+      { token: 'primary-pressed', class: 'bg-primary-pressed' },
       { token: 'primary-soft', class: 'bg-primary-soft' },
+      { token: 'primary-soft-hover', class: 'bg-primary-soft-hover' },
+      { token: 'primary-soft-pressed', class: 'bg-primary-soft-pressed' },
+      { token: 'primary-text', class: 'bg-primary-text' },
       { token: 'on-primary', class: 'bg-on-primary' },
-      { token: 'success', class: 'bg-success' },
-      { token: 'success-soft', class: 'bg-success-soft' },
     ],
   },
   {
-    title: '信息、警告与错误',
+    title: '成功',
+    colors: [
+      { token: 'success', class: 'bg-success' },
+      { token: 'success-hover', class: 'bg-success-hover' },
+      { token: 'success-pressed', class: 'bg-success-pressed' },
+      { token: 'success-soft', class: 'bg-success-soft' },
+      { token: 'success-soft-hover', class: 'bg-success-soft-hover' },
+      { token: 'success-soft-pressed', class: 'bg-success-soft-pressed' },
+      { token: 'success-text', class: 'bg-success-text' },
+      { token: 'on-success', class: 'bg-on-success' },
+    ],
+  },
+  {
+    title: '信息',
     colors: [
       { token: 'info', class: 'bg-info' },
+      { token: 'info-hover', class: 'bg-info-hover' },
+      { token: 'info-pressed', class: 'bg-info-pressed' },
       { token: 'info-soft', class: 'bg-info-soft' },
+      { token: 'info-soft-hover', class: 'bg-info-soft-hover' },
+      { token: 'info-soft-pressed', class: 'bg-info-soft-pressed' },
+      { token: 'info-text', class: 'bg-info-text' },
+      { token: 'on-info', class: 'bg-on-info' },
+    ],
+  },
+  {
+    title: '警告',
+    colors: [
       { token: 'warning', class: 'bg-warning' },
+      { token: 'warning-hover', class: 'bg-warning-hover' },
+      { token: 'warning-pressed', class: 'bg-warning-pressed' },
       { token: 'warning-soft', class: 'bg-warning-soft' },
+      { token: 'warning-soft-hover', class: 'bg-warning-soft-hover' },
+      { token: 'warning-soft-pressed', class: 'bg-warning-soft-pressed' },
+      { token: 'warning-text', class: 'bg-warning-text' },
+      { token: 'on-warning', class: 'bg-on-warning' },
+    ],
+  },
+  {
+    title: '错误',
+    colors: [
       { token: 'error', class: 'bg-error' },
       { token: 'error-hover', class: 'bg-error-hover' },
-      { token: 'error-strong', class: 'bg-error-strong' },
+      { token: 'error-pressed', class: 'bg-error-pressed' },
       { token: 'error-soft', class: 'bg-error-soft' },
-      { token: 'error-border', class: 'bg-error-border' },
+      { token: 'error-soft-hover', class: 'bg-error-soft-hover' },
+      { token: 'error-soft-pressed', class: 'bg-error-soft-pressed' },
+      { token: 'error-text', class: 'bg-error-text' },
       { token: 'on-error', class: 'bg-on-error' },
+    ],
+  },
+  {
+    title: '中性',
+    colors: [
+      { token: 'neutral', class: 'bg-neutral' },
+      { token: 'neutral-hover', class: 'bg-neutral-hover' },
+      { token: 'neutral-pressed', class: 'bg-neutral-pressed' },
+      { token: 'neutral-soft', class: 'bg-neutral-soft' },
+      { token: 'neutral-soft-hover', class: 'bg-neutral-soft-hover' },
+      { token: 'neutral-soft-pressed', class: 'bg-neutral-soft-pressed' },
+      { token: 'neutral-text', class: 'bg-neutral-text' },
+      { token: 'on-neutral', class: 'bg-on-neutral' },
     ],
   },
 ];
 
 const statuses = [
-  { label: '成功', class: 'bg-success-soft text-success', token: 'success' },
-  { label: '信息', class: 'bg-info-soft text-info', token: 'info' },
-  { label: '警告', class: 'bg-warning-soft text-warning', token: 'warning' },
-  { label: '错误', class: 'bg-error-soft text-error-strong', token: 'error' },
+  {
+    label: '成功',
+    class: 'bg-success-soft text-success-text',
+    token: 'success',
+  },
+  { label: '信息', class: 'bg-info-soft text-info-text', token: 'info' },
+  {
+    label: '警告',
+    class: 'bg-warning-soft text-warning-text',
+    token: 'warning',
+  },
+  { label: '错误', class: 'bg-error-soft text-error-text', token: 'error' },
 ];
 const surfaces = [
   { label: 'paper', class: 'bg-paper' },
@@ -89,12 +148,6 @@ const surfaces = [
   { label: 'body', class: 'bg-body' },
   { label: 'popover', class: 'bg-popover' },
   { label: 'modal', class: 'bg-modal' },
-];
-const legacyColors = [
-  { label: 'blue', class: 'bg-blue-50 text-blue-600' },
-  { label: 'orange', class: 'bg-orange-50 text-orange-600' },
-  { label: 'purple', class: 'bg-purple-50 text-purple-600' },
-  { label: 'red', class: 'bg-red-50 text-red-600' },
 ];
 function readThemeValues() {
   const style = getComputedStyle(document.documentElement);
@@ -190,7 +243,8 @@ watch([theme.theme, theme.override], readThemeValues, { flush: 'post' });
       <h2 id="theme-palette" class="mb-2 font-medium">颜色 token</h2>
       <p class="mb-4 text-sm text-muted">
         色块使用 bg-*，下方显示根元素上的实际变量值。半透明色叠加在 surface
-        背景上。
+        背景上。每种语义色提供相同的状态、浅底、文字及反色角色。语义浅底默认浅色为
+        10%、深色为 15%，中性浅底为 5% / 8%；交互状态逐级增强。
       </p>
       <div
         v-for="group in colorGroups"
@@ -247,14 +301,6 @@ watch([theme.theme, theme.override], readThemeValues, { flush: 'post' });
           >
             主题链接 / text-primary
           </a>
-          <div
-            class="mt-3 rounded-floating bg-embedded px-4 py-3 text-sm text-ink"
-          >
-            嵌入内容 / bg-embedded
-            <p class="mt-1 text-xs text-muted">
-              静态辅助信息；深色时叠加在当前父背景上，不作为悬停状态。
-            </p>
-          </div>
           <div class="mt-3 rounded-sm bg-hover p-2 text-xs text-ink">
             悬停底色 / bg-hover
           </div>
@@ -282,7 +328,7 @@ watch([theme.theme, theme.override], readThemeValues, { flush: 'post' });
         </article>
       </div>
       <div
-        class="mt-4 rounded-sm border border-error-border bg-surface p-4 text-sm text-error-strong"
+        class="mt-4 rounded-sm border border-error/30 bg-surface p-4 text-sm text-error-text"
         style="
           background-image: linear-gradient(
             var(--color-error-soft),
@@ -290,19 +336,7 @@ watch([theme.theme, theme.override], readThemeValues, { flush: 'post' });
           );
         "
       >
-        错误提示：error-border 边框 + error-soft 叠加背景 + error-strong 文字。
-      </div>
-      <h3 class="mb-3 mt-6 text-sm font-medium">保留的 Tailwind 色号覆盖</h3>
-      <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <div
-          v-for="color in legacyColors"
-          :key="color.label"
-          class="rounded-sm p-4 text-sm"
-          :class="color.class"
-        >
-          <p class="font-medium">{{ color.label }}</p>
-          <code class="mt-2 block text-xs">{{ color.class }}</code>
-        </div>
+        错误提示：error/30 边框 + error-soft 叠加背景 + error-text 文字。
       </div>
     </section>
 

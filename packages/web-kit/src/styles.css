@@ -10,28 +10,203 @@
 @theme {
   --color-paper: #f7f7f8;
   --color-surface: #ffffff;
-  --color-embedded: #fafafc;
   --color-body: #ffffff;
   --color-popover: #ffffff;
   --color-modal: #ffffff;
+  /* 每种语义色提供同一套角色；组件不再自行计算状态色。 */
+  --color-primary: #18a058;
+  --color-primary-hover: color-mix(
+    in srgb,
+    var(--color-primary) 90%,
+    var(--web-kit-state-color)
+  );
+  --color-primary-pressed: color-mix(
+    in srgb,
+    var(--color-primary) 80%,
+    var(--web-kit-state-color)
+  );
+  --color-primary-soft: color-mix(
+    in srgb,
+    var(--color-primary) var(--web-kit-soft-opacity),
+    transparent
+  );
+  --color-primary-soft-hover: color-mix(
+    in srgb,
+    var(--color-primary) calc(var(--web-kit-soft-opacity) + 6%),
+    transparent
+  );
+  --color-primary-soft-pressed: color-mix(
+    in srgb,
+    var(--color-primary) calc(var(--web-kit-soft-opacity) + 12%),
+    transparent
+  );
+  --color-primary-text: color-mix(
+    in srgb,
+    var(--color-primary) 80%,
+    var(--web-kit-state-color)
+  );
+  --color-on-primary: #ffffff;
+
   --color-success: #18a058;
-  --color-success-soft: rgb(8 120 63 / 10%);
+  --color-success-hover: color-mix(
+    in srgb,
+    var(--color-success) 90%,
+    var(--web-kit-state-color)
+  );
+  --color-success-pressed: color-mix(
+    in srgb,
+    var(--color-success) 80%,
+    var(--web-kit-state-color)
+  );
+  --color-success-soft: color-mix(
+    in srgb,
+    var(--color-success) var(--web-kit-soft-opacity),
+    transparent
+  );
+  --color-success-soft-hover: color-mix(
+    in srgb,
+    var(--color-success) calc(var(--web-kit-soft-opacity) + 6%),
+    transparent
+  );
+  --color-success-soft-pressed: color-mix(
+    in srgb,
+    var(--color-success) calc(var(--web-kit-soft-opacity) + 12%),
+    transparent
+  );
+  --color-success-text: color-mix(
+    in srgb,
+    var(--color-success) 80%,
+    var(--web-kit-state-color)
+  );
+  --color-on-success: #ffffff;
+
   --color-info: #1d4ed8;
-  --color-info-soft: rgb(29 78 216 / 10%);
-  --color-error: #d03050;
-  --color-error-hover: #b32844;
-  --color-error-strong: #a81f3b;
-  --color-error-soft: rgb(208 48 80 / 10%);
-  --color-error-surface: #faeaee;
-  --color-error-border: rgb(208 48 80 / 30%);
-  --color-on-error: #ffffff;
-  --color-button-neutral: rgb(46 51 56 / 5%);
-  --color-button-neutral-hover: rgb(46 51 56 / 9%);
-  --color-button-neutral-pressed: rgb(46 51 56 / 13%);
+  --color-info-hover: color-mix(
+    in srgb,
+    var(--color-info) 90%,
+    var(--web-kit-state-color)
+  );
+  --color-info-pressed: color-mix(
+    in srgb,
+    var(--color-info) 80%,
+    var(--web-kit-state-color)
+  );
+  --color-info-soft: color-mix(
+    in srgb,
+    var(--color-info) var(--web-kit-soft-opacity),
+    transparent
+  );
+  --color-info-soft-hover: color-mix(
+    in srgb,
+    var(--color-info) calc(var(--web-kit-soft-opacity) + 6%),
+    transparent
+  );
+  --color-info-soft-pressed: color-mix(
+    in srgb,
+    var(--color-info) calc(var(--web-kit-soft-opacity) + 12%),
+    transparent
+  );
+  --color-info-text: color-mix(
+    in srgb,
+    var(--color-info) 80%,
+    var(--web-kit-state-color)
+  );
+  --color-on-info: #ffffff;
+
   --color-warning: #b45309;
-  --color-warning-hover: #92400e;
+  --color-warning-hover: color-mix(
+    in srgb,
+    var(--color-warning) 90%,
+    var(--web-kit-state-color)
+  );
+  --color-warning-pressed: color-mix(
+    in srgb,
+    var(--color-warning) 80%,
+    var(--web-kit-state-color)
+  );
+  --color-warning-soft: color-mix(
+    in srgb,
+    var(--color-warning) var(--web-kit-soft-opacity),
+    transparent
+  );
+  --color-warning-soft-hover: color-mix(
+    in srgb,
+    var(--color-warning) calc(var(--web-kit-soft-opacity) + 6%),
+    transparent
+  );
+  --color-warning-soft-pressed: color-mix(
+    in srgb,
+    var(--color-warning) calc(var(--web-kit-soft-opacity) + 12%),
+    transparent
+  );
+  --color-warning-text: color-mix(
+    in srgb,
+    var(--color-warning) 80%,
+    var(--web-kit-state-color)
+  );
   --color-on-warning: #ffffff;
-  --color-warning-soft: rgb(180 83 9 / 10%);
+
+  --color-error: #d03050;
+  --color-error-hover: color-mix(
+    in srgb,
+    var(--color-error) 90%,
+    var(--web-kit-state-color)
+  );
+  --color-error-pressed: color-mix(
+    in srgb,
+    var(--color-error) 80%,
+    var(--web-kit-state-color)
+  );
+  --color-error-soft: color-mix(
+    in srgb,
+    var(--color-error) var(--web-kit-soft-opacity),
+    transparent
+  );
+  --color-error-soft-hover: color-mix(
+    in srgb,
+    var(--color-error) calc(var(--web-kit-soft-opacity) + 6%),
+    transparent
+  );
+  --color-error-soft-pressed: color-mix(
+    in srgb,
+    var(--color-error) calc(var(--web-kit-soft-opacity) + 12%),
+    transparent
+  );
+  --color-error-text: color-mix(
+    in srgb,
+    var(--color-error) 80%,
+    var(--web-kit-state-color)
+  );
+  --color-on-error: #ffffff;
+
+  --color-neutral: var(--color-ink);
+  --color-neutral-hover: color-mix(
+    in srgb,
+    var(--color-neutral) 90%,
+    var(--web-kit-state-color)
+  );
+  --color-neutral-pressed: color-mix(
+    in srgb,
+    var(--color-neutral) 80%,
+    var(--web-kit-state-color)
+  );
+  --color-neutral-soft: color-mix(
+    in srgb,
+    var(--color-neutral) var(--web-kit-neutral-soft-opacity),
+    transparent
+  );
+  --color-neutral-soft-hover: color-mix(
+    in srgb,
+    var(--color-neutral) calc(var(--web-kit-neutral-soft-opacity) + 4%),
+    transparent
+  );
+  --color-neutral-soft-pressed: color-mix(
+    in srgb,
+    var(--color-neutral) calc(var(--web-kit-neutral-soft-opacity) + 8%),
+    transparent
+  );
+  --color-neutral-text: var(--color-neutral);
+  --color-on-neutral: var(--color-surface);
   --radius-floating: 3px;
   --shadow-floating:
     0 3px 6px -4px rgb(0 0 0 / 12%), 0 6px 16px rgb(0 0 0 / 8%),
@@ -41,10 +216,6 @@
   --color-border: #e0e0e6;
   --color-divider: rgb(0 0 0 / 10%);
   --color-hover: rgb(0 0 0 / 4%);
-  --color-primary: #18a058;
-  --color-primary-hover: #36ad6a;
-  --color-primary-soft: rgb(24 160 88 / 10%);
-  --color-on-primary: #ffffff;
   --font-sans:
     v-sans, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
     sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
@@ -52,38 +223,34 @@
 
 @layer base {
   :root {
+    /* 语义浅底统一派生；覆盖语义色时自动跟随。 */
+    --web-kit-state-color: #000000;
+    --web-kit-soft-opacity: 10%;
+    --web-kit-neutral-soft-opacity: 5%;
     color-scheme: light;
     color: var(--color-ink);
-    background: var(--color-surface);
+    background: var(--color-body);
     font-family: var(--font-sans);
   }
 
   :root[data-theme='dark'] {
+    --web-kit-state-color: #ffffff;
+    --web-kit-soft-opacity: 15%;
+    --web-kit-neutral-soft-opacity: 8%;
     color-scheme: dark;
     --color-paper: #101014;
     --color-surface: #18181c;
-    --color-embedded: rgb(255 255 255 / 6%);
     --color-body: #101014;
     --color-popover: #48484e;
     --color-modal: #2c2c32;
     --color-success: #63e2b7;
-    --color-success-soft: rgb(99 226 183 / 15%);
     --color-info: #93c5fd;
-    --color-info-soft: rgb(147 197 253 / 15%);
     --color-error: #e88080;
-    --color-error-hover: #d97070;
-    --color-error-strong: #ffbcbc;
-    --color-error-soft: rgb(232 128 128 / 15%);
-    --color-error-surface: #37282b;
-    --color-error-border: rgb(232 128 128 / 30%);
+    --color-on-success: #0b0b0d;
+    --color-on-info: #0b0b0d;
     --color-on-error: #0b0b0d;
-    --color-button-neutral: rgb(255 255 255 / 8%);
-    --color-button-neutral-hover: rgb(255 255 255 / 12%);
-    --color-button-neutral-pressed: rgb(255 255 255 / 16%);
     --color-warning: #f2c97d;
-    --color-warning-hover: #e6b867;
     --color-on-warning: #0b0b0d;
-    --color-warning-soft: rgb(242 201 125 / 15%);
     --shadow-floating:
       0 3px 6px -4px rgb(0 0 0 / 24%), 0 6px 12px rgb(0 0 0 / 16%),
       0 9px 18px 8px rgb(0 0 0 / 10%);
@@ -93,16 +260,6 @@
     --color-divider: rgb(255 255 255 / 14%);
     --color-hover: rgb(255 255 255 / 9%);
     --color-primary: #63e2b7;
-    --color-primary-hover: #7fe7c4;
-    --color-primary-soft: rgb(99 226 183 / 15%);
-    --color-blue-50: #172554;
-    --color-blue-600: #93c5fd;
-    --color-orange-50: #431407;
-    --color-orange-600: #fdba74;
-    --color-purple-50: #3b0764;
-    --color-purple-600: #d8b4fe;
-    --color-red-50: #450a0a;
-    --color-red-600: #fca5a5;
     --color-on-primary: #0b0b0d;
   }
 
@@ -130,7 +287,7 @@
     min-width: 320px;
     min-height: 100dvh;
     margin: 0;
-    background: var(--color-surface);
+    background: var(--color-body);
     /* Match Naive UI's global typography without changing rem-based sizing.
        Keep native font synthesis so CJK fonts without bold faces can be bold. */
     font-family: var(--font-sans);

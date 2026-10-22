@@ -87,7 +87,7 @@ const layout = computed(() =>
           <div
             :class="
               mergeClasses(
-                'mx-auto grid size-12 place-items-center rounded-full bg-error-soft text-error-strong',
+                'mx-auto grid size-12 place-items-center rounded-full bg-error-soft text-error-text',
                 ui.icon,
               )
             "

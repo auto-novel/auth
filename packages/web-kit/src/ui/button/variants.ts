@@ -6,22 +6,22 @@ export const buttonVariants = tv({
     // 颜色只提供令牌，外观统一消费变量；类名保持静态以供 Tailwind 扫描。
     color: {
       primary:
-        '[--button-color:var(--color-primary)] [--button-on:var(--color-on-primary)] [--button-hover:var(--color-primary-hover)] [--button-pressed:var(--color-primary)]',
+        '[--button-color:var(--color-primary)] [--button-on:var(--color-on-primary)] [--button-hover:var(--color-primary-hover)] [--button-pressed:var(--color-primary-pressed)] [--button-text:var(--color-primary-text)] [--button-soft:var(--color-primary-soft)] [--button-soft-hover:var(--color-primary-soft-hover)] [--button-soft-pressed:var(--color-primary-soft-pressed)]',
       neutral:
-        '[--button-color:var(--color-ink)] [--button-on:var(--color-surface)] [--button-hover:color-mix(in_oklab,var(--color-ink)_90%,transparent)] [--button-pressed:color-mix(in_oklab,var(--color-ink)_80%,transparent)]',
+        '[--button-color:var(--color-neutral)] [--button-on:var(--color-on-neutral)] [--button-hover:var(--color-neutral-hover)] [--button-pressed:var(--color-neutral-pressed)] [--button-text:var(--color-neutral-text)] [--button-soft:var(--color-neutral-soft)] [--button-soft-hover:var(--color-neutral-soft-hover)] [--button-soft-pressed:var(--color-neutral-soft-pressed)]',
       danger:
-        '[--button-color:var(--color-error)] [--button-on:var(--color-on-error)] [--button-hover:var(--color-error-hover)] [--button-pressed:var(--color-error-strong)]',
+        '[--button-color:var(--color-error)] [--button-on:var(--color-on-error)] [--button-hover:var(--color-error-hover)] [--button-pressed:var(--color-error-pressed)] [--button-text:var(--color-error-text)] [--button-soft:var(--color-error-soft)] [--button-soft-hover:var(--color-error-soft-hover)] [--button-soft-pressed:var(--color-error-soft-pressed)]',
       warning:
-        '[--button-color:var(--color-warning)] [--button-on:var(--color-on-warning)] [--button-hover:var(--color-warning-hover)] [--button-pressed:var(--color-warning)]',
+        '[--button-color:var(--color-warning)] [--button-on:var(--color-on-warning)] [--button-hover:var(--color-warning-hover)] [--button-pressed:var(--color-warning-pressed)] [--button-text:var(--color-warning-text)] [--button-soft:var(--color-warning-soft)] [--button-soft-hover:var(--color-warning-soft-hover)] [--button-soft-pressed:var(--color-warning-soft-pressed)]',
     },
     variant: {
       solid:
         'bg-[var(--button-color)] text-[color:var(--button-on)] hover:bg-[var(--button-hover)] active:bg-[var(--button-pressed)]',
-      soft: 'bg-[var(--button-color)]/16 text-[color:var(--button-color)] hover:bg-[var(--button-color)]/22 focus-visible:bg-[var(--button-color)]/22 active:bg-[var(--button-color)]/28',
+      soft: 'bg-[var(--button-soft)] text-[color:var(--button-text)] hover:bg-[var(--button-soft-hover)] focus-visible:bg-[var(--button-soft-hover)] active:bg-[var(--button-soft-pressed)]',
       outline:
-        'border border-[color:var(--button-color)]/50 text-[color:var(--button-color)] hover:bg-[var(--button-color)]/10 active:bg-[var(--button-color)]/16',
+        'border border-[color:var(--button-color)]/50 text-[color:var(--button-text)] hover:bg-[var(--button-soft-hover)] active:bg-[var(--button-soft-pressed)]',
       ghost:
-        'text-[color:var(--button-color)] hover:bg-[var(--button-color)]/10 active:bg-[var(--button-color)]/16',
+        'text-[color:var(--button-text)] hover:bg-[var(--button-soft-hover)] active:bg-[var(--button-soft-pressed)]',
     },
     size: {
       md: 'min-h-10 px-4 text-sm font-medium',
@@ -33,19 +33,12 @@ export const buttonVariants = tv({
       'icon-xs': 'size-6',
     },
   },
-  // 中性色使用独立表面令牌，不沿用语义色的透明度配方。
+  // 中性描边和透明操作沿用低强调文字及通用控件边框。
   compoundVariants: [
     {
       color: 'neutral',
-      variant: 'soft',
-      class:
-        'bg-button-neutral text-ink hover:bg-button-neutral-hover focus-visible:bg-button-neutral-hover active:bg-button-neutral-pressed',
-    },
-    {
-      color: 'neutral',
       variant: ['outline', 'ghost'],
-      class:
-        'text-muted hover:bg-hover hover:text-ink active:bg-button-neutral-pressed',
+      class: 'text-muted hover:text-ink',
     },
     {
       color: 'neutral',
