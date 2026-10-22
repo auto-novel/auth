@@ -2,6 +2,7 @@ export { createWebKit } from './create';
 export { mergeClasses } from './ui/classes';
 export type { XClassValue, XUi } from './ui/classes';
 export { copyToClipboard } from './utils/clipboard';
+export { restoreScrollPosition } from './utils/restoreScrollPosition';
 export { useWebKitViewport } from './utils/viewport';
 export type { ViewportMode, WebKitViewport } from './utils/viewport';
 export { isKnownRole, roleLabels, roles } from './auth/whoami';
