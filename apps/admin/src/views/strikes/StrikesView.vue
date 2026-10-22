@@ -1,16 +1,12 @@
 <script setup lang="ts">
-import { getApiErrorMessage, Toast } from '@novelia/web-kit';
 import {
-  NAlert,
-  NButton,
-  NForm,
-  NFormItem,
-  NInput,
-  NInputNumber,
-  NModal,
-  NSpace,
-  NText,
-} from 'naive-ui';
+  getApiErrorMessage,
+  Toast,
+  XButton,
+  XDialog,
+  XInput,
+} from '@novelia/web-kit';
+import { NAlert, NForm, NFormItem, NInput, NInputNumber } from 'naive-ui';
 import { computed, reactive, ref, watch } from 'vue';
 import { useRoute, useRouter, type LocationQueryRaw } from 'vue-router';
 
@@ -191,6 +187,7 @@ function changePageSize(nextPageSize: number) {
 }
 
 function openCreateModal() {
+  if (createInProgress.value) return;
   Object.assign(createForm, {
     username: '',
     reason: '',
@@ -205,7 +202,7 @@ function closeCreateModal() {
 }
 
 async function submitCreate() {
-  if (!canCreate.value) return;
+  if (createInProgress.value || !canCreate.value) return;
   createInProgress.value = true;
   await Toast.promise(
     api.admin
@@ -243,11 +240,12 @@ async function submitCreate() {
 }
 
 function requestRevoke(strike: Strike) {
+  if (revokeInProgress.value) return;
   pendingRevoke.value = strike;
 }
 
 async function confirmRevoke() {
-  if (!pendingRevoke.value) return;
+  if (revokeInProgress.value || !pendingRevoke.value) return;
   revokeInProgress.value = true;
   await Toast.promise(
     api.admin.revokeStrike(pendingRevoke.value.id).then(async () => {
@@ -275,7 +273,7 @@ watch(
 </script>
 
 <template>
-  <n-space vertical :size="16" class="strikes-page">
+  <div class="strikes-page flex flex-col gap-4">
     <StrikeFilters
       v-model:username="usernameInput"
       v-model:operator-username="operatorUsernameInput"
@@ -285,10 +283,18 @@ watch(
     />
 
     <n-alert v-if="errorMessage" type="error" title="违规记录加载失败">
-      <n-space vertical size="small">
-        <n-text>{{ errorMessage }}</n-text>
-        <n-button size="small" @click="loadStrikes">重新加载</n-button>
-      </n-space>
+      <div class="flex flex-col gap-2">
+        <span class="text-ink">{{ errorMessage }}</span>
+        <XButton
+          class="self-start"
+          color="neutral"
+          variant="outline"
+          size="sm"
+          @click="loadStrikes"
+        >
+          重新加载
+        </XButton>
+      </div>
     </n-alert>
 
     <StrikeList
@@ -305,20 +311,19 @@ watch(
       @revoke="requestRevoke"
     />
 
-    <n-modal
-      :z-index="80"
-      v-model:show="showCreateModal"
-      preset="card"
+    <XDialog
+      :open="showCreateModal"
       title="新增警告"
-      style="width: min(560px, calc(100vw - 32px))"
-      :mask-closable="!createInProgress"
-      :close-on-esc="!createInProgress"
+      class="w-[560px]"
+      :closable="!createInProgress"
+      @update:open="(open) => !open && closeCreateModal()"
     >
       <n-form label-placement="top" :show-feedback="false">
-        <n-space vertical :size="16">
+        <div class="flex flex-col gap-4">
           <n-form-item label="目标用户名" required>
-            <n-input
-              v-model:value="createForm.username"
+            <XInput
+              v-model="createForm.username"
+              class="w-full"
               placeholder="仅可警告普通用户"
               :disabled="createInProgress"
             />
@@ -358,55 +363,59 @@ watch(
             用户在 100 天内累计达到 3 分后，将自动转为受限用户。
           </n-alert>
           <div class="modal-actions">
-            <n-button :disabled="createInProgress" @click="closeCreateModal">
+            <XButton
+              color="neutral"
+              variant="outline"
+              :disabled="createInProgress"
+              @click="closeCreateModal"
+            >
               取消
-            </n-button>
-            <n-button
-              type="warning"
+            </XButton>
+            <XButton
+              color="warning"
               :loading="createInProgress"
               :disabled="!canCreate"
               @click="submitCreate"
             >
               确认警告
-            </n-button>
+            </XButton>
           </div>
-        </n-space>
+        </div>
       </n-form>
-    </n-modal>
+    </XDialog>
 
-    <n-modal
-      :z-index="80"
-      v-model:show="showRevokeModal"
-      preset="card"
+    <XDialog
+      v-model:open="showRevokeModal"
       title="撤销违规记录"
-      style="width: min(500px, calc(100vw - 32px))"
-      :mask-closable="!revokeInProgress"
-      :close-on-esc="!revokeInProgress"
+      class="w-[500px]"
+      :closable="!revokeInProgress"
     >
-      <n-space vertical :size="16">
-        <n-text>
+      <div class="flex flex-col gap-4">
+        <p class="m-0 text-ink">
           确认撤销记录
-          <n-text strong>#{{ pendingRevoke?.id }}</n-text>
+          <strong class="text-ink">#{{ pendingRevoke?.id }}</strong>
           ？撤销后该记录的分数将不再计入处罚统计。
-        </n-text>
+        </p>
         <div class="modal-actions">
-          <n-button
+          <XButton
+            color="neutral"
+            variant="outline"
             :disabled="revokeInProgress"
             @click="showRevokeModal = false"
           >
             取消
-          </n-button>
-          <n-button
-            type="warning"
+          </XButton>
+          <XButton
+            color="warning"
             :loading="revokeInProgress"
             @click="confirmRevoke"
           >
             确认撤销
-          </n-button>
+          </XButton>
         </div>
-      </n-space>
-    </n-modal>
-  </n-space>
+      </div>
+    </XDialog>
+  </div>
 </template>
 
 <style scoped>

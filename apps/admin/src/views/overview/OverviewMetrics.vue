@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { LockOpenOutlined, PersonAddAltOutlined } from '@vicons/material';
-import { NCard, NIcon, NText } from 'naive-ui';
+import { NCard } from 'naive-ui';
 
 import type { AuthActivitySummary } from '@/api';
 
@@ -18,9 +18,9 @@ function comparisonLabel(current: number, previous: number) {
   return `${prefix}${change.toFixed(1)}% 较上期`;
 }
 
-function comparisonType(current: number, previous: number) {
-  if (current === previous) return 'default';
-  return current > previous ? 'success' : 'warning';
+function comparisonClass(current: number, previous: number) {
+  if (current === previous) return 'text-ink';
+  return current > previous ? 'text-success' : 'text-warning';
 }
 </script>
 
@@ -32,27 +32,27 @@ function comparisonType(current: number, previous: number) {
     <n-card class="metric-card">
       <div class="flex h-full items-center justify-between gap-4">
         <div class="flex flex-col gap-[7px]">
-          <n-text depth="3">登录次数</n-text>
-          <n-text
-            class="text-[28px]! leading-[1.15]! font-[650]! tabular-nums [@media(max-width:599px)]:text-[22px]!"
+          <span class="text-muted">登录次数</span>
+          <span
+            class="text-[28px] leading-[1.15] font-[650] text-ink tabular-nums [@media(max-width:599px)]:text-[22px]"
           >
             {{ summary.loginCount.toLocaleString() }}
-          </n-text>
-          <n-text
-            class="text-[12px]! tabular-nums"
-            :type="
-              comparisonType(summary.loginCount, previousSummary.loginCount)
+          </span>
+          <span
+            class="text-xs tabular-nums"
+            :class="
+              comparisonClass(summary.loginCount, previousSummary.loginCount)
             "
           >
             {{
               comparisonLabel(summary.loginCount, previousSummary.loginCount)
             }}
-          </n-text>
+          </span>
         </div>
         <span
           class="metric-icon login inline-flex h-[42px] w-[42px] flex-none items-center justify-center rounded-[11px] text-[22px] [@media(max-width:599px)]:h-[34px] [@media(max-width:599px)]:w-[34px] [@media(max-width:599px)]:rounded-[9px] [@media(max-width:599px)]:text-[18px]"
         >
-          <n-icon :component="LockOpenOutlined" />
+          <LockOpenOutlined class="size-[1em]" aria-hidden="true" />
         </span>
       </div>
     </n-card>
@@ -60,23 +60,23 @@ function comparisonType(current: number, previous: number) {
     <n-card class="metric-card">
       <div class="flex h-full items-center justify-between gap-4">
         <div class="flex flex-col gap-[7px]">
-          <n-text depth="3">新增用户</n-text>
-          <n-text
-            class="text-[28px]! leading-[1.15]! font-[650]! tabular-nums [@media(max-width:599px)]:text-[22px]!"
+          <span class="text-muted">新增用户</span>
+          <span
+            class="text-[28px] leading-[1.15] font-[650] text-ink tabular-nums [@media(max-width:599px)]:text-[22px]"
           >
             {{ summary.newUsers.toLocaleString() }}
-          </n-text>
-          <n-text
-            class="text-[12px]! tabular-nums"
-            :type="comparisonType(summary.newUsers, previousSummary.newUsers)"
+          </span>
+          <span
+            class="text-xs tabular-nums"
+            :class="comparisonClass(summary.newUsers, previousSummary.newUsers)"
           >
             {{ comparisonLabel(summary.newUsers, previousSummary.newUsers) }}
-          </n-text>
+          </span>
         </div>
         <span
           class="metric-icon register inline-flex h-[42px] w-[42px] flex-none items-center justify-center rounded-[11px] text-[22px] [@media(max-width:599px)]:h-[34px] [@media(max-width:599px)]:w-[34px] [@media(max-width:599px)]:rounded-[9px] [@media(max-width:599px)]:text-[18px]"
         >
-          <n-icon :component="PersonAddAltOutlined" />
+          <PersonAddAltOutlined class="size-[1em]" aria-hidden="true" />
         </span>
       </div>
     </n-card>

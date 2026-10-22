@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { NFlex, NText } from 'naive-ui';
-
 interface FilterChoiceOption {
   label: string;
   value: string;
@@ -27,13 +25,14 @@ function selectWithKeyboard(event: KeyboardEvent, value: string) {
 </script>
 
 <template>
-  <n-flex :size="[16, 4]" role="radiogroup">
-    <n-text
+  <div class="flex flex-wrap gap-x-4 gap-y-1" role="radiogroup">
+    <span
       v-for="option in options"
       :key="option.value"
       class="cursor-pointer select-none focus-visible:rounded-[2px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
-      :class="{ 'font-medium': props.value === option.value }"
-      :type="props.value === option.value ? 'primary' : 'default'"
+      :class="
+        props.value === option.value ? 'font-medium text-primary' : 'text-ink'
+      "
       role="radio"
       :aria-checked="props.value === option.value"
       tabindex="0"
@@ -41,6 +40,6 @@ function selectWithKeyboard(event: KeyboardEvent, value: string) {
       @keydown="selectWithKeyboard($event, option.value)"
     >
       {{ option.label }}
-    </n-text>
-  </n-flex>
+    </span>
+  </div>
 </template>

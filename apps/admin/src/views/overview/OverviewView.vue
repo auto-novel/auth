@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { getApiErrorMessage } from '@novelia/web-kit';
+import { getApiErrorMessage, XButton } from '@novelia/web-kit';
 import type {
   AuthActivitySummary,
   AuthSettings,
   DailyAuthStat,
   OverviewUserSummary as UserSummary,
 } from '@/api';
-import { NAlert, NButton, NSpin, NText } from 'naive-ui';
+import { NAlert, NSpin } from 'naive-ui';
 import { onMounted, ref } from 'vue';
 
 import { useAdminApi } from '@/api';
@@ -121,8 +121,15 @@ onMounted(() => {
   <main class="overview-page">
     <n-alert v-if="activityError" type="error" title="认证活动加载失败">
       <div class="error-content">
-        <n-text>{{ activityError }}</n-text>
-        <n-button size="small" @click="loadActivity">重新加载</n-button>
+        <span class="text-ink">{{ activityError }}</span>
+        <XButton
+          color="neutral"
+          variant="outline"
+          size="sm"
+          @click="loadActivity"
+        >
+          重新加载
+        </XButton>
       </div>
     </n-alert>
 
@@ -145,8 +152,15 @@ onMounted(() => {
     <div class="snapshot-grid">
       <n-alert v-if="userSummaryError" type="error" title="用户概况加载失败">
         <div class="error-content">
-          <n-text>{{ userSummaryError }}</n-text>
-          <n-button size="small" @click="loadUserSummary">重新加载</n-button>
+          <span class="text-ink">{{ userSummaryError }}</span>
+          <XButton
+            color="neutral"
+            variant="outline"
+            size="sm"
+            @click="loadUserSummary"
+          >
+            重新加载
+          </XButton>
         </div>
       </n-alert>
       <n-spin v-else :show="userSummaryLoading" class="snapshot-content">
@@ -155,8 +169,15 @@ onMounted(() => {
 
       <n-alert v-if="settingsError" type="error" title="系统状态加载失败">
         <div class="error-content">
-          <n-text>{{ settingsError }}</n-text>
-          <n-button size="small" @click="loadSettings">重新加载</n-button>
+          <span class="text-ink">{{ settingsError }}</span>
+          <XButton
+            color="neutral"
+            variant="outline"
+            size="sm"
+            @click="loadSettings"
+          >
+            重新加载
+          </XButton>
         </div>
       </n-alert>
       <n-spin v-else :show="settingsLoading" class="snapshot-content">

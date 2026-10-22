@@ -1,17 +1,6 @@
 <script setup lang="ts">
-import {
-  NButton,
-  NCard,
-  NEmpty,
-  NList,
-  NListItem,
-  NPagination,
-  NSelect,
-  NSkeleton,
-  NSpin,
-  NText,
-  type SelectOption,
-} from 'naive-ui';
+import { XButton, XPagination, XSelect } from '@novelia/web-kit';
+import { NCard, NEmpty, NSkeleton, NSpin } from 'naive-ui';
 import { computed } from 'vue';
 
 import type { Event } from '@/api';
@@ -32,10 +21,10 @@ const emit = defineEmits<{
   resetFilters: [];
 }>();
 
-const pageSizeOptions: SelectOption[] = [
-  { label: '20 条/页', value: 20 },
-  { label: '50 条/页', value: 50 },
-  { label: '100 条/页', value: 100 },
+const pageSizeOptions = [
+  { label: '20 条/页', value: '20' },
+  { label: '50 条/页', value: '50' },
+  { label: '100 条/页', value: '100' },
 ];
 
 const pageCount = computed(() =>
@@ -48,8 +37,8 @@ const rangeEnd = computed(() =>
   Math.min(props.page * props.pageSize, props.total),
 );
 
-function changePageSize(value: string | number | null) {
-  if (typeof value === 'number') emit('updatePageSize', value);
+function changePageSize(value: string) {
+  emit('updatePageSize', Number(value));
 }
 </script>
 
@@ -59,19 +48,18 @@ function changePageSize(value: string | number | null) {
       v-if="!loading || events.length"
       class="flex min-h-7 items-center justify-between gap-3"
     >
-      <n-text depth="3">
+      <span class="text-muted">
         <template v-if="total">
           显示 {{ rangeStart }}–{{ rangeEnd }}，共 {{ total }} 条事件
         </template>
         <template v-else>共 0 条事件</template>
-      </n-text>
-      <n-select
+      </span>
+      <XSelect
         class="page-size-select"
-        size="small"
-        :value="pageSize"
+        :model-value="String(pageSize)"
         :options="pageSizeOptions"
         aria-label="每页显示数量"
-        @update:value="changePageSize"
+        @update:model-value="changePageSize"
       />
     </div>
 
@@ -85,35 +73,41 @@ function changePageSize(value: string | number | null) {
         </div>
       </div>
       <n-spin v-else :show="loading">
-        <n-list v-if="events.length">
-          <n-list-item v-for="event in events" :key="event.id">
+        <ul
+          v-if="events.length"
+          class="record-list bg-surface text-ink"
+          role="list"
+        >
+          <li v-for="event in events" :key="event.id" class="record-item">
             <EventListItem :event="event" :total="total" />
-          </n-list-item>
-        </n-list>
+          </li>
+        </ul>
         <n-empty
           v-else
           class="empty"
           :description="hasFilters ? '未找到符合条件的事件' : '暂无事件'"
         >
           <template v-if="hasFilters" #extra>
-            <n-button size="small" @click="emit('resetFilters')">
+            <XButton
+              color="neutral"
+              variant="outline"
+              size="sm"
+              @click="emit('resetFilters')"
+            >
               清除筛选
-            </n-button>
+            </XButton>
           </template>
         </n-empty>
       </n-spin>
     </n-card>
 
     <div v-if="total > pageSize" class="flex overflow-x-auto">
-      <n-pagination
+      <XPagination
+        class="w-full"
         :page="page"
-        :page-count="pageCount"
-        :page-slot="5"
-        show-quick-jumper
+        :total-pages="pageCount"
         @update:page="emit('updatePage', $event)"
-      >
-        <template #goto>跳至</template>
-      </n-pagination>
+      />
     </div>
   </div>
 </template>
@@ -129,11 +123,18 @@ function changePageSize(value: string | number | null) {
   border-left: 0;
 }
 
-.skeleton-row + .skeleton-row {
-  border-top: 1px solid var(--n-border-color);
+.record-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-:deep(.n-list-item) {
+.skeleton-row + .skeleton-row,
+.record-item + .record-item {
+  border-top: 1px solid var(--color-divider);
+}
+
+.record-item {
   padding: 9px 16px;
 }
 
@@ -142,7 +143,7 @@ function changePageSize(value: string | number | null) {
 }
 
 @media (max-width: 767px) {
-  :deep(.n-list-item) {
+  .record-item {
     padding: 8px 10px;
   }
 }

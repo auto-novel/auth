@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { roleLabels, roles } from '@novelia/web-kit';
+import { XInput, roleLabels, roles } from '@novelia/web-kit';
 import { SearchOutlined } from '@vicons/material';
-import { NIcon, NInput } from 'naive-ui';
 
 import FilterChoiceGroup from '@/components/FilterChoiceGroup.vue';
 import FilterRow from '@/components/FilterRow.vue';
@@ -36,17 +35,19 @@ function changeCreatedRange(value: [number, number] | null) {
 <template>
   <div class="grid w-full grid-cols-1 gap-4">
     <FilterRow label="搜索">
-      <n-input
-        v-model:value="query"
+      <XInput
+        v-model="query"
         class="w-[min(400px,100%)]!"
         clearable
         placeholder="搜索用户名或邮箱"
         @change="$emit('search')"
+        @keydown.enter="!$event.isComposing && $emit('search')"
+        @clear="$emit('search')"
       >
         <template #suffix>
-          <n-icon :component="SearchOutlined" />
+          <SearchOutlined class="size-5" aria-hidden="true" />
         </template>
-      </n-input>
+      </XInput>
     </FilterRow>
 
     <FilterRow label="角色">

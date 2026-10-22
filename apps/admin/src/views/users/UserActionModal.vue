@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { Toast } from '@novelia/web-kit';
-import { NButton, NInput, NModal, NSpace, NText } from 'naive-ui';
+import { Toast, XButton, XDialog } from '@novelia/web-kit';
+import { NInput } from 'naive-ui';
 import { computed, ref, watch } from 'vue';
 
 import { useAdminApi, type User, type UserAction } from '@/api';
@@ -28,44 +28,44 @@ const actionConfig = computed(() => {
       title: string;
       result: string;
       description: string;
-      buttonType: 'warning' | 'error' | 'primary';
+      buttonColor: 'warning' | 'danger' | 'primary';
     }
   > = {
     trust: {
       title: '信任用户',
       result: '已信任用户',
       description: '设置后，该用户将获得可信用户权限。',
-      buttonType: 'primary',
+      buttonColor: 'primary',
     },
     untrust: {
       title: '取消信任',
       result: '已取消用户的可信状态',
       description: '取消后，该用户将恢复为普通用户。',
-      buttonType: 'primary',
+      buttonColor: 'primary',
     },
     restrict: {
       title: '限制用户',
       result: '已限制用户',
       description: '限制后，该用户的账号权限将受到限制。',
-      buttonType: 'warning',
+      buttonColor: 'warning',
     },
     unrestrict: {
       title: '取消限制',
       result: '已取消限制',
       description: '取消后，该用户将恢复为普通用户。',
-      buttonType: 'primary',
+      buttonColor: 'primary',
     },
     ban: {
       title: '封禁用户',
       result: '已封禁用户',
       description: '封禁后，该用户将无法登录。',
-      buttonType: 'error',
+      buttonColor: 'danger',
     },
     unban: {
       title: '取消封禁',
       result: '已取消封禁',
       description: '取消后，该用户将恢复为普通用户并可以登录。',
-      buttonType: 'primary',
+      buttonColor: 'primary',
     },
   };
   return props.target ? configs[props.target.action] : null;
@@ -115,7 +115,13 @@ async function confirm() {
   const target = props.target;
   const config = actionConfig.value;
   const actionReason = reason.value.trim();
-  if (!target || !config || (requiresReason.value && !actionReason)) return;
+  if (
+    inProgress.value ||
+    !target ||
+    !config ||
+    (requiresReason.value && !actionReason)
+  )
+    return;
 
   inProgress.value = true;
   await Toast.promise(
@@ -136,45 +142,45 @@ async function confirm() {
 </script>
 
 <template>
-  <n-modal
-    :z-index="80"
-    :show="target !== null"
-    preset="card"
+  <XDialog
+    :open="target !== null"
     :title="actionConfig?.title"
-    style="width: min(520px, calc(100vw - 32px))"
-    :mask-closable="!inProgress"
-    :close-on-esc="!inProgress"
-    @update:show="(show) => !show && close()"
+    class="w-[520px]"
+    :closable="!inProgress"
+    @update:open="(open) => !open && close()"
   >
-    <n-space vertical :size="16">
+    <div class="flex flex-col gap-4">
       <div class="action-message">
-        <n-text>
+        <p class="m-0 text-ink">
           确认{{ actionConfig?.title }}
-          <n-text strong>{{ target?.user.username }}</n-text>
+          <strong class="text-ink">{{ target?.user.username }}</strong>
           ？{{ actionConfig?.description }}
-        </n-text>
-        <n-text
+        </p>
+        <strong
           v-if="target?.action === 'restrict' || target?.action === 'ban'"
-          strong
-          :type="target.action === 'ban' ? 'error' : 'warning'"
+          :class="target.action === 'ban' ? 'text-error' : 'text-warning'"
         >
           ！不推荐直接限制/封禁用户，优先使用“三振出局”。
-        </n-text>
+        </strong>
       </div>
-      <n-space v-if="target?.action === 'ban'" align="center" size="small">
-        <n-text depth="3">快速填写：</n-text>
-        <n-button
+      <div
+        v-if="target?.action === 'ban'"
+        class="flex flex-wrap items-center gap-2"
+      >
+        <span class="text-muted">快速填写：</span>
+        <XButton
           v-for="option in banReasonOptions"
           :key="option"
-          size="small"
-          secondary
-          :type="reason === option ? 'primary' : 'default'"
+          size="sm"
+          :color="reason === option ? 'primary' : 'neutral'"
+          variant="soft"
+          class="h-7 min-h-0 rounded-[3px] px-2.5 font-normal"
           :disabled="inProgress"
           @click="reason = option"
         >
           {{ option }}
-        </n-button>
-      </n-space>
+        </XButton>
+      </div>
       <n-input
         v-if="requiresReason"
         v-model:value="reason"
@@ -187,18 +193,25 @@ async function confirm() {
         @keydown.ctrl.enter="confirm"
       />
       <div class="modal-actions">
-        <n-button :disabled="inProgress" @click="close">取消</n-button>
-        <n-button
-          :type="actionConfig?.buttonType"
+        <XButton
+          color="neutral"
+          variant="outline"
+          :disabled="inProgress"
+          @click="close"
+        >
+          取消
+        </XButton>
+        <XButton
+          :color="actionConfig?.buttonColor ?? 'neutral'"
           :loading="inProgress"
           :disabled="requiresReason && !reason.trim()"
           @click="confirm"
         >
           确认{{ actionConfig?.title }}
-        </n-button>
+        </XButton>
       </div>
-    </n-space>
-  </n-modal>
+    </div>
+  </XDialog>
 </template>
 
 <style scoped>

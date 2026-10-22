@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { roleLabels } from '@novelia/web-kit';
-import { NButton, NTag, NText } from 'naive-ui';
+import { roleLabels, XButton } from '@novelia/web-kit';
+import { NTag } from 'naive-ui';
 
 import type { User, UserAction } from '@/api';
 
@@ -18,6 +18,14 @@ const roleTypes: Record<
   member: 'info',
   restricted: 'default',
   banned: 'default',
+};
+
+const roleTextClasses: Record<string, string> = {
+  admin: 'text-error',
+  trusted: 'text-success',
+  member: 'text-info',
+  restricted: 'text-ink',
+  banned: 'text-ink',
 };
 
 function formatDate(value: string) {
@@ -53,7 +61,7 @@ function formatId(id: number) {
 <template>
   <div class="user-row">
     <div class="summary">
-      <n-text depth="3" class="user-id">#{{ formatId(user.id) }}</n-text>
+      <span class="text-muted user-id">#{{ formatId(user.id) }}</span>
       <n-tag
         class="role-tag"
         size="small"
@@ -62,88 +70,94 @@ function formatId(id: number) {
       >
         {{ roleLabels[user.role] ?? user.role }}
       </n-tag>
-      <n-text
+      <span
         class="role-text"
-        :class="{ 'role-text--placeholder': user.role === 'member' }"
-        :type="roleTypes[user.role] ?? 'default'"
+        :class="[
+          roleTextClasses[user.role] ?? 'text-ink',
+          { 'role-text--placeholder': user.role === 'member' },
+        ]"
       >
         {{ roleLabels[user.role] ?? user.role }}
-      </n-text>
+      </span>
     </div>
 
     <div class="identity">
-      <n-text strong class="username">{{ user.username }}</n-text>
-      <n-text depth="3" class="email">{{ user.email }}</n-text>
+      <strong class="text-ink font-semibold username">
+        {{ user.username }}
+      </strong>
+      <span class="text-muted email">{{ user.email }}</span>
     </div>
 
     <div class="metadata">
       <div class="field">
-        <n-text depth="3" class="field-label">注册</n-text>
-        <n-text :title="formatDateTime(user.createdAt)">
+        <span class="text-muted field-label">注册</span>
+        <span :title="formatDateTime(user.createdAt)" class="text-ink">
           {{ formatDate(user.createdAt) }}
-        </n-text>
+        </span>
       </div>
       <div class="field">
-        <n-text depth="3" class="field-label">最近登录</n-text>
-        <n-text :title="formatDateTime(user.lastLogin)">
+        <span class="text-muted field-label">最近登录</span>
+        <span :title="formatDateTime(user.lastLogin)" class="text-ink">
           {{ formatDate(user.lastLogin) }}
-        </n-text>
+        </span>
       </div>
     </div>
 
     <div class="actions">
-      <n-button
+      <XButton
         v-if="user.role === 'member'"
         size="tiny"
-        type="primary"
-        secondary
+        color="primary"
+        variant="soft"
         @click="emit('action', 'trust', user)"
       >
         信任
-      </n-button>
-      <n-button
+      </XButton>
+      <XButton
         v-if="user.role === 'trusted'"
         size="tiny"
-        secondary
+        color="neutral"
+        variant="soft"
         @click="emit('action', 'untrust', user)"
       >
         取消信任
-      </n-button>
-      <n-button
+      </XButton>
+      <XButton
         v-if="user.role === 'member'"
         size="tiny"
-        type="warning"
-        secondary
+        color="warning"
+        variant="soft"
         @click="emit('action', 'restrict', user)"
       >
         限制
-      </n-button>
-      <n-button
+      </XButton>
+      <XButton
         v-if="user.role === 'member'"
         size="tiny"
-        type="error"
-        secondary
+        color="danger"
+        variant="soft"
         @click="emit('action', 'ban', user)"
       >
         封禁
-      </n-button>
-      <n-button
+      </XButton>
+      <XButton
         v-if="user.role === 'restricted'"
         size="tiny"
-        type="warning"
-        secondary
+        color="warning"
+        variant="soft"
         @click="emit('action', 'unrestrict', user)"
       >
         取消限制
-      </n-button>
-      <n-button
+      </XButton>
+      <XButton
         v-if="user.role === 'banned'"
         size="tiny"
-        secondary
+        color="neutral"
+        variant="soft"
         @click="emit('action', 'unban', user)"
       >
         取消封禁
-      </n-button>
+      </XButton>
     </div>
   </div>
 </template>

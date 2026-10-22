@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { NButton, NTag, NText } from 'naive-ui';
+import { XButton } from '@novelia/web-kit';
+import { NTag } from 'naive-ui';
 
 import type { Strike } from '@/api';
 
@@ -32,7 +33,7 @@ function formatId(id: number) {
 <template>
   <div class="strike-row">
     <div class="summary">
-      <n-text depth="3" class="strike-id">#{{ formatId(strike.id) }}</n-text>
+      <span class="text-muted strike-id">#{{ formatId(strike.id) }}</span>
       <n-tag
         size="small"
         :bordered="false"
@@ -44,59 +45,65 @@ function formatId(id: number) {
 
     <div class="participants">
       <div class="field">
-        <n-text depth="3" class="field-label">目标用户</n-text>
-        <n-text class="field-value" :title="strike.username ?? undefined">
+        <span class="text-muted field-label">目标用户</span>
+        <span
+          class="text-ink field-value"
+          :title="strike.username ?? undefined"
+        >
           {{ strike.username ?? '—' }}
-        </n-text>
+        </span>
       </div>
       <div class="field">
-        <n-text depth="3" class="field-label">操作者</n-text>
-        <n-text class="field-value" :title="strike.operatorUsername">
+        <span class="text-muted field-label">操作者</span>
+        <span class="text-ink field-value" :title="strike.operatorUsername">
           {{ strike.operatorUsername ?? '—' }}
-        </n-text>
+        </span>
       </div>
     </div>
 
     <div class="details">
       <div class="field">
-        <n-text depth="3" class="field-label">原因</n-text>
-        <n-text class="field-value" :title="strike.reason">
+        <span class="text-muted field-label">原因</span>
+        <span class="text-ink field-value" :title="strike.reason">
           {{ strike.reason }}
-        </n-text>
+        </span>
       </div>
       <div class="field">
-        <n-text depth="3" class="field-label">证据</n-text>
-        <n-text class="field-value" :title="strike.evidence">
+        <span class="text-muted field-label">证据</span>
+        <span class="text-ink field-value" :title="strike.evidence">
           {{ strike.evidence }}
-        </n-text>
+        </span>
       </div>
     </div>
 
     <div class="metadata">
       <div class="field">
-        <n-text depth="3" class="field-label">记录时间</n-text>
-        <n-text class="field-value">{{ formatDate(strike.createdAt) }}</n-text>
+        <span class="text-muted field-label">记录时间</span>
+        <span class="text-ink field-value">
+          {{ formatDate(strike.createdAt) }}
+        </span>
       </div>
       <div v-if="strike.revokedAt" class="field">
-        <n-text depth="3" class="field-label">撤销时间</n-text>
-        <n-text
-          class="field-value"
+        <span class="text-muted field-label">撤销时间</span>
+        <span
+          class="text-ink field-value"
           :title="`撤销人 ${strike.revokedByUsername ?? '—'}`"
         >
           {{ formatDate(strike.revokedAt) }}
-        </n-text>
+        </span>
       </div>
     </div>
 
     <div class="actions">
-      <n-button
+      <XButton
         v-if="!strike.revokedAt"
         size="tiny"
-        secondary
+        color="neutral"
+        variant="soft"
         @click="$emit('revoke', strike)"
       >
         撤销
-      </n-button>
+      </XButton>
     </div>
   </div>
 </template>

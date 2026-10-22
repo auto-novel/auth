@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import { XInput, XSelect } from '@novelia/web-kit';
 import { SearchOutlined } from '@vicons/material';
-import { NIcon, NInput, NSelect } from 'naive-ui';
 import { ref, watch } from 'vue';
 
 import FilterChoiceGroup from '@/components/FilterChoiceGroup.vue';
@@ -86,8 +86,7 @@ function changeActionGroup(value: string) {
   emit('search');
 }
 
-function changeCustomAction(value: string | number | null) {
-  if (typeof value !== 'string') return;
+function changeCustomAction(value: string) {
   actions.value = [value];
   emit('search');
 }
@@ -105,26 +104,30 @@ watch(actions, (value) => {
 <template>
   <div class="filters">
     <FilterRow label="操作者">
-      <n-input
-        v-model:value="actor"
+      <XInput
+        v-model="actor"
         class="user-input"
         clearable
         placeholder="操作者用户名"
         @change="$emit('search')"
+        @keydown.enter="!$event.isComposing && $emit('search')"
+        @clear="$emit('search')"
       >
         <template #suffix>
-          <n-icon :component="SearchOutlined" />
+          <SearchOutlined class="size-5" aria-hidden="true" />
         </template>
-      </n-input>
+      </XInput>
     </FilterRow>
 
     <FilterRow label="目标用户">
-      <n-input
-        v-model:value="target"
+      <XInput
+        v-model="target"
         class="user-input"
         clearable
         placeholder="目标用户名"
         @change="$emit('search')"
+        @keydown.enter="!$event.isComposing && $emit('search')"
+        @clear="$emit('search')"
       />
     </FilterRow>
 
@@ -134,14 +137,23 @@ watch(actions, (value) => {
         :options="actionGroups"
         @update:value="changeActionGroup"
       />
-      <div v-if="selectedActionGroup === 'custom'" class="custom-actions">
-        <n-select
-          class="custom-action-select"
-          :value="actions.length === 1 ? actions[0] : null"
+      <div
+        v-if="selectedActionGroup === 'custom'"
+        class="custom-actions custom-action-select relative"
+      >
+        <XSelect
+          :model-value="actions.length === 1 ? (actions[0] ?? '') : ''"
           :options="customActionOptions"
-          placeholder="选择具体事件"
-          @update:value="changeCustomAction"
+          aria-label="选择具体事件"
+          @update:model-value="changeCustomAction"
         />
+        <span
+          v-if="actions.length !== 1"
+          class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm text-muted"
+          aria-hidden="true"
+        >
+          选择具体事件
+        </span>
       </div>
     </FilterRow>
 

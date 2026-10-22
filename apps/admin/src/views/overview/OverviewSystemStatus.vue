@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { NButton, NCard, NTag, NText } from 'naive-ui';
+import { XButton } from '@novelia/web-kit';
+import { NCard, NTag } from 'naive-ui';
 import { computed } from 'vue';
 import { RouterLink } from 'vue-router';
 
@@ -43,7 +44,15 @@ const features = computed(() => [
   <n-card class="status-card" title="系统状态">
     <template #header-extra>
       <RouterLink v-slot="{ navigate }" to="/settings" custom>
-        <n-button text type="primary" @click="navigate">管理设置</n-button>
+        <XButton
+          color="neutral"
+          variant="ghost"
+          size="sm"
+          class="text-primary"
+          @click="navigate"
+        >
+          管理设置
+        </XButton>
       </RouterLink>
     </template>
 
@@ -54,8 +63,8 @@ const features = computed(() => [
         class="status-row flex min-w-0 items-center justify-between gap-4 px-5 py-3 [@media(max-width:599px)]:px-0"
       >
         <div class="flex min-w-0 flex-col gap-1">
-          <n-text strong>{{ feature.label }}</n-text>
-          <n-text depth="3">{{ feature.description }}</n-text>
+          <strong class="font-semibold text-ink">{{ feature.label }}</strong>
+          <span class="text-muted">{{ feature.description }}</span>
         </div>
         <n-tag
           :bordered="false"
@@ -68,7 +77,7 @@ const features = computed(() => [
     </div>
 
     <template #footer>
-      <n-text depth="3" class="text-[12px]!">最近更新：{{ updatedAt }}</n-text>
+      <span class="text-xs text-muted">最近更新：{{ updatedAt }}</span>
     </template>
   </n-card>
 </template>

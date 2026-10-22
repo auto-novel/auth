@@ -1,15 +1,12 @@
 <script setup lang="ts">
-import { getApiErrorMessage, Toast } from '@novelia/web-kit';
 import {
-  NAlert,
-  NButton,
-  NCard,
-  NModal,
-  NSpace,
-  NSpin,
-  NSwitch,
-  NText,
-} from 'naive-ui';
+  getApiErrorMessage,
+  Toast,
+  XButton,
+  XConfirmDialog,
+  XSwitch,
+} from '@novelia/web-kit';
+import { NAlert, NCard, NSpin } from 'naive-ui';
 import { computed, onMounted, ref } from 'vue';
 
 import { useAdminApi, type AuthSettings } from '@/api';
@@ -75,6 +72,7 @@ async function loadSettings() {
 }
 
 async function saveSettings() {
+  if (saving.value || !hasChanges.value) return;
   saving.value = true;
 
   await Toast.promise(
@@ -83,7 +81,10 @@ async function saveSettings() {
         registerEnabled: registerEnabled.value,
         resetPasswordEnabled: resetPasswordEnabled.value,
       })
-      .then(applySettings),
+      .then((nextSettings) => {
+        applySettings(nextSettings);
+        showDisableConfirmation.value = false;
+      }),
     {
       loading: '正在保存设置',
       success: '设置已保存',
@@ -95,6 +96,7 @@ async function saveSettings() {
 }
 
 function requestSave() {
+  if (saving.value || !hasChanges.value) return;
   if (disabledFeatures.value.length > 0) {
     showDisableConfirmation.value = true;
     return;
@@ -103,11 +105,11 @@ function requestSave() {
 }
 
 function confirmDisable() {
-  showDisableConfirmation.value = false;
   void saveSettings();
 }
 
 function resetDraft() {
+  if (saving.value) return;
   if (settings.value) applySettings(settings.value);
 }
 
@@ -118,34 +120,40 @@ onMounted(loadSettings);
   <main class="settings-page">
     <section class="intro" aria-labelledby="settings-title">
       <div>
-        <n-text id="settings-title" tag="h1" class="intro-title">
-          系统设置
-        </n-text>
-        <n-text depth="3">控制用户可使用的认证功能。</n-text>
+        <h1 id="settings-title" class="intro-title text-ink">系统设置</h1>
+        <p class="m-0 text-muted">控制用户可使用的认证功能。</p>
       </div>
-      <n-text v-if="settings" depth="3" class="updated-at">
+      <span v-if="settings" class="updated-at text-muted">
         最近更新：{{ updatedAt }}
-      </n-text>
+      </span>
     </section>
 
     <n-alert v-if="loadError" type="error" title="系统设置加载失败">
-      <n-space vertical size="small">
-        <n-text>{{ loadError }}</n-text>
-        <n-button size="small" @click="loadSettings">重新加载</n-button>
-      </n-space>
+      <div class="flex flex-col gap-2">
+        <span class="text-ink">{{ loadError }}</span>
+        <XButton
+          class="self-start"
+          color="neutral"
+          variant="outline"
+          size="sm"
+          @click="loadSettings"
+        >
+          重新加载
+        </XButton>
+      </div>
     </n-alert>
 
     <n-spin v-else :show="loading" class="settings-content">
       <n-card v-if="settings" :bordered="false" class="settings-card">
         <div class="setting-row">
           <div class="setting-copy">
-            <n-text strong>允许用户注册</n-text>
-            <n-text depth="3">
+            <strong class="text-ink">允许用户注册</strong>
+            <p class="m-0 text-muted">
               关闭后，新用户无法请求注册验证码或创建账号。
-            </n-text>
+            </p>
           </div>
-          <n-switch
-            v-model:value="registerEnabled"
+          <XSwitch
+            v-model="registerEnabled"
             :disabled="saving"
             aria-label="允许用户注册"
           />
@@ -153,47 +161,48 @@ onMounted(loadSettings);
 
         <div class="setting-row">
           <div class="setting-copy">
-            <n-text strong>允许用户重置密码</n-text>
-            <n-text depth="3">
+            <strong class="text-ink">允许用户重置密码</strong>
+            <p class="m-0 text-muted">
               关闭后，用户无法请求重置验证码或提交新密码。
-            </n-text>
+            </p>
           </div>
-          <n-switch
-            v-model:value="resetPasswordEnabled"
+          <XSwitch
+            v-model="resetPasswordEnabled"
             :disabled="saving"
             aria-label="允许用户重置密码"
           />
         </div>
 
         <div class="actions">
-          <n-button :disabled="!hasChanges || saving" @click="resetDraft">
+          <XButton
+            color="neutral"
+            variant="outline"
+            :disabled="!hasChanges || saving"
+            @click="resetDraft"
+          >
             撤销修改
-          </n-button>
-          <n-button
-            type="error"
+          </XButton>
+          <XButton
+            color="danger"
             :loading="saving"
             :disabled="!hasChanges"
             @click="requestSave"
           >
             保存设置
-          </n-button>
+          </XButton>
         </div>
       </n-card>
     </n-spin>
 
-    <n-modal
-      :z-index="80"
-      v-model:show="showDisableConfirmation"
-      preset="dialog"
-      type="warning"
+    <XConfirmDialog
+      v-model:open="showDisableConfirmation"
       title="确认关闭认证功能"
-      positive-text="确认关闭"
-      negative-text="取消"
-      :mask-closable="false"
-      @positive-click="confirmDisable"
-    >
-      保存后将立即关闭{{ disabledFeatures.join('和') }}，相关请求会被拒绝。
-    </n-modal>
+      :description="`保存后将立即关闭${disabledFeatures.join('和')}，相关请求会被拒绝。`"
+      confirm-label="确认关闭"
+      :loading="saving"
+      danger
+      @confirm="confirmDisable"
+    />
   </main>
 </template>
 

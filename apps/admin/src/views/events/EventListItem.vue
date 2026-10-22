@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { NTag, NText, NTooltip } from 'naive-ui';
+import { XTooltip } from '@novelia/web-kit';
+import { NTag } from 'naive-ui';
 import { computed } from 'vue';
 
 import type { Event } from '@/api';
@@ -145,7 +146,7 @@ function formatId(id: number) {
 <template>
   <div class="event-row">
     <div class="summary">
-      <n-text depth="3" class="event-id">#{{ formatId(event.id) }}</n-text>
+      <span class="text-muted event-id">#{{ formatId(event.id) }}</span>
       <n-tag
         size="small"
         :bordered="false"
@@ -157,33 +158,41 @@ function formatId(id: number) {
 
     <div class="participants">
       <div class="field">
-        <n-text depth="3" class="field-label">操作者</n-text>
-        <n-text class="field-value">{{ detail.actor_user || '—' }}</n-text>
+        <span class="text-muted field-label">操作者</span>
+        <span class="text-ink field-value">{{ detail.actor_user || '—' }}</span>
       </div>
       <div class="field">
-        <n-text depth="3" class="field-label">目标</n-text>
-        <n-text class="field-value">{{ detail.target_user || '—' }}</n-text>
+        <span class="text-muted field-label">目标</span>
+        <span class="text-ink field-value">
+          {{ detail.target_user || '—' }}
+        </span>
       </div>
     </div>
 
     <div class="metadata">
       <div class="field">
-        <n-text depth="3" class="field-label">详情</n-text>
-        <n-tooltip
-          placement="top-start"
+        <span class="text-muted field-label">详情</span>
+        <XTooltip
+          side="top"
+          align="start"
           :style="{ maxWidth: 'min(560px, calc(100vw - 32px))' }"
         >
           <template #trigger>
-            <n-text class="field-value detail detail-trigger">
+            <span
+              class="text-ink field-value detail detail-trigger"
+              tabindex="0"
+            >
               {{ detailSummary }}
-            </n-text>
+            </span>
           </template>
           <pre class="detail-tooltip">{{ formattedDetail }}</pre>
-        </n-tooltip>
+        </XTooltip>
       </div>
       <div class="field">
-        <n-text depth="3" class="field-label">时间</n-text>
-        <n-text class="field-value">{{ formatDate(event.createdAt) }}</n-text>
+        <span class="text-muted field-label">时间</span>
+        <span class="text-ink field-value">
+          {{ formatDate(event.createdAt) }}
+        </span>
       </div>
     </div>
   </div>

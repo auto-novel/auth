@@ -4,7 +4,7 @@ import {
   PeopleOutlined,
   ReportProblemOutlined,
 } from '@vicons/material';
-import { NCard, NIcon, NText } from 'naive-ui';
+import { NCard } from 'naive-ui';
 import { computed } from 'vue';
 
 import type { OverviewUserSummary } from '@/api';
@@ -45,13 +45,15 @@ const metrics = computed(() => [
           class="inline-flex h-[38px] w-[38px] flex-none items-center justify-center rounded-[10px] text-[20px]"
           :class="['summary-icon', metric.className]"
         >
-          <n-icon :component="metric.icon" />
+          <component :is="metric.icon" class="size-[1em]" aria-hidden="true" />
         </span>
         <div class="flex min-w-0 flex-col gap-1">
-          <n-text depth="3">{{ metric.label }}</n-text>
-          <n-text class="text-2xl! leading-[1.15]! font-[650]! tabular-nums">
+          <span class="text-muted">{{ metric.label }}</span>
+          <span
+            class="text-2xl leading-[1.15] font-[650] text-ink tabular-nums"
+          >
             {{ metric.value.toLocaleString() }}
-          </n-text>
+          </span>
         </div>
       </div>
     </div>

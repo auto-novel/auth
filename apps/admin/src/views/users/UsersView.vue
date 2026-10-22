@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { getApiErrorMessage, roles } from '@novelia/web-kit';
-import { NAlert, NButton, NSpace, NText } from 'naive-ui';
+import { getApiErrorMessage, roles, XButton } from '@novelia/web-kit';
+import { NAlert } from 'naive-ui';
 import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter, type LocationQueryRaw } from 'vue-router';
 
@@ -183,7 +183,7 @@ watch(
 </script>
 
 <template>
-  <n-space vertical :size="16" class="users-page">
+  <div class="users-page flex flex-col gap-4">
     <UserFilters
       v-model:query="queryInput"
       v-model:role="roleInput"
@@ -192,10 +192,18 @@ watch(
     />
 
     <n-alert v-if="errorMessage" type="error" title="用户列表加载失败">
-      <n-space vertical size="small">
-        <n-text>{{ errorMessage }}</n-text>
-        <n-button size="small" @click="loadUsers">重新加载</n-button>
-      </n-space>
+      <div class="flex flex-col gap-2">
+        <span class="text-ink">{{ errorMessage }}</span>
+        <XButton
+          class="self-start"
+          color="neutral"
+          variant="outline"
+          size="sm"
+          @click="loadUsers"
+        >
+          重新加载
+        </XButton>
+      </div>
     </n-alert>
 
     <UserList
@@ -217,7 +225,7 @@ watch(
       @close="closeActionModal"
       @success="handleActionSuccess"
     />
-  </n-space>
+  </div>
 </template>
 
 <style scoped>
