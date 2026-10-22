@@ -8,6 +8,8 @@ import MenuIcon from '../menu/MenuIcon.vue';
 import SidebarFooter from './SidebarFooter.vue';
 import SidebarNavigation from './SidebarNavigation.vue';
 
+defineOptions({ inheritAttrs: false });
+
 defineProps<{
   options: WebKitMenuOption[];
   expanded: Set<string>;
@@ -30,6 +32,7 @@ const showMascot = ref(false);
 
 <template>
   <aside
+    v-bind="$attrs"
     class="web-kit-sidebar flex h-full flex-col overflow-hidden border-r border-divider"
     :class="[
       panel === 'modal' ? 'bg-modal' : 'bg-surface',
