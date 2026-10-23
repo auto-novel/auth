@@ -5,8 +5,9 @@ import {
   XButton,
   XDialog,
   XInput,
+  XNumberInput,
+  XTextarea,
 } from '@novelia/web-kit';
-import { NAlert, NForm, NFormItem, NInput, NInputNumber } from 'naive-ui';
 import { computed, reactive, ref, watch } from 'vue';
 import { useRoute, useRouter, type LocationQueryRaw } from 'vue-router';
 
@@ -41,7 +42,12 @@ const operatorUsername = ref('');
 const createdRange = ref<[number, number] | null>(null);
 const showCreateModal = ref(false);
 const createInProgress = ref(false);
-const createForm = reactive({
+const createForm = reactive<{
+  username: string;
+  reason: string;
+  evidence: string;
+  point: number | null;
+}>({
   username: '',
   reason: '',
   evidence: '',
@@ -59,9 +65,13 @@ const canCreate = computed(() =>
     createForm.username.trim() &&
     createForm.reason.trim() &&
     createForm.evidence.trim() &&
-    createForm.point > 0,
+    (createForm.point ?? 0) > 0,
   ),
 );
+
+function normalizePoint() {
+  return Math.max(1, Math.min(32767, Math.round(createForm.point ?? 1)));
+}
 const showRevokeModal = computed({
   get: () => pendingRevoke.value !== null,
   set: (show) => {
@@ -210,7 +220,7 @@ async function submitCreate() {
         username: createForm.username.trim(),
         reason: createForm.reason.trim(),
         evidence: createForm.evidence.trim(),
-        point: createForm.point,
+        point: normalizePoint(),
       })
       .then(async () => {
         showCreateModal.value = false;
@@ -282,25 +292,10 @@ watch(
       @create="openCreateModal"
     />
 
-    <n-alert v-if="errorMessage" type="error" title="违规记录加载失败">
-      <div class="flex flex-col gap-2">
-        <span class="text-ink">{{ errorMessage }}</span>
-        <XButton
-          class="self-start"
-          color="neutral"
-          variant="outline"
-          size="sm"
-          @click="loadStrikes"
-        >
-          重新加载
-        </XButton>
-      </div>
-    </n-alert>
-
     <StrikeList
-      v-if="!errorMessage"
       :strikes="strikes"
       :loading="loading"
+      :error="errorMessage"
       :total="total"
       :page="page"
       :page-size="pageSize"
@@ -308,6 +303,7 @@ watch(
       @update-page="changePage"
       @update-page-size="changePageSize"
       @reset-filters="resetFilters"
+      @retry="loadStrikes"
       @revoke="requestRevoke"
     />
 
@@ -318,70 +314,88 @@ watch(
       :closable="!createInProgress"
       @update:open="(open) => !open && closeCreateModal()"
     >
-      <n-form label-placement="top" :show-feedback="false">
-        <div class="flex flex-col gap-4">
-          <n-form-item label="目标用户名" required>
-            <XInput
-              v-model="createForm.username"
-              class="w-full"
-              placeholder="仅可警告普通用户"
-              :disabled="createInProgress"
-            />
-          </n-form-item>
-          <n-form-item label="原因" required>
-            <n-input
-              v-model:value="createForm.reason"
-              type="textarea"
-              placeholder="说明违规原因"
-              :autosize="{ minRows: 2, maxRows: 5 }"
-              :disabled="createInProgress"
-              maxlength="500"
-              show-count
-            />
-          </n-form-item>
-          <n-form-item label="证据" required>
-            <n-input
-              v-model:value="createForm.evidence"
-              type="textarea"
-              placeholder="填写证据说明或链接"
-              :autosize="{ minRows: 2, maxRows: 5 }"
-              :disabled="createInProgress"
-              maxlength="1000"
-              show-count
-            />
-          </n-form-item>
-          <n-form-item label="扣分" required>
-            <n-input-number
-              v-model:value="createForm.point"
-              :min="1"
-              :max="32767"
-              :precision="0"
-              :disabled="createInProgress"
-            />
-          </n-form-item>
-          <n-alert type="warning" :bordered="false">
-            用户在 100 天内累计达到 3 分后，将自动转为受限用户。
-          </n-alert>
-          <div class="modal-actions">
-            <XButton
-              color="neutral"
-              variant="outline"
-              :disabled="createInProgress"
-              @click="closeCreateModal"
-            >
-              取消
-            </XButton>
-            <XButton
-              color="warning"
-              :loading="createInProgress"
-              :disabled="!canCreate"
-              @click="submitCreate"
-            >
-              确认警告
-            </XButton>
-          </div>
+      <div class="flex flex-col gap-4">
+        <div class="flex flex-col gap-1.5">
+          <label for="strike-username" class="text-sm text-ink">
+            <span class="mr-0.5 text-error" aria-hidden="true">*</span>
+            目标用户名
+          </label>
+          <XInput
+            id="strike-username"
+            v-model="createForm.username"
+            class="w-full"
+            placeholder="仅可警告普通用户"
+            :disabled="createInProgress"
+          />
         </div>
-      </n-form>
+        <div class="flex flex-col gap-1.5">
+          <label for="strike-reason" class="text-sm text-ink">
+            <span class="mr-0.5 text-error" aria-hidden="true">*</span>
+            原因
+          </label>
+          <XTextarea
+            id="strike-reason"
+            v-model="createForm.reason"
+            placeholder="说明违规原因"
+            :autosize="{ minRows: 2, maxRows: 5 }"
+            :disabled="createInProgress"
+            maxlength="500"
+            show-count
+          />
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label for="strike-evidence" class="text-sm text-ink">
+            <span class="mr-0.5 text-error" aria-hidden="true">*</span>
+            证据
+          </label>
+          <XTextarea
+            id="strike-evidence"
+            v-model="createForm.evidence"
+            placeholder="填写证据说明或链接"
+            :autosize="{ minRows: 2, maxRows: 5 }"
+            :disabled="createInProgress"
+            maxlength="1000"
+            show-count
+          />
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label for="strike-point" class="text-sm text-ink">
+            <span class="mr-0.5 text-error" aria-hidden="true">*</span>
+            扣分
+          </label>
+          <XNumberInput
+            id="strike-point"
+            v-model="createForm.point"
+            class="w-32"
+            :min="1"
+            :max="32767"
+            :disabled="createInProgress"
+          />
+        </div>
+        <p
+          class="m-0 rounded-[3px] bg-warning-soft px-3.5 py-2 text-sm text-warning-text"
+        >
+          用户在 100 天内累计达到 3 分后，将自动转为受限用户。
+        </p>
+        <div class="modal-actions">
+          <XButton
+            color="neutral"
+            variant="outline"
+            :disabled="createInProgress"
+            @click="closeCreateModal"
+          >
+            取消
+          </XButton>
+          <XButton
+            color="warning"
+            :loading="createInProgress"
+            :disabled="!canCreate"
+            @click="submitCreate"
+          >
+            确认警告
+          </XButton>
+        </div>
+      </div>
     </XDialog>
 
     <XDialog
@@ -428,9 +442,5 @@ watch(
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-}
-
-:deep(.n-form-item-blank) {
-  min-height: auto;
 }
 </style>

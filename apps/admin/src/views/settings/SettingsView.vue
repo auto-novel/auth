@@ -2,11 +2,11 @@
 import {
   getApiErrorMessage,
   Toast,
+  XAsyncContent,
   XButton,
   XConfirmDialog,
   XSwitch,
 } from '@novelia/web-kit';
-import { NAlert, NCard, NSpin } from 'naive-ui';
 import { computed, onMounted, ref } from 'vue';
 
 import { useAdminApi, type AuthSettings } from '@/api';
@@ -128,71 +128,67 @@ onMounted(loadSettings);
       </span>
     </section>
 
-    <n-alert v-if="loadError" type="error" title="系统设置加载失败">
-      <div class="flex flex-col gap-2">
-        <span class="text-ink">{{ loadError }}</span>
-        <XButton
-          class="self-start"
-          color="neutral"
-          variant="outline"
-          size="sm"
-          @click="loadSettings"
+    <div class="settings-content">
+      <XAsyncContent
+        :loading="loading"
+        :error="loadError"
+        error-title="系统设置加载失败"
+        retry-label="重新加载"
+        :on-retry="loadSettings"
+      >
+        <section
+          v-if="settings"
+          class="flex flex-col rounded-[3px] bg-surface px-6 py-5"
         >
-          重新加载
-        </XButton>
-      </div>
-    </n-alert>
-
-    <n-spin v-else :show="loading" class="settings-content">
-      <n-card v-if="settings" :bordered="false" class="settings-card">
-        <div class="setting-row">
-          <div class="setting-copy">
-            <strong class="text-ink">允许用户注册</strong>
-            <p class="m-0 text-muted">
-              关闭后，新用户无法请求注册验证码或创建账号。
-            </p>
+          <div class="setting-row">
+            <div class="setting-copy">
+              <strong class="text-ink">允许用户注册</strong>
+              <p class="m-0 text-muted">
+                关闭后，新用户无法请求注册验证码或创建账号。
+              </p>
+            </div>
+            <XSwitch
+              v-model="registerEnabled"
+              :disabled="saving"
+              aria-label="允许用户注册"
+            />
           </div>
-          <XSwitch
-            v-model="registerEnabled"
-            :disabled="saving"
-            aria-label="允许用户注册"
-          />
-        </div>
 
-        <div class="setting-row">
-          <div class="setting-copy">
-            <strong class="text-ink">允许用户重置密码</strong>
-            <p class="m-0 text-muted">
-              关闭后，用户无法请求重置验证码或提交新密码。
-            </p>
+          <div class="setting-row">
+            <div class="setting-copy">
+              <strong class="text-ink">允许用户重置密码</strong>
+              <p class="m-0 text-muted">
+                关闭后，用户无法请求重置验证码或提交新密码。
+              </p>
+            </div>
+            <XSwitch
+              v-model="resetPasswordEnabled"
+              :disabled="saving"
+              aria-label="允许用户重置密码"
+            />
           </div>
-          <XSwitch
-            v-model="resetPasswordEnabled"
-            :disabled="saving"
-            aria-label="允许用户重置密码"
-          />
-        </div>
 
-        <div class="actions">
-          <XButton
-            color="neutral"
-            variant="outline"
-            :disabled="!hasChanges || saving"
-            @click="resetDraft"
-          >
-            撤销修改
-          </XButton>
-          <XButton
-            color="danger"
-            :loading="saving"
-            :disabled="!hasChanges"
-            @click="requestSave"
-          >
-            保存设置
-          </XButton>
-        </div>
-      </n-card>
-    </n-spin>
+          <div class="actions">
+            <XButton
+              color="neutral"
+              variant="outline"
+              :disabled="!hasChanges || saving"
+              @click="resetDraft"
+            >
+              撤销修改
+            </XButton>
+            <XButton
+              color="danger"
+              :loading="saving"
+              :disabled="!hasChanges"
+              @click="requestSave"
+            >
+              保存设置
+            </XButton>
+          </div>
+        </section>
+      </XAsyncContent>
+    </div>
 
     <XConfirmDialog
       v-model:open="showDisableConfirmation"
@@ -237,18 +233,13 @@ onMounted(loadSettings);
 .settings-content {
   min-height: 180px;
 }
-.settings-card :deep(.n-card__content) {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
 .setting-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 32px;
   padding: 20px 0;
-  border-bottom: 1px solid var(--n-border-color);
+  border-bottom: 1px solid var(--color-divider);
 }
 .setting-row:first-child {
   padding-top: 4px;

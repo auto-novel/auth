@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { LockOpenOutlined, PersonAddAltOutlined } from '@vicons/material';
-import { NCard } from 'naive-ui';
 
 import type { AuthActivitySummary } from '@/api';
 
@@ -29,7 +28,9 @@ function comparisonClass(current: number, previous: number) {
     class="grid min-w-0 grid-rows-2 gap-4 [@media(max-width:767px)]:grid-cols-2 [@media(max-width:767px)]:grid-rows-none [@media(max-width:599px)]:gap-2.5"
     aria-label="认证活动汇总"
   >
-    <n-card class="metric-card">
+    <section
+      class="metric-card rounded-[3px] border border-divider bg-surface p-5 [@media(max-width:599px)]:p-3.5"
+    >
       <div class="flex h-full items-center justify-between gap-4">
         <div class="flex flex-col gap-[7px]">
           <span class="text-muted">登录次数</span>
@@ -55,9 +56,11 @@ function comparisonClass(current: number, previous: number) {
           <LockOpenOutlined class="size-[1em]" aria-hidden="true" />
         </span>
       </div>
-    </n-card>
+    </section>
 
-    <n-card class="metric-card">
+    <section
+      class="metric-card rounded-[3px] border border-divider bg-surface p-5 [@media(max-width:599px)]:p-3.5"
+    >
       <div class="flex h-full items-center justify-between gap-4">
         <div class="flex flex-col gap-[7px]">
           <span class="text-muted">新增用户</span>
@@ -79,16 +82,11 @@ function comparisonClass(current: number, previous: number) {
           <PersonAddAltOutlined class="size-[1em]" aria-hidden="true" />
         </span>
       </div>
-    </n-card>
+    </section>
   </section>
 </template>
 
 <style scoped>
-.metric-card :deep(.n-card__content) {
-  height: 100%;
-  box-sizing: border-box;
-  padding: 20px;
-}
 .metric-icon.login {
   color: var(--login);
   background: rgba(59, 130, 246, 0.11);
@@ -96,11 +94,5 @@ function comparisonClass(current: number, previous: number) {
 .metric-icon.register {
   color: var(--register);
   background: rgba(24, 160, 88, 0.11);
-}
-
-@media (max-width: 599px) {
-  .metric-card :deep(.n-card__content) {
-    padding: 14px;
-  }
 }
 </style>

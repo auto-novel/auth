@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { XTooltip } from '@novelia/web-kit';
-import { NTag } from 'naive-ui';
 import { computed } from 'vue';
 
+import StatusTag from '@/components/StatusTag.vue';
 import type { Event } from '@/api';
 
 interface EventDetail {
@@ -29,17 +29,17 @@ const actionLabels: Record<string, string> = {
   'update-setting': '更新设置',
 };
 
-const actionTypes: Record<
+const actionTones: Record<
   string,
-  'default' | 'success' | 'warning' | 'error' | 'info'
+  'neutral' | 'success' | 'warning' | 'error' | 'info'
 > = {
   login: 'success',
   register: 'info',
-  logout: 'default',
+  logout: 'neutral',
   otp: 'info',
   reset_password: 'warning',
   'trust-user': 'success',
-  'untrust-user': 'default',
+  'untrust-user': 'neutral',
   'restrict-user': 'warning',
   'unrestrict-user': 'success',
   'ban-user': 'error',
@@ -147,13 +147,9 @@ function formatId(id: number) {
   <div class="event-row">
     <div class="summary">
       <span class="text-muted event-id">#{{ formatId(event.id) }}</span>
-      <n-tag
-        size="small"
-        :bordered="false"
-        :type="actionTypes[event.action] ?? 'default'"
-      >
+      <StatusTag :tone="actionTones[event.action] ?? 'neutral'">
         {{ actionLabels[event.action] ?? event.action }}
-      </n-tag>
+      </StatusTag>
     </div>
 
     <div class="participants">

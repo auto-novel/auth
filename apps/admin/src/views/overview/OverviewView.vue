@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import { getApiErrorMessage, XButton } from '@novelia/web-kit';
+import { getApiErrorMessage, XAsyncContent } from '@novelia/web-kit';
 import type {
   AuthActivitySummary,
   AuthSettings,
   DailyAuthStat,
   OverviewUserSummary as UserSummary,
 } from '@/api';
-import { NAlert, NSpin } from 'naive-ui';
 import { onMounted, ref } from 'vue';
 
 import { useAdminApi } from '@/api';
@@ -119,21 +118,13 @@ onMounted(() => {
 
 <template>
   <main class="overview-page">
-    <n-alert v-if="activityError" type="error" title="认证活动加载失败">
-      <div class="error-content">
-        <span class="text-ink">{{ activityError }}</span>
-        <XButton
-          color="neutral"
-          variant="outline"
-          size="sm"
-          @click="loadActivity"
-        >
-          重新加载
-        </XButton>
-      </div>
-    </n-alert>
-
-    <n-spin v-else :show="activityLoading">
+    <XAsyncContent
+      :loading="activityLoading"
+      :error="activityError"
+      error-title="认证活动加载失败"
+      retry-label="重新加载"
+      :on-retry="loadActivity"
+    >
       <div class="overview-grid">
         <OverviewMetrics
           class="metrics-panel"
@@ -147,42 +138,34 @@ onMounted(() => {
           :end-date="dateRange.endDate"
         />
       </div>
-    </n-spin>
+    </XAsyncContent>
 
     <div class="snapshot-grid">
-      <n-alert v-if="userSummaryError" type="error" title="用户概况加载失败">
-        <div class="error-content">
-          <span class="text-ink">{{ userSummaryError }}</span>
-          <XButton
-            color="neutral"
-            variant="outline"
-            size="sm"
-            @click="loadUserSummary"
-          >
-            重新加载
-          </XButton>
-        </div>
-      </n-alert>
-      <n-spin v-else :show="userSummaryLoading" class="snapshot-content">
-        <OverviewUserSummary v-if="userSummary" :summary="userSummary" />
-      </n-spin>
+      <div class="snapshot-content">
+        <XAsyncContent
+          :loading="userSummaryLoading"
+          :error="userSummaryError"
+          error-title="用户概况加载失败"
+          retry-label="重新加载"
+          :on-retry="loadUserSummary"
+          size="compact"
+        >
+          <OverviewUserSummary v-if="userSummary" :summary="userSummary" />
+        </XAsyncContent>
+      </div>
 
-      <n-alert v-if="settingsError" type="error" title="系统状态加载失败">
-        <div class="error-content">
-          <span class="text-ink">{{ settingsError }}</span>
-          <XButton
-            color="neutral"
-            variant="outline"
-            size="sm"
-            @click="loadSettings"
-          >
-            重新加载
-          </XButton>
-        </div>
-      </n-alert>
-      <n-spin v-else :show="settingsLoading" class="snapshot-content">
-        <OverviewSystemStatus v-if="settings" :settings="settings" />
-      </n-spin>
+      <div class="snapshot-content">
+        <XAsyncContent
+          :loading="settingsLoading"
+          :error="settingsError"
+          error-title="系统状态加载失败"
+          retry-label="重新加载"
+          :on-retry="loadSettings"
+          size="compact"
+        >
+          <OverviewSystemStatus v-if="settings" :settings="settings" />
+        </XAsyncContent>
+      </div>
     </div>
   </main>
 </template>
@@ -196,12 +179,6 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 20px;
-}
-.error-content {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
 }
 .overview-grid {
   display: grid;

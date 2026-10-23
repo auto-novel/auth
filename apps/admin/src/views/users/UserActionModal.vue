@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { Toast, XButton, XDialog } from '@novelia/web-kit';
-import { NInput } from 'naive-ui';
+import { Toast, XButton, XDialog, XTextarea } from '@novelia/web-kit';
 import { computed, ref, watch } from 'vue';
 
 import { useAdminApi, type User, type UserAction } from '@/api';
@@ -181,10 +180,9 @@ async function confirm() {
           {{ option }}
         </XButton>
       </div>
-      <n-input
+      <XTextarea
         v-if="requiresReason"
-        v-model:value="reason"
-        type="textarea"
+        v-model="reason"
         :placeholder="`请输入${actionConfig?.title ?? '操作'}原因`"
         :autosize="{ minRows: 3, maxRows: 6 }"
         :disabled="inProgress"

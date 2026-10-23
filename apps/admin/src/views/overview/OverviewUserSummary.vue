@@ -4,7 +4,6 @@ import {
   PeopleOutlined,
   ReportProblemOutlined,
 } from '@vicons/material';
-import { NCard } from 'naive-ui';
 import { computed } from 'vue';
 
 import type { OverviewUserSummary } from '@/api';
@@ -34,8 +33,13 @@ const metrics = computed(() => [
 </script>
 
 <template>
-  <n-card class="summary-card" title="用户概况">
-    <div class="grid grid-cols-3 [@media(max-width:599px)]:grid-cols-1">
+  <section class="summary-card rounded-[3px] border border-divider bg-surface">
+    <header class="px-6 pt-[19px] pb-5 text-lg font-medium text-ink">
+      用户概况
+    </header>
+    <div
+      class="grid grid-cols-3 px-6 pt-2 pb-2 [@media(max-width:599px)]:grid-cols-1"
+    >
       <div
         v-for="metric in metrics"
         :key="metric.label"
@@ -57,16 +61,12 @@ const metrics = computed(() => [
         </div>
       </div>
     </div>
-  </n-card>
+  </section>
 </template>
 
 <style scoped>
-.summary-card :deep(.n-card__content) {
-  padding-top: 8px;
-  padding-bottom: 8px;
-}
 .summary-item + .summary-item {
-  border-left: 1px solid var(--n-border-color);
+  border-left: 1px solid var(--color-divider);
 }
 .summary-icon.total {
   color: var(--login);
@@ -83,7 +83,7 @@ const metrics = computed(() => [
 
 @media (max-width: 599px) {
   .summary-item + .summary-item {
-    border-top: 1px solid var(--n-border-color);
+    border-top: 1px solid var(--color-divider);
     border-left: 0;
   }
 }

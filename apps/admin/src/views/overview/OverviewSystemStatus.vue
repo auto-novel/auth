@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { XButton } from '@novelia/web-kit';
-import { NCard, NTag } from 'naive-ui';
 import { computed } from 'vue';
 import { RouterLink } from 'vue-router';
 
+import StatusTag from '@/components/StatusTag.vue';
 import type { AuthSettings } from '@/api';
 
 const props = defineProps<{ settings: AuthSettings }>();
@@ -41,8 +41,9 @@ const features = computed(() => [
 </script>
 
 <template>
-  <n-card class="status-card" title="系统状态">
-    <template #header-extra>
+  <section class="status-card rounded-[3px] border border-divider bg-surface">
+    <header class="flex items-center gap-4 px-6 pt-[19px] pb-3">
+      <div class="min-w-0 flex-1 text-lg font-medium text-ink">系统状态</div>
       <RouterLink v-slot="{ navigate }" to="/settings" custom>
         <XButton
           color="neutral"
@@ -54,9 +55,11 @@ const features = computed(() => [
           管理设置
         </XButton>
       </RouterLink>
-    </template>
+    </header>
 
-    <div class="grid grid-cols-2 [@media(max-width:599px)]:grid-cols-1">
+    <div
+      class="grid grid-cols-2 px-6 pt-2 pb-2 [@media(max-width:599px)]:grid-cols-1"
+    >
       <div
         v-for="feature in features"
         :key="feature.label"
@@ -66,40 +69,30 @@ const features = computed(() => [
           <strong class="font-semibold text-ink">{{ feature.label }}</strong>
           <span class="text-muted">{{ feature.description }}</span>
         </div>
-        <n-tag
-          :bordered="false"
-          :type="feature.enabled ? 'success' : 'error'"
+        <StatusTag
+          :tone="feature.enabled ? 'success' : 'error'"
+          size="md"
           round
         >
           {{ feature.enabled ? '已启用' : '已停用' }}
-        </n-tag>
+        </StatusTag>
       </div>
     </div>
 
-    <template #footer>
-      <span class="text-xs text-muted">最近更新：{{ updatedAt }}</span>
-    </template>
-  </n-card>
+    <footer class="px-6 pt-3 pb-5 text-xs text-muted">
+      最近更新：{{ updatedAt }}
+    </footer>
+  </section>
 </template>
 
 <style scoped>
-.status-card :deep(.n-card-header) {
-  padding-bottom: 12px;
-}
-.status-card :deep(.n-card__content) {
-  padding-top: 8px;
-  padding-bottom: 8px;
-}
-.status-card :deep(.n-card__footer) {
-  padding-top: 12px;
-}
 .status-row + .status-row {
-  border-left: 1px solid var(--n-border-color);
+  border-left: 1px solid var(--color-divider);
 }
 
 @media (max-width: 599px) {
   .status-row + .status-row {
-    border-top: 1px solid var(--n-border-color);
+    border-top: 1px solid var(--color-divider);
     border-left: 0;
   }
 }

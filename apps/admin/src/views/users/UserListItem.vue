@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { roleLabels, XButton } from '@novelia/web-kit';
-import { NTag } from 'naive-ui';
 
+import StatusTag from '@/components/StatusTag.vue';
 import type { User, UserAction } from '@/api';
 
 const props = defineProps<{ user: User; total: number }>();
@@ -9,15 +9,15 @@ const emit = defineEmits<{
   action: [action: UserAction, user: User];
 }>();
 
-const roleTypes: Record<
+const roleTones: Record<
   string,
-  'default' | 'success' | 'warning' | 'error' | 'info'
+  'neutral' | 'success' | 'warning' | 'error' | 'info'
 > = {
   admin: 'error',
   trusted: 'success',
   member: 'info',
-  restricted: 'default',
-  banned: 'default',
+  restricted: 'neutral',
+  banned: 'neutral',
 };
 
 const roleTextClasses: Record<string, string> = {
@@ -62,14 +62,9 @@ function formatId(id: number) {
   <div class="user-row">
     <div class="summary">
       <span class="text-muted user-id">#{{ formatId(user.id) }}</span>
-      <n-tag
-        class="role-tag"
-        size="small"
-        :bordered="false"
-        :type="roleTypes[user.role] ?? 'default'"
-      >
+      <StatusTag class="role-tag" :tone="roleTones[user.role] ?? 'neutral'">
         {{ roleLabels[user.role] ?? user.role }}
-      </n-tag>
+      </StatusTag>
       <span
         class="role-text"
         :class="[

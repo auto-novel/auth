@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { XButton } from '@novelia/web-kit';
-import { NTag } from 'naive-ui';
 
+import StatusTag from '@/components/StatusTag.vue';
 import type { Strike } from '@/api';
 
 const props = defineProps<{ strike: Strike; total: number }>();
@@ -34,13 +34,9 @@ function formatId(id: number) {
   <div class="strike-row">
     <div class="summary">
       <span class="text-muted strike-id">#{{ formatId(strike.id) }}</span>
-      <n-tag
-        size="small"
-        :bordered="false"
-        :type="strike.revokedAt ? 'default' : 'warning'"
-      >
+      <StatusTag :tone="strike.revokedAt ? 'neutral' : 'warning'">
         {{ strike.revokedAt ? '已撤销' : `${strike.point} 分` }}
-      </n-tag>
+      </StatusTag>
     </div>
 
     <div class="participants">
