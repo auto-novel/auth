@@ -22,6 +22,3 @@ auto-imports.d.ts
 components.d.ts
 vite.config.ts.timestamp*
 sonda-report.html
-
-# Kits
-packages/*/playground/dist/

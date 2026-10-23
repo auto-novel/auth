@@ -1,7 +1,6 @@
 packages:
   - apps/admin
   - apps/web
-  - packages/*
 
 allowBuilds:
   esbuild: true

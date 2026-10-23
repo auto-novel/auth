@@ -30,7 +30,7 @@ docker compose up -d
 pnpm install   # 安装依赖
 pnpm dev:web   # 启动用户端开发服务器
 pnpm dev:admin # 启动管理端开发服务器
-pnpm build     # 构建工作区包和前端
+pnpm build     # 构建用户端和管理端
 ```
 
 开发服务器默认连接线上后端，请勿污染线上数据。

@@ -13,7 +13,6 @@ on:
       - pnpm-workspace.yaml
       - apps/web/**
       - apps/admin/**
-      - packages/web-kit/**
 
 permissions:
   contents: read
