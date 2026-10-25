@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { getApiErrorMessage, roles } from '@novelia/web-kit';
+import { getApiErrorMessage, isKnownRole } from '@novelia/web-kit';
 import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter, type LocationQueryRaw } from 'vue-router';
 
@@ -34,7 +34,6 @@ const role = ref('');
 const createdRange = ref<[number, number] | null>(null);
 const pendingAction = ref<{ action: UserAction; user: User } | null>(null);
 let requestId = 0;
-const validRoles = new Set(roles);
 const hasFilters = computed(() =>
   Boolean(query.value || role.value || createdRange.value),
 );
@@ -75,7 +74,7 @@ function syncFromRoute() {
   pageSize.value = readPageSize(route.query);
   query.value = readQueryString(route.query, 'query').trim();
   const routeRole = readQueryString(route.query, 'role');
-  role.value = validRoles.has(routeRole) ? routeRole : '';
+  role.value = isKnownRole(routeRole) ? routeRole : '';
   createdRange.value = readCreatedRange(route.query);
 
   queryInput.value = query.value;

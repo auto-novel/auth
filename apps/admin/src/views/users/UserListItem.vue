@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { roleLabels, XButton } from '@novelia/web-kit';
+import { isKnownRole, roleLabels, XButton } from '@novelia/web-kit';
+import { computed } from 'vue';
 
 import StatusTag from '@/components/StatusTag.vue';
 import type { User, UserAction } from '@/api';
@@ -8,6 +9,10 @@ const props = defineProps<{ user: User; total: number }>();
 const emit = defineEmits<{
   action: [action: UserAction, user: User];
 }>();
+
+const roleLabel = computed(() =>
+  isKnownRole(props.user.role) ? roleLabels[props.user.role] : props.user.role,
+);
 
 const roleTones: Record<
   string,
@@ -63,7 +68,7 @@ function formatId(id: number) {
     <div class="summary">
       <span class="text-muted user-id">#{{ formatId(user.id) }}</span>
       <StatusTag class="role-tag" :tone="roleTones[user.role] ?? 'neutral'">
-        {{ roleLabels[user.role] ?? user.role }}
+        {{ roleLabel }}
       </StatusTag>
       <span
         class="role-text"
@@ -72,7 +77,7 @@ function formatId(id: number) {
           { 'role-text--placeholder': user.role === 'member' },
         ]"
       >
-        {{ roleLabels[user.role] ?? user.role }}
+        {{ roleLabel }}
       </span>
     </div>
 

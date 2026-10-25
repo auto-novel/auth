@@ -15,8 +15,8 @@ importers:
   apps/admin:
     dependencies:
       '@novelia/web-kit':
-        specifier: github:auto-novel/web-kit#c477d4e49f2c0e4907b015b4a69d203d6ffb2c72
-        version: https://codeload.github.com/auto-novel/web-kit/tar.gz/c477d4e49f2c0e4907b015b4a69d203d6ffb2c72(@vicons/material@0.13.0)(tailwindcss@4.3.3)(vue-router@5.2.0(@vue/compiler-sfc@3.5.41)(rolldown@1.2.4)(vite@8.2.2(@types/node@25.9.5)(jiti@2.7.0)(terser@5.50.0)(yaml@2.9.0))(vue@3.5.41(typescript@6.0.3)))(vue@3.5.41(typescript@6.0.3))
+        specifier: github:auto-novel/web-kit#b6277d5be30e40d8911f1c4f5f80e5baf14b45a7
+        version: https://codeload.github.com/auto-novel/web-kit/tar.gz/b6277d5be30e40d8911f1c4f5f80e5baf14b45a7(@vicons/material@0.13.0)(tailwindcss@4.3.3)(vue-router@5.2.0(@vue/compiler-sfc@3.5.41)(rolldown@1.2.4)(vite@8.2.2(@types/node@25.9.5)(jiti@2.7.0)(terser@5.50.0)(yaml@2.9.0))(vue@3.5.41(typescript@6.0.3)))(vue@3.5.41(typescript@6.0.3))
       '@tailwindcss/vite':
         specifier: ^4.3.3
         version: 4.3.3(vite@8.2.2(@types/node@25.9.5)(jiti@2.7.0)(terser@5.50.0)(yaml@2.9.0))
@@ -237,8 +237,8 @@ packages:
     resolution: {integrity: sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg==}
     engines: {node: '>= 8'}
 
-  '@novelia/web-kit@https://codeload.github.com/auto-novel/web-kit/tar.gz/c477d4e49f2c0e4907b015b4a69d203d6ffb2c72':
-    resolution: {gitHosted: true, integrity: sha512-XywemGtA93+xZQNeOZlnI+QDCFL+vg9a3wF+rQkiu1HEVD3LPsI4C8Hgkx/Zjk6rJFdShXKqdgRI0YJvoVk6/A==, tarball: https://codeload.github.com/auto-novel/web-kit/tar.gz/c477d4e49f2c0e4907b015b4a69d203d6ffb2c72}
+  '@novelia/web-kit@https://codeload.github.com/auto-novel/web-kit/tar.gz/b6277d5be30e40d8911f1c4f5f80e5baf14b45a7':
+    resolution: {gitHosted: true, integrity: sha512-p0X5FArmCyhXfv6IyDNKY4x3Nd2Csz6aJmBXHoT3jtHSBYymWn1Ozi3vBkQJ67AIl+1sWsw7FtpniserHNFVIw==, tarball: https://codeload.github.com/auto-novel/web-kit/tar.gz/b6277d5be30e40d8911f1c4f5f80e5baf14b45a7}
     version: 0.1.0
     engines: {node: '>=22.18.0'}
     peerDependencies:
@@ -1534,7 +1534,7 @@ snapshots:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.20.1
 
-  '@novelia/web-kit@https://codeload.github.com/auto-novel/web-kit/tar.gz/c477d4e49f2c0e4907b015b4a69d203d6ffb2c72(@vicons/material@0.13.0)(tailwindcss@4.3.3)(vue-router@5.2.0(@vue/compiler-sfc@3.5.41)(rolldown@1.2.4)(vite@8.2.2(@types/node@25.9.5)(jiti@2.7.0)(terser@5.50.0)(yaml@2.9.0))(vue@3.5.41(typescript@6.0.3)))(vue@3.5.41(typescript@6.0.3))':
+  '@novelia/web-kit@https://codeload.github.com/auto-novel/web-kit/tar.gz/b6277d5be30e40d8911f1c4f5f80e5baf14b45a7(@vicons/material@0.13.0)(tailwindcss@4.3.3)(vue-router@5.2.0(@vue/compiler-sfc@3.5.41)(rolldown@1.2.4)(vite@8.2.2(@types/node@25.9.5)(jiti@2.7.0)(terser@5.50.0)(yaml@2.9.0))(vue@3.5.41(typescript@6.0.3)))(vue@3.5.41(typescript@6.0.3))':
     dependencies:
       '@internationalized/date': 3.12.4
       '@mdit/plugin-container': 2.0.2(markdown-it@15.0.3)
